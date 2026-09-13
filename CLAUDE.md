@@ -162,12 +162,34 @@ bundler.
 Keep modules around 400 lines. Past that, split into a subfolder behind
 a thin re-export shim so the import path does not change.
 
-## Connecting Supabase
+## Supabase
 
-Not yet connected. When it is:
+Connected. Project `fggexvcodgmpkxkgpxet` (`houseandhome`), eu-west-2,
+organisation GeorgeRectory. The URL and publishable key are in
+`assets/js/core/config.js`; the service_role key is not in this
+repository and must never be.
 
-1. Apply `supabase/schema/*.sql` in filename order as migrations.
-2. Run the advisors; require zero `anon`-executable SECURITY DEFINER
-   functions and zero tables without RLS.
-3. Put the project URL and anon key in `assets/js/core/config.js`.
-4. Every page switches to live rows with no other change.
+Sign-in is Supabase Auth. The owner signs in by USERNAME, and the login
+form maps it to an email: `homeowner` -> `homeowner@houseandhome.local`.
+That rule has two homes that must stay in step -
+`auth_email_for_username()` in `supabase/schema/05_auth.sql` and
+`emailForUsername()` in `assets/js/core/auth.js`.
+
+To create or reset the owner account, from an MCP session or the SQL
+editor - never from the application:
+
+    select public.bootstrap_owner('homeowner', '<the password>', 'House & Home');
+
+It is idempotent: run again to reset the password. The function is
+revoked from anon and authenticated, and takes the password as a
+parameter so no password is ever written into this repository.
+
+After any schema change: run the security advisor and require zero
+tables without RLS and zero `anon`-executable SECURITY DEFINER
+functions. Two `authenticated`-executable ones are expected and correct -
+`is_household_member()` and `current_household()` - because every RLS
+policy calls the first, and both only ever read the caller's own
+`auth.uid()`.
+
+The test suite forces demo mode by setting `globalThis.__HH_CONFIG__`
+before the modules load, so it never touches the live database.

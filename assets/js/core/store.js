@@ -25,25 +25,43 @@ async function loadLive() {
   const { createClient } = await import(CONFIG.supabaseModule);
   const sb = createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
   const { data: { session } } = await sb.auth.getSession();
-  if (!session) { location.href = 'pages/login.html'; return null; }
+  if (!session) { location.replace('login.html'); return null; }
 
-  const [rooms, items, bills, assets] = await Promise.all([
+  const [rooms, items, bills, assets, storage, inventory, settings] = await Promise.all([
     sb.from('rooms').select('*'),
     sb.from('work_items').select('*').order('priority'),
     sb.from('bills').select('*').eq('is_active', true),
     sb.from('assets').select('*'),
+    sb.from('storage_locations').select('*'),
+    sb.from('inventory_items').select('*'),
+    sb.from('allocation_settings').select('*').maybeSingle(),
   ]);
   const { data: pot } = await sb.from('pots').select('*').eq('is_active', true).maybeSingle();
+
+  // Pages read room_name off an item; resolve it once here rather than
+  // making every page join, and rather than asking PostgREST for an
+  // embedded select that RLS would have to re-check per row.
+  const roomById = new Map((rooms.data ?? []).map((r) => [r.id, r]));
+  const withRoom = (i) => ({
+    ...i,
+    room_key: roomById.get(i.room_id)?.key ?? null,
+    room_name: roomById.get(i.room_id)?.name ?? null,
+  });
 
   cache = {
     meta: { generated: new Date().toISOString().slice(0, 10), note: 'Live data.' },
     pot: pot ?? null,
     rooms: rooms.data ?? [],
-    items: items.data ?? [],
+    items: (items.data ?? []).map(withRoom),
     bills: bills.data ?? [],
-    assets: assets.data ?? [],
-    storage: [], inventory: [],
-    allocation_settings: { decay: 0.85, floor_share: 0.10 },
+    assets: (assets.data ?? []).map((a) => ({
+      ...a, room_name: roomById.get(a.room_id)?.name ?? null,
+    })),
+    storage: (storage.data ?? []).map((s) => ({
+      ...s, room_key: roomById.get(s.room_id)?.key ?? null,
+    })),
+    inventory: (inventory.data ?? []).map((v) => ({ ...v, storage: null })),
+    allocation_settings: settings.data ?? { decay: 0.85, floor_share: 0.10 },
   };
   return cache;
 }

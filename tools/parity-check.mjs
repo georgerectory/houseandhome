@@ -18,6 +18,48 @@ const SOCK = process.env.PGSOCK || '/var/tmp';
 const PORT = process.env.PGPORT || '5433';
 
 const asRoot = process.getuid && process.getuid() === 0;
+
+// Provision the parity database from the schema rather than assuming one
+// is already there. A gate that depends on a hand-made database passes on
+// one machine and fails on the next, which is worse than not having it.
+function sh(cmd) {
+  const c = asRoot ? ['su', ['postgres', '-c', cmd]] : ['bash', ['-c', cmd]];
+  return execFileSync(c[0], c[1], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+}
+
+function provision() {
+  const stage = join(tmpdir(), `parity-schema-${randomUUID()}`);
+  execFileSync('mkdir', ['-p', stage]);
+  execFileSync('bash', ['-c',
+    `cp ${new URL('../supabase/schema', import.meta.url).pathname}/*.sql ${stage}/ && chmod -R a+rX ${stage}`]);
+  writeFileSync(join(stage, '00_shim.sql'), `
+create schema if not exists auth;
+create schema if not exists extensions;
+create extension if not exists pgcrypto with schema extensions;
+create or replace function auth.uid() returns uuid
+  language sql stable as $fn$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $fn$;
+do $blk$ begin
+  if not exists (select 1 from pg_roles where rolname='anon') then create role anon nologin; end if;
+  if not exists (select 1 from pg_roles where rolname='authenticated') then create role authenticated nologin; end if;
+end $blk$;
+create table if not exists auth.users (
+  id uuid primary key, instance_id uuid, aud text, role text, email text unique,
+  encrypted_password text, email_confirmed_at timestamptz,
+  created_at timestamptz default now(), updated_at timestamptz default now(),
+  raw_app_meta_data jsonb, raw_user_meta_data jsonb);
+`, { mode: 0o644 });
+
+  sh(`${PGBIN}/psql -h ${SOCK} -p ${PORT} -U postgres -q -c "drop database if exists ${DB}" -c "create database ${DB}"`);
+  sh(`${PGBIN}/psql -h ${SOCK} -p ${PORT} -U postgres -d ${DB} -q -v ON_ERROR_STOP=1 -f ${stage}/00_shim.sql`);
+  for (const f of ['00_core','05_auth','10_property','20_work','30_links','40_money',
+                   '50_assets','60_knowledge','70_learning','80_functions','90_policies']) {
+    sh(`${PGBIN}/psql -h ${SOCK} -p ${PORT} -U postgres -d ${DB} -q -v ON_ERROR_STOP=1 -f ${stage}/${f}.sql`);
+  }
+  sh(`${PGBIN}/psql -h ${SOCK} -p ${PORT} -U postgres -d ${DB} -q -c "insert into households (id,name) values ('11111111-1111-1111-1111-111111111111','Parity') on conflict do nothing"`);
+  execFileSync('rm', ['-rf', stage]);
+}
+
+provision();
 // SQL goes through a file rather than -c: multi-line statements do not
 // survive shell quoting intact, and a silently mangled query would make
 // this check pass for the wrong reason.

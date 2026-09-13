@@ -1,10 +1,14 @@
 // House. Rooms, what is stored where, and the equipment register.
+import { requireAuth } from '../core/auth.js';
 import { mountShell, render, confidenceBanner } from '../core/shell.js';
 import { load, openItems, confidenceSummary } from '../core/store.js';
 import { emptyState } from '../core/page.js';
 import { money, provenance, titleCase, escape } from '../core/format.js';
 
-mountShell('house.html');
+const user = await requireAuth();
+if (!user) throw new Error('redirecting to login');
+
+mountShell('house.html', { user });
 
 const d = await load();
 const open = openItems(d);

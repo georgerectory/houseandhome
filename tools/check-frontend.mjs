@@ -38,6 +38,9 @@ const server = createServer(async (req, res) => {
 await new Promise((r) => server.listen(PORT, r));
 
 const PAGES = ['index.html', 'roadmap.html', 'backlog.html', 'money.html', 'house.html', 'handbook.html'];
+// The login screen is checked separately: it has no nav and is reached
+// without a session.
+const PUBLIC_PAGES = ['login.html'];
 const VIEWPORTS = [
   { name: 'iPhone portrait',  width: 390, height: 844, touch: true },
   { name: 'iPhone landscape', width: 844, height: 390, touch: true },
@@ -72,6 +75,22 @@ for (const theme of THEMES) {
       deviceScaleFactor: 1,
     });
     const page = await ctx.newPage();
+    // Force demo mode for the sweep: the suite must run offline, in CI,
+    // and without touching the live database. This is the only consumer
+    // of the config override.
+    await page.addInitScript(() => {
+      globalThis.__HH_CONFIG__ = { supabaseUrl: '', supabaseAnonKey: '' };
+    });
+    // Every protected page redirects to the login screen without a
+    // session, so establish one before the sweep - otherwise this would
+    // silently check the same login page six times and report success.
+    await page.goto(`http://localhost:${PORT}/login.html`, { waitUntil: 'networkidle' });
+    await page.fill('#username', 'homeowner');
+    await page.fill('#password', 'houseandhome');
+    await Promise.all([
+      page.waitForURL((u) => !u.pathname.endsWith('login.html'), { timeout: 5000 }),
+      page.click('#submit'),
+    ]);
     const errors = [];
     page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
     page.on('pageerror', (e) => errors.push(String(e)));
@@ -117,6 +136,7 @@ for (const theme of THEMES) {
         out.mains = document.querySelectorAll('main#main').length;
         out.h1s = document.querySelectorAll('h1').length;
         out.skip = !!document.querySelector('a.skip-link[href="#main"]');
+        out.hasNav = !!document.querySelector('nav[aria-label]');
         out.bodyBg = getComputedStyle(document.body).backgroundColor;
         out.bodyColor = getComputedStyle(document.body).color;
         out.contentLen = (document.querySelector('[data-page-root]')?.textContent || '').trim().length;
@@ -132,6 +152,7 @@ for (const theme of THEMES) {
       if (r.fontTooSmall) failures.push(`${label}: body font ${r.fontTooSmall}px < 16px (iOS will zoom on focus)`);
       if (r.mains !== 1) failures.push(`${label}: ${r.mains} <main id="main"> (expected 1)`);
       if (r.h1s !== 1) failures.push(`${label}: ${r.h1s} <h1> (expected 1)`);
+      if (r.hasNav !== true) failures.push(`${label}: no navigation landmark`);
       if (!r.skip) failures.push(`${label}: no skip link`);
       if (errors.length) failures.push(`${label}: console error - ${errors[0].slice(0, 120)}`);
       if (r.contentLen < 50) failures.push(`${label}: page rendered no content (${r.contentLen} chars)`);

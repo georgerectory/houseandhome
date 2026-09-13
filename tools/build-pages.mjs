@@ -16,6 +16,34 @@ const PAGES = [
   ['handbook.html', 'Handbook', 'What this house is and what was decided.'],
 ];
 
+// The login screen has no nav, no <h1> of its own and no lede: it is
+// rendered entirely by its module, so it gets a bare shell.
+const LOGIN = `<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sign in — House &amp; Home</title>
+<meta name="description" content="Sign in to House &amp; Home.">
+<meta name="color-scheme" content="light dark">
+<meta name="robots" content="noindex">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<script>
+try { var t = localStorage.getItem('hh-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+</head>
+<body>
+<main id="main" class="page">
+  <div data-page-root aria-live="polite"></div>
+</main>
+<script type="module" src="assets/js/pages/login.js"></script>
+</body>
+</html>
+`;
+
 const tpl = (file, title, lede) => `<!doctype html>
 <html lang="en-GB">
 <head>
@@ -48,4 +76,5 @@ try { var t = localStorage.getItem('hh-theme'); if (t) document.documentElement.
 for (const [file, title, lede] of PAGES) {
   writeFileSync(file, tpl(file, title, lede));
 }
-console.log(`pages: ${PAGES.length} written`);
+writeFileSync('login.html', LOGIN);
+console.log(`pages: ${PAGES.length + 1} written`);

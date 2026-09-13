@@ -6,22 +6,20 @@ this file is only what is not yet finished. Keep it under 40 lines.
 
 ## In progress
 
-Nothing. Version one is complete and all five test gates are green.
+Nothing. Version one is live: Supabase connected, schema applied, seed
+data loaded, login working, deployed to GitHub Pages, all five gates green.
 
 ## Next steps
 
-1. **Connect Supabase.** The schema is written and proven against a real
-   Postgres but has never been applied to a hosted project. Needs the
-   georgerectory project ref, and note the MCP connector is currently
-   authenticated to a different account, so this is a credential change
-   rather than a project switch.
-2. **Apply the schema**, run the advisors, fill in
-   `assets/js/core/config.js`. Every page then reads live rows with no
-   other change.
-3. **Refine the data.** Everything in `data/fixtures/demo.json` is
-   drafted: the seed list, its costs and its priorities are all
-   unverified. Confirming them is a conversation, not a build task, and
-   the system is built to be useful and honest in the meantime.
+1. **Refine the data.** All 68 items, their costs and the £400 monthly
+   contribution are `drafted` - none has been checked. Until the
+   contribution is confirmed, `run_deposit_allocation()` refuses to move
+   real money, which is deliberate. Confirming is a conversation, not a
+   build task.
+2. **Enable leaked-password protection** in Supabase Auth settings. The
+   advisor flags it and it is a dashboard toggle, not a migration.
+3. **Bind a property** when one is bought: create the `properties` row,
+   replace the template rooms with real ones, re-scope the estimates.
 
 ## Open decisions
 
@@ -35,3 +33,8 @@ Nothing. Version one is complete and all five test gates are green.
   built: with no completed work there is nothing to learn from, and
   guessing the thresholds now would bake in numbers nobody could defend.
   Build it once there are real outcomes, and calibrate from `gate_stats`.
+- **Browser-to-Supabase path is unverified from CI.** The sandbox blocks
+  egress to supabase.co and jsdelivr, so the live sign-in flow could not
+  be driven there. The credential itself is verified at the database
+  level, and the guard now fails closed if the client cannot load.
+  Confirm the real flow in a browser after any auth change.

@@ -1,11 +1,15 @@
 // Backlog. Every open row, ranked, with filters that narrow rather than
 // navigate - the whole list stays one page.
+import { requireAuth } from '../core/auth.js';
 import { mountShell, render, confidenceBanner } from '../core/shell.js';
 import { load, openItems, confidenceSummary } from '../core/store.js';
 import { itemDetail, itemChips } from '../core/page.js';
 import { money, duration, provenance, titleCase, escape } from '../core/format.js';
 
-mountShell('backlog.html');
+const user = await requireAuth();
+if (!user) throw new Error('redirecting to login');
+
+mountShell('backlog.html', { user });
 
 const d = await load();
 const all = openItems(d).sort((a, b) => a.priority - b.priority);

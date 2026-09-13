@@ -21,7 +21,7 @@ do $$
 declare t text;
 begin
   foreach t in array array[
-    'households','household_members','confidence_levels',
+    'households','household_members','confidence_levels','user_profiles',
     'properties','levels','rooms','room_features','storage_locations',
     'trades','themes','benefit_types','milestones','work_item_templates',
     'work_items','work_notes',

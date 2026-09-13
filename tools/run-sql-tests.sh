@@ -31,6 +31,23 @@ cp "$ROOT"/supabase/schema/*.sql "$ROOT"/tests/sql/*.sql "$STAGE"/
 cat > "$STAGE/00_shim.sql" <<'SQL'
 -- Local-only: Supabase supplies these. Never applied to a real project.
 create schema if not exists auth;
+create schema if not exists extensions;
+create extension if not exists pgcrypto with schema extensions;
+-- Minimal stand-in for the Supabase-managed auth.users table, so the
+-- bootstrap path can be exercised locally.
+create table if not exists auth.users (
+  id uuid primary key,
+  instance_id uuid,
+  aud text,
+  role text,
+  email text unique,
+  encrypted_password text,
+  email_confirmed_at timestamptz,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now(),
+  raw_app_meta_data jsonb,
+  raw_user_meta_data jsonb
+);
 create or replace function auth.uid() returns uuid
   language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
 do $$ begin

@@ -33,7 +33,7 @@ function currentTheme() {
     || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 }
 
-export function mountShell(active) {
+export function mountShell(active, { user = null } = {}) {
   applyStoredTheme();
 
   const header = document.createElement('header');
@@ -77,7 +77,25 @@ export function mountShell(active) {
   });
   paint();
 
-  inner.append(brand, nav, toggle);
+  const actions = document.createElement('div');
+  actions.className = 'header-actions';
+  actions.append(toggle);
+
+  if (user) {
+    const out = document.createElement('button');
+    out.type = 'button';
+    out.className = 'signout';
+    out.textContent = 'Sign out';
+    out.setAttribute('aria-label', `Sign out of ${user.username}`);
+    out.addEventListener('click', async () => {
+      const { signOut } = await import('./auth.js');
+      await signOut();
+      location.replace('login.html');
+    });
+    actions.append(out);
+  }
+
+  inner.append(brand, nav, actions);
   header.append(inner);
 
   const skip = document.createElement('a');

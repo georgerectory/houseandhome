@@ -1,10 +1,14 @@
 // Handbook. What this system is, how it decides things, and what has
 // been decided. The reference a cold session reads to become competent.
+import { requireAuth } from '../core/auth.js';
 import { mountShell, render } from '../core/shell.js';
 import { load, openItems, confidenceSummary } from '../core/store.js';
 import { escape } from '../core/format.js';
 
-mountShell('handbook.html');
+const user = await requireAuth();
+if (!user) throw new Error('redirecting to login');
+
+mountShell('handbook.html', { user });
 
 const d = await load();
 const conf = confidenceSummary(d);

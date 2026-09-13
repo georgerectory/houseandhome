@@ -309,3 +309,74 @@ fieldset[role="group"] {
   align-items: center;
   gap: var(--space-2) var(--space-3);
 }
+
+/* --- Login -----------------------------------------------------------
+ * The only form in the system. Centred in the viewport on a phone
+ * without using vh, which would misreport the visible area under mobile
+ * browser chrome. */
+.login {
+  display: grid;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 24rem;
+  margin-inline: auto;
+  margin-block: var(--space-12);
+  padding: var(--space-6);
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+}
+.login__title {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  margin: 0;
+}
+.login__lede { color: var(--ink-muted); margin: 0; font-size: var(--text-sm); }
+.login__error {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--alert-soft);
+  border: 1px solid var(--alert);
+  color: var(--alert);
+  font-size: var(--text-sm);
+}
+
+.field { display: grid; gap: var(--space-1); }
+.field label { min-height: auto; }
+.field input { width: 100%; }
+
+.btn {
+  min-height: var(--tap-min);
+  padding: var(--space-2) var(--space-5, var(--space-4));
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font: inherit;
+  font-size: max(1rem, var(--text-sm));
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn:hover { background: color-mix(in oklch, var(--accent) 88%, var(--ink)); }
+.btn[disabled] { opacity: 0.6; cursor: default; }
+
+.login__demo { margin-top: var(--space-6); margin-bottom: 0; }
+
+/* Sign-out sits in the header next to the theme control. */
+.signout {
+  min-height: var(--tap-min);
+  display: inline-flex;
+  align-items: center;
+  padding-inline: var(--space-3);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-muted);
+  font: inherit;
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+.signout:hover { border-color: var(--rule-strong); color: var(--ink); }
+
+.header-actions { display: flex; gap: var(--space-2); align-items: center; }

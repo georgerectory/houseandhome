@@ -3,13 +3,17 @@
 // No isolated calculators: the split shown here, the projection below it
 // and the dashboard's table all come from the same allocate() call on
 // the same rows, so two pages can never disagree about the same money.
+import { requireAuth } from '../core/auth.js';
 import { mountShell, render, confidenceBanner } from '../core/shell.js';
 import { load, fundable, totalOutstanding, confidenceSummary } from '../core/store.js';
 import { emptyState } from '../core/page.js';
 import { money, preciseMoney, provenance, titleCase, escape } from '../core/format.js';
 import { allocate, projectFunding } from '../../js/engine/allocate.js';
 
-mountShell('money.html');
+const user = await requireAuth();
+if (!user) throw new Error('redirecting to login');
+
+mountShell('money.html', { user });
 
 const d = await load();
 const queue = fundable(d);

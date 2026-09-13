@@ -1,12 +1,16 @@
 // Roadmap. The same rows as the backlog, banded by horizon - one table,
 // many projections, so moving work between bands is a field edit and
 // never a copy.
+import { requireAuth } from '../core/auth.js';
 import { mountShell, render, confidenceBanner } from '../core/shell.js';
 import { load, byHorizon, confidenceSummary } from '../core/store.js';
 import { itemCard, emptyState } from '../core/page.js';
 import { HORIZON_LABEL, escape } from '../core/format.js';
 
-mountShell('roadmap.html');
+const user = await requireAuth();
+if (!user) throw new Error('redirecting to login');
+
+mountShell('roadmap.html', { user });
 
 const d = await load();
 const bands = ['now', 'next', 'later', 'someday'];

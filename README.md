@@ -1,5 +1,7 @@
 # House & Home
 
+**Live: https://georgerectory.github.io/houseandhome/**
+
 A house manager: renovation roadmap, prioritised backlog, savings
 allocation, floor plan, inventory and an equipment register. Built to
 run *before* a property is bought, through purchase and renovation, and
@@ -43,8 +45,13 @@ test rather than assumed.
     npm run serve      # http://localhost:8000
     npm test           # all five gates
 
-With no database connected the site renders `data/fixtures/demo.json`,
-so every page works — and is honest that nothing in it is confirmed.
+Sign in with the username set up in Supabase Auth. The login form maps a
+username to an email behind the scenes, so `homeowner` signs in as
+`homeowner@houseandhome.local`.
+
+The test suite forces demo mode against `data/fixtures/demo.json`, so it
+runs offline and never touches the live database. Clearing the Supabase
+values in `assets/js/core/config.js` does the same for the whole site.
 
 ### Tests
 
@@ -65,6 +72,11 @@ so every page works — and is honest that nothing in it is confirmed.
 
 ## Status
 
-Version one. The schema, the engines and the interface are built and
-tested; Supabase is not yet connected, and no figure in the seed data
-has been confirmed.
+Version one, live. Supabase project connected in eu-west-2 with 45 tables,
+row-level security forced on every one, and nothing reachable by the
+anonymous role. Seeded with 16 rooms and 68 items.
+
+**No figure in it has been confirmed.** Every cost, every estimate and the
+monthly contribution are drafts. The interface marks them provisional, and
+the allocation engine refuses to move real money against an unconfirmed
+contribution. Confirming them is a conversation, not a build task.

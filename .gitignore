@@ -1,0 +1,8 @@
+node_modules/
+.DS_Store
+*.log
+# Local-only Supabase override (a different project ref for development).
+# The committed client holds the anon key only, which RLS makes safe to ship.
+assets/js/core/config.local.js
+# Screenshots produced by the responsive check.
+tests/screenshots/

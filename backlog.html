@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Backlog — House &amp; Home</title>
+<meta name="description" content="Every job and purchase, ranked and filterable.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<script>
+/* Apply the stored theme before first paint: doing it in the module
+   would flash the wrong theme while the module loads. */
+try { var t = localStorage.getItem('hh-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+</head>
+<body>
+<main id="main" class="page">
+  <h1>Backlog</h1>
+  <p class="lede">Every job and purchase, ranked and filterable.</p>
+  <div data-page-root aria-live="polite"></div>
+</main>
+<script type="module" src="assets/js/pages/backlog.js"></script>
+</body>
+</html>

@@ -1,0 +1,191 @@
+/* tokens.css - the single source of every visual value.
+ *
+ * Component CSS never hard-codes a colour, a type size or an off-scale
+ * space. If a value is not here, the layout changes, not the token.
+ *
+ * Colour is OKLCH with colour derived by colour-mix, so light and dark
+ * share ONE hue ladder flipped in lightness rather than being two
+ * separate palettes that drift apart. One neutral hue (warm) and one
+ * accent (a muted green), and everything else is mixed from them.
+ *
+ * Theming has three states, and all three are handled:
+ *   :root                         light, the default
+ *   prefers-color-scheme: dark    the system default, when unset
+ *   [data-theme="dark"|"light"]   an explicit choice, which wins
+ */
+
+:root {
+  color-scheme: light;
+
+  /* --- Palette ------------------------------------------------------ */
+  --hue-neutral: 75;
+  --hue-accent: 155;
+
+  --paper:        oklch(98.5% 0.006 var(--hue-neutral));
+  --paper-raised: oklch(100% 0 0);
+  --paper-sunken: oklch(96% 0.008 var(--hue-neutral));
+  --ink:          oklch(24% 0.015 var(--hue-neutral));
+  --ink-muted:    oklch(48% 0.012 var(--hue-neutral));
+  --ink-faint:    oklch(62% 0.010 var(--hue-neutral));
+  --rule:         oklch(89% 0.008 var(--hue-neutral));
+  --rule-strong:  oklch(80% 0.010 var(--hue-neutral));
+
+  --accent:       oklch(48% 0.105 var(--hue-accent));
+  --accent-ink:   oklch(100% 0 0);
+  --accent-soft:  color-mix(in oklch, var(--accent) 12%, var(--paper));
+  --accent-edge:  color-mix(in oklch, var(--accent) 38%, var(--paper));
+
+  /* Status. Never used as the ONLY carrier of meaning - every status
+   * pairs its colour with a text label, per WCAG 1.4.1. */
+  --ok:      oklch(48% 0.10 155);
+  --warn:    oklch(58% 0.12 75);
+  --alert:   oklch(52% 0.15 28);
+  --info:    oklch(50% 0.09 245);
+  --ok-soft:    color-mix(in oklch, var(--ok) 14%, var(--paper));
+  --warn-soft:  color-mix(in oklch, var(--warn) 16%, var(--paper));
+  --alert-soft: color-mix(in oklch, var(--alert) 14%, var(--paper));
+  --info-soft:  color-mix(in oklch, var(--info) 14%, var(--paper));
+
+  /* --- Space: 4px base, no exceptions ------------------------------- */
+  --space-1: 0.25rem;  --space-2: 0.5rem;   --space-3: 0.75rem;
+  --space-4: 1rem;     --space-6: 1.5rem;   --space-8: 2rem;
+  --space-12: 3rem;    --space-16: 4rem;    --space-24: 6rem;
+
+  /* --- Type: one ratio (1.200), fluid between phone and desktop ------
+   * Every size is a clamp with a 1rem floor on anything a control can
+   * use, because iOS Safari zooms the viewport when a focused input
+   * computes below 16px. */
+  --font-body: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: ui-serif, Georgia, "Times New Roman", serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  --text-xs:   clamp(0.75rem, 0.72rem + 0.15vw, 0.8125rem);
+  --text-sm:   clamp(0.875rem, 0.85rem + 0.15vw, 0.9375rem);
+  --text-base: clamp(1rem, 0.97rem + 0.18vw, 1.0625rem);
+  --text-lg:   clamp(1.125rem, 1.07rem + 0.3vw, 1.25rem);
+  --text-xl:   clamp(1.35rem, 1.25rem + 0.5vw, 1.5rem);
+  --text-2xl:  clamp(1.6rem, 1.4rem + 0.9vw, 2rem);
+  --text-3xl:  clamp(1.9rem, 1.6rem + 1.4vw, 2.6rem);
+
+  --leading-tight: 1.2;
+  --leading-body: 1.55;
+
+  /* --- Shape -------------------------------------------------------- */
+  --radius: 10px;
+  --radius-sm: 6px;
+  --radius-lg: 16px;
+
+  /* Elevation is for genuine layering only - a sheet or a dialog above
+   * the page. Never decoration on a resting card. */
+  --shadow-sheet: 0 8px 32px -8px oklch(24% 0.02 var(--hue-neutral) / 0.28);
+
+  /* --- Focus --------------------------------------------------------
+   * A box-shadow VALUE, applied as `box-shadow: var(--focus-ring)`.
+   * Applying it to `outline:` is invalid at computed-value time and
+   * silently removes the focus indicator entirely, so the lint in
+   * tools/lint-frontend.mjs rejects that usage. */
+  --focus-ring: 0 0 0 3px var(--paper), 0 0 0 5px var(--accent);
+
+  /* --- Targets ------------------------------------------------------ */
+  --tap-min: 44px;
+  --tap-min-floor: 24px;
+
+  /* --- Layout ------------------------------------------------------- */
+  --measure: 68ch;
+  --page-max: 78rem;
+  --gutter: var(--space-4);
+}
+
+@media (min-width: 768px) {
+  :root { --gutter: var(--space-6); }
+}
+
+/* Dark, as the system default when no explicit choice is stored.
+ * Guarded with :not([data-theme="light"]) so an explicit light choice
+ * still wins on a dark-set device. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --paper:        oklch(17% 0.012 var(--hue-neutral));
+    --paper-raised: oklch(21% 0.014 var(--hue-neutral));
+    --paper-sunken: oklch(14% 0.010 var(--hue-neutral));
+    --ink:          oklch(94% 0.010 var(--hue-neutral));
+    --ink-muted:    oklch(74% 0.012 var(--hue-neutral));
+    --ink-faint:    oklch(60% 0.012 var(--hue-neutral));
+    --rule:         oklch(28% 0.012 var(--hue-neutral));
+    --rule-strong:  oklch(38% 0.014 var(--hue-neutral));
+
+    --accent:       oklch(74% 0.125 var(--hue-accent));
+    --accent-ink:   oklch(16% 0.02 var(--hue-accent));
+    --accent-soft:  color-mix(in oklch, var(--accent) 16%, var(--paper));
+    --accent-edge:  color-mix(in oklch, var(--accent) 42%, var(--paper));
+
+    --ok:    oklch(76% 0.115 155);
+    --warn:  oklch(80% 0.115 75);
+    --alert: oklch(70% 0.145 28);
+    --info:  oklch(74% 0.095 245);
+    --ok-soft:    color-mix(in oklch, var(--ok) 18%, var(--paper));
+    --warn-soft:  color-mix(in oklch, var(--warn) 18%, var(--paper));
+    --alert-soft: color-mix(in oklch, var(--alert) 18%, var(--paper));
+    --info-soft:  color-mix(in oklch, var(--info) 18%, var(--paper));
+
+    --shadow-sheet: 0 8px 32px -8px oklch(0% 0 0 / 0.6);
+  }
+}
+
+/* An explicit choice wins in both directions. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --paper:        oklch(17% 0.012 var(--hue-neutral));
+  --paper-raised: oklch(21% 0.014 var(--hue-neutral));
+  --paper-sunken: oklch(14% 0.010 var(--hue-neutral));
+  --ink:          oklch(94% 0.010 var(--hue-neutral));
+  --ink-muted:    oklch(74% 0.012 var(--hue-neutral));
+  --ink-faint:    oklch(60% 0.012 var(--hue-neutral));
+  --rule:         oklch(28% 0.012 var(--hue-neutral));
+  --rule-strong:  oklch(38% 0.014 var(--hue-neutral));
+
+  --accent:       oklch(74% 0.125 var(--hue-accent));
+  --accent-ink:   oklch(16% 0.02 var(--hue-accent));
+  --accent-soft:  color-mix(in oklch, var(--accent) 16%, var(--paper));
+  --accent-edge:  color-mix(in oklch, var(--accent) 42%, var(--paper));
+
+  --ok:    oklch(76% 0.115 155);
+  --warn:  oklch(80% 0.115 75);
+  --alert: oklch(70% 0.145 28);
+  --info:  oklch(74% 0.095 245);
+  --ok-soft:    color-mix(in oklch, var(--ok) 18%, var(--paper));
+  --warn-soft:  color-mix(in oklch, var(--warn) 18%, var(--paper));
+  --alert-soft: color-mix(in oklch, var(--alert) 18%, var(--paper));
+  --info-soft:  color-mix(in oklch, var(--info) 18%, var(--paper));
+
+  --shadow-sheet: 0 8px 32px -8px oklch(0% 0 0 / 0.6);
+}
+
+/* Fallback for engines without oklch. Custom properties resolve at
+ * USAGE time, so a @supports override block is the only fallback that
+ * actually takes effect - redefining them inside the original :root
+ * would not. Any new colour token must be added here too; the lint
+ * checks that the two lists agree. */
+@supports not (color: oklch(50% 0.1 150)) {
+  :root {
+    --paper: #fbfaf7;        --paper-raised: #ffffff;  --paper-sunken: #f3f2ee;
+    --ink: #22241f;          --ink-muted: #6b6e66;     --ink-faint: #8e9189;
+    --rule: #e2e1da;         --rule-strong: #c6c5bc;
+    --accent: #2f6b4f;       --accent-ink: #ffffff;
+    --accent-soft: #e6efe9;  --accent-edge: #a8c6b5;
+    --ok: #2f6b4f;           --warn: #8a6a1f;          --alert: #a33a2a;  --info: #2f5a8a;
+    --ok-soft: #e6efe9;      --warn-soft: #f4ecd9;     --alert-soft: #f6e3df; --info-soft: #e2ebf5;
+  }
+  :root[data-theme="dark"] {
+    --paper: #1c1d1a;        --paper-raised: #24261f;  --paper-sunken: #161713;
+    --ink: #eceade;          --ink-muted: #b4b6aa;     --ink-faint: #8e9189;
+    --rule: #35372f;         --rule-strong: #4d5045;
+    --accent: #8fd3ad;       --accent-ink: #12211a;
+    --accent-soft: #26362d;  --accent-edge: #4a6f5a;
+    --ok: #8fd3ad;           --warn: #d9bd72;          --alert: #e59182;  --info: #8fb6df;
+    --ok-soft: #26362d;      --warn-soft: #3a3324;     --alert-soft: #3c2a26; --info-soft: #24313f;
+  }
+}

@@ -1,0 +1,311 @@
+/* components.css - the reusable pieces.
+ *
+ * Components size themselves with CONTAINER queries, not media queries.
+ * A card does not care how wide the viewport is; it cares how much room
+ * it has been given. That is what lets the same card sit in a narrow
+ * rail and a wide grid without a special case for each.
+ */
+
+/* --- Verdict: the lead answer on a page ----------------------------- */
+.verdict {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-5, var(--space-4));
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-6);
+}
+.verdict__label {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+}
+/* The lead answer. Numbers use the tabular mono face so they stay
+ * aligned and do not jitter as they change; a verdict that is PROSE
+ * uses the display face, because setting a sentence in a numeral font
+ * reads as a readout rather than an answer. */
+.verdict__value {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  line-height: 1.15;
+  text-wrap: balance;
+}
+.verdict__value--num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-3xl);
+  line-height: 1.1;
+}
+.verdict__note { color: var(--ink-muted); font-size: var(--text-sm); margin: 0; }
+
+/* --- Stat row ------------------------------------------------------- */
+.stats {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+@media (min-width: 480px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 768px) { .stats { grid-template-columns: repeat(4, 1fr); } }
+
+.stat {
+  padding: var(--space-4);
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
+.stat__label { font-size: var(--text-xs); color: var(--ink-faint); display: block; margin-bottom: var(--space-1); }
+.stat__value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-xl);
+  display: block;
+}
+.stat__note { font-size: var(--text-xs); color: var(--ink-muted); }
+
+/* --- Cards ---------------------------------------------------------- */
+.card-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+/* Two-step only: 1 to 2 at 480, 2 to 3 at 1024. NOTHING transitions
+ * between 600 and 800, which is exactly where iPad portrait (768, 810,
+ * 834) lands - a breakpoint in that band is what makes tablet layouts
+ * break. */
+@media (min-width: 480px) { .card-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { .card-grid { grid-template-columns: repeat(3, 1fr); } }
+
+.card {
+  container-type: inline-size;
+  display: grid;
+  gap: var(--space-2);
+  align-content: start;
+  padding: var(--space-4);
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
+.card__head {
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.card__title { font-size: var(--text-base); font-weight: 600; margin: 0; font-family: var(--font-body); }
+.card__meta { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-2); font-size: var(--text-xs); color: var(--ink-muted); }
+.card__body { font-size: var(--text-sm); color: var(--ink-muted); margin: 0; }
+
+/* --- Chips ---------------------------------------------------------- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-2);
+  border-radius: 999px;
+  font-size: var(--text-xs);
+  background: var(--paper-sunken);
+  border: 1px solid var(--rule);
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+.chip--ok    { background: var(--ok-soft);    border-color: var(--ok);    color: var(--ok); }
+.chip--warn  { background: var(--warn-soft);  border-color: var(--warn);  color: var(--warn); }
+.chip--alert { background: var(--alert-soft); border-color: var(--alert); color: var(--alert); }
+.chip--info  { background: var(--info-soft);  border-color: var(--info);  color: var(--info); }
+.chip--accent{ background: var(--accent-soft);border-color: var(--accent-edge); color: var(--accent); }
+
+/* Provenance marker. Unconfirmed figures must never read like checked
+ * ones - this is the visual half of the rule the database enforces. */
+.prov {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-xs);
+  color: var(--ink-faint);
+}
+.prov--unconfirmed { color: var(--warn); }
+.prov--unconfirmed::before {
+  content: "";
+  width: 0.5em; height: 0.5em;
+  border-radius: 999px;
+  border: 1.5px dashed currentColor;
+}
+.prov--confirmed::before {
+  content: "";
+  width: 0.5em; height: 0.5em;
+  border-radius: 999px;
+  background: currentColor;
+}
+.prov--confirmed { color: var(--ok); }
+
+/* A value whose provenance is untrusted is shown, but visibly held at
+ * arm's length: it is never presented as a fact. */
+.value--provisional {
+  color: var(--ink-muted);
+  text-decoration: underline dotted var(--warn);
+  text-underline-offset: 0.25em;
+}
+
+/* --- Funding bar ---------------------------------------------------- */
+.fund {
+  display: grid;
+  gap: var(--space-1);
+}
+.fund__track {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--paper-sunken);
+  border: 1px solid var(--rule);
+  overflow: hidden;
+}
+/* The width is the one thing a script may set inline, and only as a
+ * custom property consumed here - never as a style attribute on the
+ * element. */
+.fund__fill {
+  height: 100%;
+  width: var(--pct, 0%);
+  background: var(--accent);
+  border-radius: 999px;
+}
+.fund__legend {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
+}
+
+/* --- Roadmap bands -------------------------------------------------- */
+.bands { display: grid; grid-template-columns: 1fr; gap: var(--space-4); }
+@media (min-width: 480px) { .bands { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { .bands { grid-template-columns: repeat(4, 1fr); } }
+
+.band { display: grid; gap: var(--space-2); align-content: start; }
+.band__head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: var(--space-2);
+  padding-bottom: var(--space-2);
+  border-bottom: 2px solid var(--accent-edge);
+}
+.band__title { font-family: var(--font-display); font-size: var(--text-lg); margin: 0; }
+.band__count { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--ink-faint); }
+
+/* --- Tables --------------------------------------------------------- */
+/* A table is the one thing allowed to be wider than the page, and only
+ * inside its own scroll container so the PAGE never scrolls sideways. */
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--paper-raised);
+}
+.table { font-size: var(--text-sm); min-width: 34rem; }
+.table th, .table td {
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: top;
+}
+.table th {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+  font-weight: 600;
+  position: sticky; top: 0;
+  background: var(--paper-raised);
+}
+.table tr:last-child td { border-bottom: 0; }
+.table td.num, .table th.num { text-align: right; }
+
+/* --- Detail disclosure ---------------------------------------------- */
+/* Depth on demand: the full context of an item is one interaction away
+ * from anywhere it appears, and never the default view. */
+details.detail { border-top: 1px solid var(--rule); padding-top: var(--space-2); }
+details.detail > summary {
+  cursor: pointer;
+  min-height: var(--tap-min-floor);
+  display: flex; align-items: center;
+  font-size: var(--text-sm);
+  color: var(--accent);
+  list-style: none;
+}
+details.detail > summary::-webkit-details-marker { display: none; }
+details.detail > summary::after { content: " +"; font-family: var(--font-mono); }
+details.detail[open] > summary::after { content: " \2212"; }
+details.detail > div { padding-block: var(--space-2); font-size: var(--text-sm); color: var(--ink-muted); }
+
+.dl { display: grid; grid-template-columns: auto 1fr; gap: var(--space-1) var(--space-3); margin: 0; font-size: var(--text-sm); }
+.dl dt { color: var(--ink-faint); }
+.dl dd { margin: 0; }
+
+/* --- Notices -------------------------------------------------------- */
+.notice {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  border: 1px solid var(--rule);
+  background: var(--paper-sunken);
+  font-size: var(--text-sm);
+  margin-bottom: var(--space-4);
+}
+.notice--warn { background: var(--warn-soft); border-color: var(--warn); }
+.notice__title { font-weight: 600; display: block; margin-bottom: var(--space-1); }
+
+.empty {
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+  color: var(--ink-muted);
+  border: 1px dashed var(--rule-strong);
+  border-radius: var(--radius);
+}
+
+.section { margin-bottom: var(--space-12); }
+.section__head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  flex-wrap: wrap; gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+.lede { color: var(--ink-muted); max-width: var(--measure); }
+
+/* --- Form controls --------------------------------------------------
+ * The only inputs in this system are filters - nothing here writes. But
+ * a filter is still a control a person has to hit, so it obeys the same
+ * target and focus rules as anything else. An unstyled <select> renders
+ * around 19px tall, under the 24px WCAG 2.5.8 floor, which the browser
+ * check catches. */
+label {
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
+  margin-right: var(--space-1);
+}
+
+select, input, textarea {
+  font: inherit;
+  /* 1rem floor: below 16px, iOS Safari zooms the viewport on focus and
+   * the user is left scrolled sideways on a page that had no overflow. */
+  font-size: max(1rem, var(--text-sm));
+  min-height: var(--tap-min);
+  padding: var(--space-2) var(--space-3);
+  color: var(--ink);
+  background: var(--paper-raised);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-sm);
+  max-width: 100%;
+}
+select { padding-right: var(--space-6); }
+select:hover, input:hover { border-color: var(--ink-faint); }
+
+fieldset[role="group"] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}

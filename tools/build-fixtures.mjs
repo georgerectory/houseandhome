@@ -1,0 +1,199 @@
+// build-fixtures.mjs - generate the demo dataset the front end renders
+// before a real database exists.
+//
+// The content is Sean's own seed list from the planning brief, turned
+// into rows. EVERY row is marked 'drafted' - none of it is confirmed,
+// none of it has been costed properly, and the interface is required to
+// show it as provisional. That is the point: the launch condition is
+// that the system works, and is honest, with nothing yet verified.
+import { writeFileSync, mkdirSync } from 'node:fs';
+import { rank } from '../assets/js/engine/priority.js';
+
+const ROOMS = [
+  ['hallway','Hallway','hallway',4], ['lounge','Lounge','living',4],
+  ['kitchen','Kitchen','kitchen',5], ['dining','Dining room','dining',3],
+  ['office','Office','office',3], ['bedroom','Main bedroom','bedroom',4],
+  ['bathroom','Bathroom','bathroom',5], ['pantry','Pantry','pantry',2],
+  ['boot-room','Boot room','boot_room',3], ['gym','Gym','gym',2],
+  ['garage','Garage','garage',2], ['loft','Loft','loft',1],
+  ['garden','Garden','garden',3], ['shed','Shed','shed',2],
+  ['greenhouse','Greenhouse','greenhouse',1], ['log-store','Log store','outbuilding',1],
+];
+
+const THEME_W = { make_safe:5, make_dry:5, make_secure:4, make_warm:4, make_working:4,
+  make_clean:3, systems_tech:3, storage:3, cosmetic:2, outdoor:2, comfort:2 };
+const BENEFIT_W = { safety:5, habitability:5, preservation:4, running_cost:4,
+  defect_cost:3, property_value:3, time_saved:3, comfort:2, enjoyment:1 };
+
+// [title, room, kind, trade, theme, benefit, costBest, costWorst, minMinutes, maxMinutes, matcher]
+const WORK = [
+  ['Test every socket and switch','hallway','repair','electrical','make_safe','safety',0,0,30,60,{tools:['multimeter'],demand:'light',setting:'indoor'}],
+  ['Fit smoke and CO alarms','hallway','improvement','electrical','make_safe','safety',40,90,45,90,{tools:['drill'],demand:'light',posture:['overhead']}],
+  ['Clear and check the gutters','garden','maintenance','roofing','make_dry','preservation',0,120,60,180,{tools:['ladder'],setting:'outdoor',weather:['dry'],demand:'heavy'}],
+  ['Change all exterior locks','hallway','improvement','security','make_secure','safety',80,180,45,90,{tools:['drill','chisel'],demand:'light'}],
+  ['Draught-proof windows and doors','lounge','improvement','glazing','make_warm','running_cost',30,90,60,180,{tools:[],demand:'light',posture:['kneeling']}],
+  ['Top up loft insulation','loft','improvement','heating','make_warm','running_cost',150,400,120,300,{tools:[],demand:'heavy',posture:['kneeling','bending'],mess:'dusty'}],
+  ['Bleed and balance radiators','lounge','maintenance','heating','make_warm','running_cost',0,25,30,90,{tools:['radiator key'],demand:'light',posture:['kneeling']}],
+  ['Deep clean the kitchen','kitchen','cleaning','cleaning','make_clean','habitability',20,40,120,240,{tools:[],demand:'moderate',mess:'wet'}],
+  ['Replace bathroom light switch','bathroom','repair','electrical','make_safe','safety',10,20,20,40,{tools:['screwdriver'],demand:'light'}],
+  ['Re-grout and seal the bath','bathroom','repair','plumbing','make_dry','preservation',15,40,90,180,{tools:['grout float'],demand:'moderate',posture:['kneeling'],mess:'wet',drying:24}],
+  ['Fill, sand and paint the hallway','hallway','decoration','decorating','cosmetic','property_value',60,140,240,480,{tools:['brush','roller'],demand:'moderate',mess:'dusty',drying:6}],
+  ['Paint the main bedroom','bedroom','decoration','decorating','cosmetic','comfort',50,120,240,480,{tools:['brush','roller'],demand:'moderate',drying:6}],
+  ['Lay carpet in the main bedroom','bedroom','renovation','flooring','cosmetic','comfort',300,700,180,360,{tools:['knee kicker'],demand:'heavy',posture:['kneeling']}],
+  ['Run ethernet to the office','office','improvement','networking','systems_tech','time_saved',60,160,120,300,{tools:['drill','fish tape'],demand:'moderate',mess:'dusty'}],
+  ['Mount shelving in the pantry','pantry','improvement','carpentry','storage','time_saved',40,90,60,150,{tools:['drill','level'],demand:'light'}],
+  ['Build a storage rack in the garage','garage','improvement','carpentry','storage','time_saved',80,200,180,420,{tools:['drill','saw'],demand:'heavy',mess:'dusty'}],
+  ['Set up the gym floor matting','gym','improvement','organisation','comfort','enjoyment',60,150,45,120,{tools:[],demand:'moderate'}],
+  ['Clear and level the log store base','log-store','renovation','groundwork','outdoor','preservation',30,90,120,300,{tools:['spade','rake'],setting:'outdoor',weather:['dry'],demand:'heavy'}],
+  ['Plant the bush perimeter','garden','improvement','planting','outdoor','enjoyment',120,350,180,420,{tools:['spade'],setting:'outdoor',weather:['dry','frost-free'],demand:'heavy',season:['autumn','winter']}],
+  ['Install external security lighting','garden','improvement','security','make_secure','safety',70,180,90,180,{tools:['drill'],setting:'outdoor',weather:['dry'],demand:'moderate',daylight:true}],
+  ['Set up the compost area','garden','improvement','planting','outdoor','enjoyment',30,80,60,150,{tools:['spade'],setting:'outdoor',demand:'moderate'}],
+  ['Hang the bonsai bench','garden','improvement','carpentry','outdoor','enjoyment',60,150,90,180,{tools:['drill','saw'],setting:'outdoor',weather:['dry'],demand:'moderate'}],
+];
+
+// [title, category, costBest, costWorst, theme, benefit, room]
+const BUY = [
+  ['Cordless drill','tool',60,140,'systems_tech','time_saved','garage'],
+  ['Ladder','tool',60,150,'make_safe','safety','garage'],
+  ['Hand tool set','tool',40,120,'systems_tech','time_saved','garage'],
+  ['Sledgehammer and pick axe','tool',35,80,'outdoor','time_saved','shed'],
+  ['Lawn mower','tool',120,400,'outdoor','time_saved','shed'],
+  ['Strimmer','tool',50,150,'outdoor','time_saved','shed'],
+  ['Hose, watering cans and buckets','tool',40,90,'outdoor','time_saved','shed'],
+  ['Shovels and rakes','tool',35,80,'outdoor','time_saved','shed'],
+  ['Paint brushes, rollers and mixers','material',30,70,'cosmetic','property_value','garage'],
+  ['Storage boxes and box racks','material',80,220,'storage','time_saved','garage'],
+  ['Hoover','each',80,250,'make_clean','habitability','hallway'],
+  ['Brooms, dustpans and brushes','each',20,45,'make_clean','habitability','boot-room'],
+  ['Spice rack and spices','each',30,70,'comfort','enjoyment','kitchen'],
+  ['Towels and linen','textile',60,150,'comfort','comfort','bathroom'],
+  ['Welcome mats','textile',20,50,'make_clean','comfort','hallway'],
+  ['Rugs and throws','textile',120,350,'cosmetic','comfort','lounge'],
+  ['Dining room set','furniture',250,900,'comfort','enjoyment','dining'],
+  ['Computer desk','furniture',100,300,'comfort','time_saved','office'],
+  ['Sofa bed','furniture',200,700,'comfort','comfort','lounge'],
+  ['Two smart televisions','each',300,900,'systems_tech','enjoyment','lounge'],
+  ['WiFi router and extenders','each',80,220,'systems_tech','time_saved','office'],
+  ['Ethernet cables','material',25,60,'systems_tech','time_saved','office'],
+  ['Cameras and doorbell','each',120,350,'make_secure','safety','hallway'],
+  ['Motion sensors and automated lights','each',90,260,'systems_tech','comfort','hallway'],
+  ['Air purifiers','each',100,300,'comfort','comfort','lounge'],
+  ['Outside chairs','furniture',80,250,'outdoor','enjoyment','garden'],
+  ['Terracotta pots and hanging flowers','each',60,160,'outdoor','enjoyment','garden'],
+  ['Staddle stones','each',80,300,'outdoor','enjoyment','garden'],
+  ['Fire pit, pokers and grills','each',90,280,'outdoor','enjoyment','garden'],
+  ['Outdoor heater','each',80,250,'outdoor','comfort','garden'],
+  ['Outside electric lanterns','each',50,140,'outdoor','enjoyment','garden'],
+  ['Pull-up and dip bars','each',70,200,'comfort','enjoyment','gym'],
+  ['Weights set','each',150,500,'comfort','enjoyment','gym'],
+  ['Rowing machine','each',200,700,'comfort','enjoyment','gym'],
+  ['Running machine','each',250,900,'comfort','enjoyment','gym'],
+  ['Rope pulls','each',30,80,'comfort','enjoyment','gym'],
+  ['Second freezer','each',180,450,'storage','time_saved','pantry'],
+  ['Printer and scanner','each',80,220,'systems_tech','time_saved','office'],
+  ['Clocks and alarm clocks','each',40,110,'comfort','comfort','hallway'],
+  ['Candles and house lights','each',50,140,'cosmetic','comfort','lounge'],
+  ['Christmas decorations and wreath','decoration',80,250,'comfort','enjoyment','loft'],
+  ['Halloween decorations and wreath','decoration',40,120,'comfort','enjoyment','loft'],
+  ['Flag pole and British flag','each',70,200,'outdoor','enjoyment','garden'],
+  ['Padlocks and key holders','each',25,60,'make_secure','safety','boot-room'],
+  ['Umbrella and outdoor wear','each',60,180,'comfort','comfort','boot-room'],
+  ['Trailer','each',400,1200,'outdoor','time_saved','garage'],
+];
+
+const uid = (p, i) => `${p}-${String(i).padStart(4, '0')}`;
+const mid = (a, b) => Math.round(((a + b) / 2) * 100) / 100;
+
+const rooms = ROOMS.map(([key, name, room_type, room_weight], i) => ({
+  id: uid('room', i), key, name, room_type, room_weight, condition: 'unknown', confidence: 'drafted',
+}));
+const roomBy = Object.fromEntries(rooms.map((r) => [r.key, r]));
+
+let items = [];
+WORK.forEach(([title, roomKey, kind, trade, theme, benefit, cb, cw, dmin, dmax, m], i) => {
+  items.push({
+    id: uid('work', i), title, kind, trade, theme, benefit_type: benefit,
+    room_id: roomBy[roomKey]?.id ?? null, room_key: roomKey, room_name: roomBy[roomKey]?.name ?? null,
+    cost_best: cb, cost_worst: cw, cost_expected: mid(cb, cw), cost_confidence: 'drafted',
+    duration_min_minutes: dmin, duration_max_minutes: dmax,
+    min_session_minutes: Math.min(dmin, 15),
+    tools_required: m.tools ?? [], setting: m.setting ?? 'indoor',
+    physical_demand: m.demand ?? 'moderate', posture: m.posture ?? [],
+    mess_level: m.mess ?? 'clean', weather_needs: m.weather ?? [],
+    needs_daylight: !!m.daylight, drying_or_curing_hours: m.drying ?? null,
+    season_window: m.season ?? [], materials_ready: false,
+    status: 'planned', horizon: 'someday', allocated_balance: 0,
+    house_benefit: null, benefit_status: null, confidence: 'drafted',
+    roomWeight: roomBy[roomKey]?.room_weight ?? 3,
+    themeWeight: THEME_W[theme] ?? 3, benefitWeight: BENEFIT_W[benefit] ?? 3,
+  });
+});
+BUY.forEach(([title, category, cb, cw, theme, benefit, roomKey], i) => {
+  items.push({
+    id: uid('buy', i), title, kind: 'purchase', trade: null, theme, benefit_type: benefit,
+    room_id: roomBy[roomKey]?.id ?? null, room_key: roomKey, room_name: roomBy[roomKey]?.name ?? null,
+    category, cost_best: cb, cost_worst: cw, cost_expected: mid(cb, cw), cost_confidence: 'drafted',
+    duration_min_minutes: null, duration_max_minutes: null, min_session_minutes: null,
+    tools_required: [], setting: 'indoor', physical_demand: 'light', posture: [],
+    mess_level: 'clean', weather_needs: [], needs_daylight: false,
+    drying_or_curing_hours: null, season_window: [], materials_ready: true,
+    status: 'planned', horizon: 'someday', allocated_balance: 0,
+    house_benefit: null, benefit_status: null, confidence: 'drafted',
+    roomWeight: roomBy[roomKey]?.room_weight ?? 3,
+    themeWeight: THEME_W[theme] ?? 3, benefitWeight: BENEFIT_W[benefit] ?? 3,
+  });
+});
+
+// Rank exactly as the database would, then band the top of the list.
+items = rank(items);
+const HORIZON = (p) => (p <= 6 ? 'now' : p <= 16 ? 'next' : p <= 34 ? 'later' : 'someday');
+items = items.map((i) => ({ ...i, horizon: HORIZON(i.priority) }));
+
+const bills = [
+  ['Council tax', 'council_tax', 'monthly'], ['Energy', 'energy', 'monthly'],
+  ['Water', 'water', 'monthly'], ['Broadband', 'broadband', 'monthly'],
+  ['Buildings and contents insurance', 'insurance', 'annual'],
+  ['Mobile', 'mobile', 'monthly'], ['TV licence', 'tv_licence', 'annual'],
+].map(([name, category, cadence], i) => ({
+  id: uid('bill', i), name, category, cadence,
+  amount: null, confidence: 'drafted', is_active: true, cost_class: 'running',
+}));
+
+const assets = [
+  ['Boiler','heating',null], ['Consumer unit','electrical','hallway'],
+  ['Water stopcock','plumbing','kitchen'], ['Fridge freezer','appliance','kitchen'],
+  ['WiFi router','network','office'],
+].map(([name, category, roomKey], i) => ({
+  id: uid('asset', i), name, category, room_key: roomKey,
+  room_name: roomBy[roomKey]?.name ?? null,
+  make: null, model: null, status: 'wanted', warranty_expires_on: null, confidence: 'drafted',
+}));
+
+const data = {
+  meta: {
+    generated: new Date().toISOString().slice(0, 10),
+    note: 'Demo dataset. Every row is drafted and unconfirmed: no figure here has been checked, and the interface must present all of it as provisional.',
+  },
+  household: { id: 'demo', name: 'House & Home' },
+  property: null,
+  pot: { name: 'House pot', monthly_contribution: 400, contribution_confidence: 'drafted', unallocated_balance: 0 },
+  allocation_settings: { decay: 0.85, floor_share: 0.10 },
+  rooms, items, bills, assets,
+  storage: [
+    { id: uid('store', 0), name: 'Loft boxes', kind: 'box', room_key: 'loft', label_code: 'L-01' },
+    { id: uid('store', 1), name: 'Garage rack', kind: 'rack', room_key: 'garage', label_code: 'G-01' },
+    { id: uid('store', 2), name: 'Boot room shelf', kind: 'shelf', room_key: 'boot-room', label_code: 'B-01' },
+  ],
+  inventory: [
+    { id: uid('inv', 0), name: 'Christmas decorations', category: 'seasonal', storage: 'Loft boxes', season_window: ['winter'], confidence: 'drafted' },
+    { id: uid('inv', 1), name: 'Halloween decorations', category: 'seasonal', storage: 'Loft boxes', season_window: ['autumn'], confidence: 'drafted' },
+  ],
+};
+
+mkdirSync('data/fixtures', { recursive: true });
+writeFileSync('data/fixtures/demo.json', JSON.stringify(data, null, 2) + '\n');
+
+const jobs = items.filter((i) => i.kind !== 'purchase').length;
+const buys = items.filter((i) => i.kind === 'purchase').length;
+console.log(`fixtures: ${items.length} items (${jobs} jobs, ${buys} purchases), ${rooms.length} rooms, ${bills.length} bills, ${assets.length} assets`);
+console.log(`top of list: ${items.slice(0, 5).map((i) => `${i.priority}. ${i.title}`).join(' | ')}`);

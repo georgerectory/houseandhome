@@ -380,3 +380,175 @@ fieldset[role="group"] {
 .signout:hover { border-color: var(--rule-strong); color: var(--ink); }
 
 .header-actions { display: flex; gap: var(--space-2); align-items: center; }
+
+/* --- Roadmap toolbar -------------------------------------------------
+ * The one place with real controls. They wrap freely so the row reflows
+ * on a phone instead of scrolling sideways. */
+.toolbar {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--paper-sunken);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  margin-bottom: var(--space-6);
+}
+.toolbar__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+.control { display: inline-flex; align-items: center; gap: var(--space-2); }
+.control--grow { flex: 1 1 14rem; }
+.control--grow input { width: 100%; }
+.control--check { gap: var(--space-2); }
+/* A checkbox must clear the 24px WCAG 2.5.8 floor in its own right -
+ * a large label beside a small box does not make the box hittable.
+ * The browser gate measures the input, which is how the 18px default
+ * was caught. */
+.control--check input {
+  min-height: var(--tap-min-floor);
+  min-width: var(--tap-min-floor);
+  width: var(--tap-min-floor);
+  height: var(--tap-min-floor);
+  margin: 0;
+  padding: 0;
+  accent-color: var(--accent);
+}
+.control--check label { min-height: var(--tap-min); cursor: pointer; }
+.toolbar .lede { margin: 0; font-size: var(--text-sm); }
+
+/* Segmented view switch. A pressed state carried by colour AND weight
+ * AND a border, never colour alone. */
+.seg {
+  min-height: var(--tap-min);
+  padding-inline: var(--space-4);
+  border: 1px solid var(--rule-strong);
+  background: var(--paper-raised);
+  color: var(--ink-muted);
+  font: inherit;
+  font-size: max(1rem, var(--text-sm));
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+.seg + .seg { margin-left: calc(var(--space-1) * -1); }
+.seg:hover { color: var(--ink); }
+.seg.is-on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+.btn--quiet {
+  background: var(--paper-raised);
+  border-color: var(--rule-strong);
+  color: var(--ink-muted);
+  font-weight: 500;
+}
+.btn--quiet:hover { background: var(--paper-sunken); color: var(--ink); }
+
+/* Board with an arbitrary number of swimlanes: fixed columns only work
+ * for the four horizons, and grouping by room can produce a dozen. */
+.bands--auto { grid-template-columns: 1fr; }
+@media (min-width: 480px) { .bands--auto { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { .bands--auto { grid-template-columns: repeat(3, 1fr); } }
+
+/* --- Timeline (waterfall) -------------------------------------------
+ * A CSS-grid Gantt. Bars are positioned with custom properties rather
+ * than inline styles proper, so the layout stays in the stylesheet and
+ * only the two numbers come from the data.
+ *
+ * The chart is the one thing allowed to be wider than the page, inside
+ * its own scroll container, so the page itself never scrolls sideways. */
+.gantt-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--paper-raised);
+  padding: var(--space-3);
+}
+.gantt { min-width: 34rem; display: grid; gap: var(--space-1); }
+.gantt__group { display: grid; gap: var(--space-1); margin-top: var(--space-4); }
+.gantt__group-title {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+  margin: 0 0 var(--space-1);
+  display: flex; gap: var(--space-2); align-items: baseline;
+}
+.gantt__row {
+  display: grid;
+  grid-template-columns: minmax(9rem, 16rem) 1fr;
+  gap: var(--space-3);
+  align-items: center;
+}
+.gantt__row--axis { position: sticky; top: 0; z-index: 1; background: var(--paper-raised); }
+.gantt__label { display: flex; justify-content: space-between; gap: var(--space-2); align-items: baseline; min-width: 0; }
+.gantt__title {
+  font-size: var(--text-sm);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.gantt__meta { font-size: var(--text-xs); }
+.gantt__track {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--months), minmax(1.5rem, 1fr));
+  min-height: 1.5rem;
+  align-items: center;
+  background: repeating-linear-gradient(
+    to right, transparent, transparent calc(100% / var(--months) - 1px),
+    var(--rule) calc(100% / var(--months) - 1px), var(--rule) calc(100% / var(--months)));
+  border-radius: var(--radius-sm);
+}
+.gantt__bar {
+  grid-column: var(--start) / span var(--span);
+  height: 1.1rem;
+  border-radius: 999px;
+  background: var(--accent);
+  border: 1px solid var(--accent);
+}
+.gantt__bar--free { background: var(--ok); border-color: var(--ok); }
+/* Hatched, not merely a different colour: "cannot be funded in range"
+ * must not depend on hue alone to be legible. */
+.gantt__bar--beyond {
+  background: repeating-linear-gradient(45deg,
+    var(--warn) 0 4px, transparent 4px 8px);
+  border-color: var(--warn);
+}
+.gantt__axis { background: none; }
+.gantt__tick {
+  grid-column: var(--at);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--ink-faint);
+  text-align: center;
+}
+.gantt__tick--beyond { color: var(--warn); }
+
+/* Filters collapse on a phone and are permanently open from tablet up.
+ * A closed <details> hides its non-summary children, so the wide-screen
+ * rule has to re-show them explicitly rather than rely on [open]. */
+.filters { border: 0; padding: 0; }
+.filters > summary {
+  cursor: pointer;
+  min-height: var(--tap-min);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--accent);
+  list-style: none;
+}
+.filters > summary::-webkit-details-marker { display: none; }
+.filters > summary::after { content: " +"; font-family: var(--font-mono); }
+.filters[open] > summary::after { content: " \2212"; }
+.filters__body { padding-top: var(--space-2); }
+
+@media (min-width: 768px) {
+  .filters > summary { display: none; }
+  .filters > .filters__body { display: flex; }
+}

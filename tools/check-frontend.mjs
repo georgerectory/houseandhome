@@ -21,7 +21,10 @@ import { extname, join, normalize } from 'node:path';
 import { mkdirSync, existsSync } from 'node:fs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
-const PORT = 8099;
+// Port 0 asks the OS for a free one. A fixed port made this gate fail
+// intermittently when a previous run's server was still holding it -
+// which looked like a front-end regression and was not.
+let PORT = 0;
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml' };
 
 const server = createServer(async (req, res) => {
@@ -35,7 +38,8 @@ const server = createServer(async (req, res) => {
     res.writeHead(404); res.end('not found');
   }
 });
-await new Promise((r) => server.listen(PORT, r));
+await new Promise((r) => server.listen(0, '127.0.0.1', r));
+PORT = server.address().port;
 
 const PAGES = ['index.html', 'roadmap.html', 'backlog.html', 'money.html', 'house.html', 'handbook.html'];
 // The login screen is checked separately: it has no nav and is reached
@@ -157,6 +161,42 @@ for (const theme of THEMES) {
       if (errors.length) failures.push(`${label}: console error - ${errors[0].slice(0, 120)}`);
       if (r.contentLen < 50) failures.push(`${label}: page rendered no content (${r.contentLen} chars)`);
       if (r.bodyBg === 'rgba(0, 0, 0, 0)') failures.push(`${label}: body has no background - it would borrow the host's`);
+
+      // The roadmap is the one page with real interaction, so the sweep
+      // drives it rather than only measuring its default render. A view
+      // that throws on switch, or spills the page sideways once a Gantt
+      // is on screen, is exactly what this catches.
+      if (p === 'roadmap.html') {
+        for (const view of ['timeline', 'list', 'board']) {
+          await page.click(`[data-view="${view}"]`);
+          await page.waitForTimeout(160);
+          const r2 = await page.evaluate(() => ({
+            scrollW: document.documentElement.scrollWidth,
+            clientW: document.documentElement.clientWidth,
+            rendered: (document.getElementById('view')?.textContent || '').trim().length,
+          }));
+          if (r2.scrollW > r2.clientW + 1) {
+            failures.push(`${label}: horizontal page scroll in ${view} view (${r2.scrollW} > ${r2.clientW})`);
+          }
+          if (r2.rendered < 20) failures.push(`${label}: ${view} view rendered nothing`);
+        }
+        // Grouping must not throw on any axis, on any viewport.
+        for (const g of ['room', 'trade', 'theme', 'benefit_type', 'kind', 'none']) {
+          await page.selectOption('#group', g);
+          await page.waitForTimeout(120);
+          const r3 = await page.evaluate(() => ({
+            scrollW: document.documentElement.scrollWidth,
+            clientW: document.documentElement.clientWidth,
+            rendered: (document.getElementById('view')?.textContent || '').trim().length,
+          }));
+          if (r3.scrollW > r3.clientW + 1) {
+            failures.push(`${label}: horizontal page scroll grouped by ${g}`);
+          }
+          if (r3.rendered < 20) failures.push(`${label}: grouping by ${g} rendered nothing`);
+        }
+        await page.selectOption('#group', 'horizon');
+        if (errors.length) failures.push(`${label}: console error while driving views - ${errors[0].slice(0, 120)}`);
+      }
 
       if (shot && vp.name !== 'Narrow phone') {
         await page.screenshot({

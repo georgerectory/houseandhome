@@ -15,6 +15,20 @@
 -- NO PASSWORD APPEARS IN THIS REPOSITORY. bootstrap_owner() takes the
 -- password as a parameter, so the operator supplies it at setup time
 -- and it is hashed by Supabase's own crypt() before it lands anywhere.
+--
+-- TWO THINGS THAT MUST BE RIGHT WHEN CREATING A USER BY HAND, both of
+-- which broke sign-in the first time and were found by calling the live
+-- auth endpoint rather than by reading the row:
+--
+--   1. auth.users has a set of token columns GoTrue scans into Go
+--      strings. Leaving them NULL - which a hand-written INSERT does -
+--      makes the auth service fail on them. They must be ''.
+--   2. GoTrue resolves an email sign-in through auth.identities. A user
+--      row with no matching identity is reported as unrecognised
+--      credentials, which reads exactly like a wrong password.
+--
+-- Supabase's own signup path does both. Anything that writes auth.users
+-- directly has to do them too.
 -- ------------------------------------------------------------------
 
 create table if not exists public.user_profiles (
@@ -107,23 +121,48 @@ begin
     insert into auth.users (
       id, instance_id, aud, role, email, encrypted_password,
       email_confirmed_at, created_at, updated_at,
-      raw_app_meta_data, raw_user_meta_data
+      raw_app_meta_data, raw_user_meta_data,
+      -- Empty strings, never NULL. See note (1) in the header.
+      confirmation_token, recovery_token, email_change,
+      email_change_token_new, email_change_token_current,
+      phone_change, phone_change_token, reauthentication_token
     ) values (
       v_user, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
       v_email, extensions.crypt(p_password, extensions.gen_salt('bf')),
       now(), now(), now(),
       jsonb_build_object('provider', 'email', 'providers', array['email']),
-      jsonb_build_object('username', lower(trim(p_username)))
+      jsonb_build_object('username', lower(trim(p_username))),
+      '', '', '', '', '', '', '', ''
     );
   else
     -- Already exists: reset the password rather than failing, so the
-    -- call stays safe to repeat.
+    -- call stays safe to repeat. Also repairs the NULL token columns on
+    -- a row created before this was understood.
     update auth.users
        set encrypted_password = extensions.crypt(p_password, extensions.gen_salt('bf')),
            email_confirmed_at = coalesce(email_confirmed_at, now()),
-           updated_at = now()
+           updated_at = now(),
+           confirmation_token = coalesce(confirmation_token, ''),
+           recovery_token = coalesce(recovery_token, ''),
+           email_change = coalesce(email_change, ''),
+           email_change_token_new = coalesce(email_change_token_new, ''),
+           email_change_token_current = coalesce(email_change_token_current, ''),
+           phone_change = coalesce(phone_change, ''),
+           phone_change_token = coalesce(phone_change_token, ''),
+           reauthentication_token = coalesce(reauthentication_token, '')
      where id = v_user;
   end if;
+
+  -- See note (2) in the header: without this row, sign-in is refused as
+  -- unrecognised credentials even though the password hash is correct.
+  insert into auth.identities (
+    id, user_id, provider_id, identity_data, provider,
+    last_sign_in_at, created_at, updated_at)
+  select gen_random_uuid(), v_user, v_user::text,
+         jsonb_build_object('sub', v_user::text, 'email', v_email, 'email_verified', true),
+         'email', now(), now(), now()
+   where not exists (
+     select 1 from auth.identities i where i.user_id = v_user and i.provider = 'email');
 
   select p.household_id into v_hh from public.user_profiles p where p.id = v_user;
 

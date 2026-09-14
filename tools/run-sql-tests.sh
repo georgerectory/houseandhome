@@ -46,7 +46,16 @@ create table if not exists auth.users (
   created_at timestamptz default now(),
   updated_at timestamptz default now(),
   raw_app_meta_data jsonb,
-  raw_user_meta_data jsonb
+  raw_user_meta_data jsonb,
+  confirmation_token text, recovery_token text, email_change text,
+  email_change_token_new text, email_change_token_current text,
+  phone_change text, phone_change_token text, reauthentication_token text
+);
+create table if not exists auth.identities (
+  id uuid primary key, user_id uuid not null, provider_id text not null,
+  identity_data jsonb, provider text not null,
+  last_sign_in_at timestamptz, created_at timestamptz default now(),
+  updated_at timestamptz default now()
 );
 create or replace function auth.uid() returns uuid
   language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;

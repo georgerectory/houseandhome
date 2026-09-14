@@ -9,7 +9,7 @@ import { writeFileSync } from 'node:fs';
 
 const PAGES = [
   ['index.html', 'Dashboard', 'What to do next, and where things stand.'],
-  ['roadmap.html', 'Roadmap', 'Work banded into now, next, later and someday.'],
+  ['roadmap.html', 'Roadmap', 'The same work as a board, a timeline or a list — grouped by room, trade, intent or benefit.'],
   ['backlog.html', 'Backlog', 'Every job and purchase, ranked and filterable.'],
   ['money.html', 'Money', 'The pot, what it is funding, and what is due.'],
   ['house.html', 'House', 'Rooms, storage and equipment.'],

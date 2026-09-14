@@ -101,6 +101,22 @@ every deposit - geometric by rank, plus an equal floor share so nothing
 ever reaches zero. Settled in integer micro-pounds by largest remainder
 so shares sum to the deposit exactly.
 
+**The roadmap is one set of rows read three ways.** Board (swimlanes),
+Timeline (a waterfall) and List are projections over the same
+`work_items`, and grouping is by the axes a house has - room, trade,
+intent, benefit, kind, horizon - never anything resembling a department.
+The logic lives in `assets/js/engine/roadmap-views.js` and is pure, so it
+is unit-tested; the page is a thin renderer over it. A trade filter
+matches the owning trade OR an associated one, so an "electrical" view
+shows everything electrical touches.
+
+The Timeline's x-axis is **affordability, not dates**: a bar sits in the
+month that item becomes fundable under the current allocation curve.
+Work needing no money starts immediately; work that cannot be funded
+inside the horizon is hatched and labelled rather than hidden. Because it
+is computed from cost estimates, it is a projection whenever those are
+unconfirmed, and the page says so.
+
 **Relationships are rows in `knowledge_links`, never a new column.**
 Thirteen typed kinds. `requires_material` is what turns a job into a
 shopping list; `matches_style` is what keeps fittings consistent across

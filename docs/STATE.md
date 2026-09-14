@@ -6,8 +6,9 @@ this file is only what is not yet finished. Keep it under 40 lines.
 
 ## In progress
 
-Nothing. Version one is live: Supabase connected, schema applied, seed
-data loaded, login working, deployed to GitHub Pages, all five gates green.
+Nothing. Live: Supabase connected, schema applied, seed data loaded,
+sign-in working and verified against the live auth service, roadmap
+readable as a board, a timeline or a list, all five gates green.
 
 ## Next steps
 

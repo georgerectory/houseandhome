@@ -170,6 +170,73 @@ for (const theme of THEMES) {
       if (r.contentLen < 50) failures.push(`${label}: page rendered no content (${r.contentLen} chars)`);
       if (r.bodyBg === 'rgba(0, 0, 0, 0)') failures.push(`${label}: body has no background - it would borrow the host's`);
 
+      // The House page draws a plan and, on demand, a 3D model. Both are
+      // driven here: a level tab that does not change the drawing, or a
+      // 3D view that silently fails to start, would otherwise look
+      // exactly like a page that works.
+      if (p === 'house.html') {
+        const planState = () => page.evaluate(() => ({
+          svg: !!document.querySelector('svg.fp'),
+          pins: document.querySelectorAll('.fp-pin').length,
+          rows: document.querySelectorAll('.fp-row').length,
+          refs: [...document.querySelectorAll('.fp-row td:nth-child(3)')].map((td) => td.textContent.trim()),
+          activeLevel: document.querySelector('[data-level-id].is-on')?.dataset.levelId || null,
+          scrollW: document.documentElement.scrollWidth,
+          clientW: document.documentElement.clientWidth,
+        }));
+
+        const seenRefs = new Map();
+        for (const lv of ['ground', 'first']) {
+          await page.click(`[data-level-id="${lv}"]`);
+          await page.waitForTimeout(200);
+          const r2 = await planState();
+          if (!r2.svg) failures.push(`${label}: no floor plan drawn on ${lv}`);
+          if (r2.activeLevel !== lv) failures.push(`${label}: clicking ${lv} left ${r2.activeLevel} active`);
+          if (r2.scrollW > r2.clientW + 1) failures.push(`${label}: page scroll on the ${lv} plan`);
+          // Every pin has to be findable in the register, or a number on
+          // the drawing means nothing.
+          if (r2.pins !== r2.rows) {
+            failures.push(`${label}: ${lv} drew ${r2.pins} pins for ${r2.rows} register rows`);
+          }
+          for (const ref of r2.refs) {
+            if (ref === '—') continue;
+            if (!/^[A-Z0-9]+-[A-Z]+\d+$/.test(ref)) {
+              failures.push(`${label}: ${lv} reference "${ref}" is not level-column-row`);
+            }
+            if (seenRefs.has(ref)) {
+              failures.push(`${label}: reference ${ref} is used on both ${seenRefs.get(ref)} and ${lv}`);
+            }
+            seenRefs.set(ref, lv);
+          }
+        }
+
+        // The 3D view is a dynamic import of a large library. If it
+        // cannot start it must degrade to a message, never to a broken
+        // page or a silent blank box.
+        await page.click('[data-view="model"]');
+        await page.waitForTimeout(2200);
+        const model = await page.evaluate(() => {
+          const c = document.getElementById('fp-canvas');
+          return {
+            canvas: !!c,
+            hidden: !!c?.hidden,
+            painted: c && c.width > 0 && c.height > 0,
+            note: (document.getElementById('fp-note')?.textContent || '').trim(),
+            scrollW: document.documentElement.scrollWidth,
+            clientW: document.documentElement.clientWidth,
+          };
+        });
+        if (!model.canvas) failures.push(`${label}: the 3D view rendered no canvas`);
+        if (!model.hidden && !model.painted) failures.push(`${label}: the 3D canvas never sized itself`);
+        if (model.hidden && !/could not start/.test(model.note)) {
+          failures.push(`${label}: the 3D view failed without saying so`);
+        }
+        if (model.scrollW > model.clientW + 1) failures.push(`${label}: page scroll in the 3D view`);
+        await page.click('[data-view="plan"]');
+        await page.waitForTimeout(200);
+        if (!(await planState()).svg) failures.push(`${label}: the plan did not come back`);
+      }
+
       // The roadmap is the one page with real interaction, so the sweep
       // drives it rather than only measuring its default render: every
       // level, both layouts, a band collapse and the drawer. A view that

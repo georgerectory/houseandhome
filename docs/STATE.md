@@ -6,47 +6,41 @@ this file is only what is not yet finished. Keep it under 40 lines.
 
 ## In progress
 
-Nothing. Live: Supabase connected, schema applied, seed data loaded,
-sign-in working and verified against the live auth service, roadmap
-rebuilt on the source tool's design - four levels, two layouts, spanning
-bars with their titles inside them, collapsible bands and a drawer on
-every item - all five gates green.
+Nothing. All five gates green. Live: schema applied, seed data loaded,
+sign-in verified against the real auth service. Roadmap rebuilt on the
+source tool's design. Shopping live. House draws a floor plan and a 3D
+model of a PLACEHOLDER building, with grid references computed from
+metric coordinates rather than stored.
 
-The Shopping page is live: 46 purchases, £8,703 of drafted estimates,
-grouped into trips by room, intent, when or channel.
-
-`rec`'s own figures have NOT been ported. Its live database is
-unreachable - the Supabase connector points at GeorgeRectory and `rec`
-sits under `seanparkerai` - and its repo fixtures are labelled synthetic
-by the file itself. `carried_finance` is the table those figures land in
-when they can be read. Nothing has been invented in their place.
+**`rec`'s figures are NOT ported.** Its database is unreachable (the
+connector points at GeorgeRectory; `rec` is under `seanparkerai`) and its
+repo fixtures are labelled synthetic by the file itself.
+`carried_finance` is where they land when readable. Nothing has been
+invented in their place.
 
 ## Next steps
 
 1. **Refine the data.** All 68 items, their costs and the £400 monthly
-   contribution are `drafted` - none has been checked. Until the
-   contribution is confirmed, `run_deposit_allocation()` refuses to move
-   real money, which is deliberate. Confirming is a conversation, not a
-   build task.
-2. **Enable leaked-password protection** in Supabase Auth settings. The
-   advisor flags it and it is a dashboard toggle, not a migration.
-3. **Bind a property** when one is bought: create the `properties` row,
-   replace the template rooms with real ones, re-scope the estimates.
+   contribution are `drafted`. `run_deposit_allocation()` refuses to move
+   real money until the contribution is confirmed, which is deliberate.
+2. **Enable leaked-password protection** - a dashboard toggle, not a
+   migration. The two `authenticated` SECURITY DEFINER findings are
+   expected and documented in CLAUDE.md.
+3. **Bind a property** when one is bought: create `properties`, replace
+   the template rooms, re-scope estimates, and replace
+   `data/buildings/placeholder.json` with the real survey. The plan, the
+   grid and the 3D model all read that one file.
 
 ## Open decisions
 
-- **Allocation curve shape.** Shipped at decay 0.85 with a 0.10 floor
-  share, tunable per household in `allocation_settings`. The current
-  values give rank 1 about 15% of a deposit and keep the bottom of a
-  120-item list above a penny per £250. Worth revisiting against a real
-  list, which is why they are a row and not a constant.
-- **Learning thresholds.** `learned_factors` and `learning_runs` exist
-  and the discipline is written down, but the derivation job is not
-  built: with no completed work there is nothing to learn from, and
-  guessing the thresholds now would bake in numbers nobody could defend.
-  Build it once there are real outcomes, and calibrate from `gate_stats`.
-- **Browser-to-Supabase path is unverified from CI.** The sandbox blocks
-  egress to supabase.co and jsdelivr, so the live sign-in flow could not
-  be driven there. The credential itself is verified at the database
-  level, and the guard now fails closed if the client cannot load.
-  Confirm the real flow in a browser after any auth change.
+- **Allocation curve.** Decay 0.85, floor share 0.10, tunable per
+  household in `allocation_settings` rather than constant in code.
+  Revisit against a real list.
+- **Learning thresholds.** Tables exist; the derivation job does not.
+  With no completed work there is nothing to learn from, and guessing
+  thresholds now bakes in numbers nobody could defend. Calibrate from
+  `gate_stats` once there are real outcomes.
+- **Browser-to-Supabase is unverified from CI.** The sandbox blocks
+  supabase.co, so the live sign-in flow cannot be driven there. The
+  credential is verified at the database level and the guard fails
+  closed. Confirm in a real browser after any auth change.

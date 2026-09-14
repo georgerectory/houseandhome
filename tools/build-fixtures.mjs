@@ -159,13 +159,37 @@ const bills = [
   amount: null, confidence: 'drafted', is_active: true, cost_class: 'running',
 }));
 
+// The fixed equipment register. Coordinates are metres in the
+// placeholder plan's space (data/buildings/placeholder.json), so each of
+// these resolves to a grid reference on the floor plan and to a marker
+// at the same spot in the 3D model. A null pair means "in that room,
+// position not recorded" - shown at the room's centre and labelled
+// approximate, never as a measured position.
+//
+// Every one of these is DRAFTED, including the coordinates: they are
+// plausible positions in a placeholder house, not a survey of anything.
+//
+// [name, category, roomKey, planX, planY]
 const assets = [
-  ['Boiler','heating',null], ['Consumer unit','electrical','hallway'],
-  ['Water stopcock','plumbing','kitchen'], ['Fridge freezer','appliance','kitchen'],
-  ['WiFi router','network','office'],
-].map(([name, category, roomKey], i) => ({
+  ['Boiler', 'heating', null, 9.0, 4.7],
+  ['Consumer unit', 'electrical', 'hallway', 4.4, 0.6],
+  ['Water stopcock', 'plumbing', 'kitchen', 0.6, 6.7],
+  ['Cooker', 'appliance', 'kitchen', 2.2, 6.8],
+  ['Fridge freezer', 'appliance', 'kitchen', 3.5, 6.8],
+  ['Second freezer', 'appliance', 'garage', 15.4, 5.3],
+  ['Washing machine', 'appliance', 'kitchen', 0.6, 4.4],
+  ['WiFi router', 'network', 'office', 9.2, 0.6],
+  ['Network switch', 'network', 'office', 9.2, 1.2],
+  ['WiFi extender', 'network', 'hallway', 4.4, 3.4],
+  ['Air conditioner (lounge)', 'climate', 'lounge', 9.2, 3.5],
+  ['Air conditioner (main bedroom)', 'climate', 'bedroom', 0.6, 6.8],
+  ['Air purifier', 'climate', 'lounge', 6.3, 0.6],
+  ['Smart television', 'av', 'lounge', 6.3, 3.5],
+  ['Lawn mower', 'garden_machine', 'shed', null, null],
+].map(([name, category, roomKey, planX, planY], i) => ({
   id: uid('asset', i), name, category, room_key: roomKey,
   room_name: roomBy[roomKey]?.name ?? null,
+  plan_x_m: planX, plan_y_m: planY,
   make: null, model: null, status: 'wanted', warranty_expires_on: null, confidence: 'drafted',
 }));
 

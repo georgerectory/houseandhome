@@ -1,0 +1,171 @@
+/* floorplan.css - the plan drawing.
+ *
+ * The SVG works in metres, so every width here is a real dimension: a
+ * 0.05 stroke is a 5cm line. Nothing in the markup carries a colour -
+ * the drawing is classed and coloured from tokens, so it themes with the
+ * rest of the site instead of being a picture with colours baked in. */
+
+.fp {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  /* Metre-space text and strokes are tiny numbers, so they are declared
+   * once here rather than on every element. */
+  font-family: var(--font-mono);
+}
+
+.fp-grid {
+  stroke: var(--rule);
+  stroke-width: 0.012;
+  opacity: 0.7;
+}
+
+.fp-axis {
+  fill: var(--ink-faint);
+  font-size: 0.3px;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+.fp-axis--row { text-anchor: end; }
+
+.fp-room > rect {
+  fill: var(--paper-sunken);
+  stroke: var(--rule);
+  stroke-width: 0.02;
+}
+.fp-room--untyped > rect { fill: var(--paper); }
+
+.fp-room-name {
+  fill: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--fp-fs, 0.3px);
+  font-weight: 600;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+.fp-room-dim {
+  fill: var(--ink-faint);
+  font-size: var(--fp-fs, 0.24px);
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+/* Wall weight carries meaning: an external wall is a thick line, an
+ * internal one thin, a party wall thickest of all. */
+.fp-wall { stroke: var(--ink); stroke-linecap: square; }
+.fp-wall--external { stroke-width: 0.23; }
+.fp-wall--internal { stroke-width: 0.12; }
+.fp-wall--party { stroke-width: 0.3; }
+
+/* An opening cuts the wall rather than adding a mark to it, so a door
+ * reads as a gap the way it does on a real plan. */
+.fp-opening { stroke: var(--paper-raised); stroke-linecap: butt; }
+.fp-opening--window { stroke-width: 0.24; }
+.fp-opening--door { stroke-width: 0.26; }
+.fp-opening--garage_door,
+.fp-opening--opening { stroke-width: 0.26; }
+
+.fp-pin > circle {
+  fill: var(--accent);
+  stroke: var(--paper-raised);
+  stroke-width: 0.04;
+}
+/* An inferred pin is the centre of a room, not where the thing is. It
+ * is drawn hollow and dashed so the difference is visible at a glance
+ * rather than only in the table underneath. */
+.fp-pin--inferred > circle {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 0.05;
+  stroke-dasharray: 0.09 0.07;
+}
+.fp-pin-n {
+  fill: var(--accent-ink);
+  font-size: 0.2px;
+  font-weight: 600;
+  text-anchor: middle;
+  pointer-events: none;
+}
+.fp-pin--inferred .fp-pin-n { fill: var(--accent); }
+.fp-pin { cursor: pointer; }
+.fp-pin:focus-visible > circle { stroke: var(--ink); stroke-width: 0.06; }
+.fp-pin:hover > circle,
+.fp-pin.is-on > circle { stroke: var(--ink); stroke-width: 0.06; }
+
+/* The register row a pin belongs to, highlighted together with it. */
+.fp-row.is-on > td { background: var(--accent-soft); }
+
+.fp-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+}
+.fp-legend > li { display: flex; align-items: center; gap: var(--space-2); }
+.fp-swatch {
+  inline-size: 14px;
+  block-size: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.fp-swatch--inferred { background: none; border: 2px dashed var(--accent); }
+
+/* The 3D canvas sits in the same box as the plan so switching between
+ * them does not move the page under the reader. */
+.fp-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  max-width: 100%;
+  background: var(--paper-sunken);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.fp-stage > canvas { display: block; width: 100%; height: 100%; }
+.fp-stage__note {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline: 0;
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  background: color-mix(in oklch, var(--paper-raised) 88%, transparent);
+  border-block-start: 1px solid var(--rule);
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
+}
+
+/* The 3D model's palette. Declared as tokens rather than inside the
+ * viewer so the plan and the model are coloured by one set of decisions,
+ * and so a theme change reaches both. */
+:root {
+  --plan-external: oklch(66% 0.06 55);
+  --plan-internal: oklch(90% 0.012 85);
+  --plan-floor:    oklch(84% 0.022 80);
+  --plan-glass:    oklch(80% 0.06 225);
+  --plan-ground:   oklch(88% 0.03 135);
+}
+:root[data-theme="dark"] {
+  --plan-external: oklch(46% 0.05 55);
+  --plan-internal: oklch(38% 0.010 85);
+  --plan-floor:    oklch(32% 0.018 80);
+  --plan-glass:    oklch(58% 0.05 225);
+  --plan-ground:   oklch(28% 0.02 135);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --plan-external: oklch(46% 0.05 55);
+    --plan-internal: oklch(38% 0.010 85);
+    --plan-floor:    oklch(32% 0.018 80);
+    --plan-glass:    oklch(58% 0.05 225);
+    --plan-ground:   oklch(28% 0.02 135);
+  }
+}

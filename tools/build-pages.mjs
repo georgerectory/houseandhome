@@ -13,7 +13,7 @@ const PAGES = [
   ['backlog.html', 'Backlog', 'Every job and purchase, ranked and filterable.'],
   ['money.html', 'Money', 'The pot, what it is funding, and what is due.'],
   ['shopping.html', 'Shopping', 'What to buy, grouped into trips, with what each run costs.'],
-  ['house.html', 'House', 'Rooms, storage and equipment.'],
+  ['house.html', 'House', 'The floor plan, what sits where on it, and the equipment register.'],
   ['handbook.html', 'Handbook', 'What this house is and what was decided.'],
 ];
 
@@ -58,6 +58,7 @@ const tpl = (file, title, lede) => `<!doctype html>
 <link rel="stylesheet" href="assets/css/base.css">
 <link rel="stylesheet" href="assets/css/components.css">
 <link rel="stylesheet" href="assets/css/roadmap.css">
+<link rel="stylesheet" href="assets/css/floorplan.css">
 <script>
 /* Apply the stored theme before first paint: doing it in the module
    would flash the wrong theme while the module loads. */

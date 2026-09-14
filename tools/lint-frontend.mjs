@@ -70,8 +70,17 @@ const RULES = [
   },
 ];
 
+// Third-party code we did not write and must not edit. These rules
+// describe THIS codebase's conventions; running them over a vendored
+// library only produces noise nobody can act on. The rule that a
+// dependency is pinned and vendored rather than fetched from a CDN is
+// enforced by it being in the tree at an exact version, not by lint.
+const VENDOR = /(^|\/)vendor(\/|$)/;
+
 function walk(dir, out = []) {
-  for (const e of globSync(`${dir}/**/*.{js,css,html,md,sql}`, { withFileTypes: false })) out.push(e);
+  for (const e of globSync(`${dir}/**/*.{js,css,html,md,sql}`, { withFileTypes: false })) {
+    if (!VENDOR.test(e)) out.push(e);
+  }
   return out;
 }
 

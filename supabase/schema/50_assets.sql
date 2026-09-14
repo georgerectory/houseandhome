@@ -28,7 +28,8 @@ create table if not exists public.assets (
   tool_key      text,
   category      text not null default 'other'
     check (category in ('heating','plumbing','electrical','appliance','power_tool',
-      'hand_tool','garden_machine','network','security','av','vehicle','other')),
+      'hand_tool','garden_machine','network','security','av','vehicle','other',
+      'climate')),
   make          text,
   model         text,
   serial_number text,

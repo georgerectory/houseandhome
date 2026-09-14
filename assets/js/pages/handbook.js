@@ -3,7 +3,8 @@
 import { requireAuth } from '../core/auth.js';
 import { mountShell, render } from '../core/shell.js';
 import { load, openItems, confidenceSummary } from '../core/store.js';
-import { escape } from '../core/format.js';
+import { titleCase, escape } from '../core/format.js';
+import { placeAll, roomLabel, spreadInferred } from '../engine/floorplan.js';
 
 const user = await requireAuth();
 if (!user) throw new Error('redirecting to login');
@@ -12,6 +13,23 @@ mountShell('handbook.html', { user });
 
 const d = await load();
 const conf = confidenceSummary(d);
+
+// The building geometry is repo content: a placeholder until a property
+// is bought. It is read here only to resolve grid references, so the
+// handbook names a position in the same words the floor plan does.
+const building = await fetch(new URL('../../../data/buildings/placeholder.json', import.meta.url))
+  .then((r) => (r.ok ? r.json() : null))
+  .catch(() => null);
+
+const roomNames = Object.fromEntries((d.rooms ?? []).map((r) => [r.key, r.name]));
+const fixtures = building
+  ? spreadInferred(placeAll([
+    ...(d.assets ?? []),
+    ...(d.storage ?? []),
+  ], building))
+  : [];
+const located = fixtures.filter((p) => p.fullRef).sort((a, b) =>
+  String(a.fullRef).localeCompare(String(b.fullRef), undefined, { numeric: true }));
 const kinds = {};
 for (const i of openItems(d)) kinds[i.kind] = (kinds[i.kind] ?? 0) + 1;
 
@@ -25,6 +43,31 @@ render('[data-page-root]', `
     <p>The repository is public; none of the content is. Every real figure lives in
     Supabase behind row-level security, which is forced on every table and proven
     by test rather than assumed.</p>
+  </section>
+
+  <section class="section">
+    <h2>Where things are</h2>
+    <p>Every fixture carries a position in metres. The grid reference below is
+      computed from that position, and so is the square it occupies on the floor
+      plan and the marker in the 3D model — one number, three readings, which is
+      why they cannot drift apart. A reference reads
+      <span class="num">G-D7</span>: level, then column, then row, with each
+      square one metre across.</p>
+    ${located.length ? `<div class="table-wrap"><table class="table">
+      <thead><tr><th class="num">Grid</th><th>Item</th><th>Room</th><th>Kind</th><th>Position</th></tr></thead>
+      <tbody>${located.map((p) => `<tr>
+        <td class="num">${escape(p.fullRef)}</td>
+        <td>${escape(p.thing.name)}</td>
+        <td>${escape(roomLabel(p.room, roomNames) ?? '—')}</td>
+        <td>${escape(titleCase(p.thing.category ?? p.thing.kind ?? 'Fixture'))}</td>
+        <td>${p.state === 'inferred'
+          ? '<span class="prov prov--unconfirmed">Approximate: room centre</span>'
+          : '<span class="prov prov--unconfirmed">Drafted position</span>'}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>` : '<p class="empty">No plan is loaded, so nothing has a grid reference yet.</p>'}
+    <p>Anything without a reference is either missing a position or sits in a room
+      the placeholder building does not have. Both are listed on the House page
+      rather than quietly left out.</p>
   </section>
 
   <section class="section">

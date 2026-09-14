@@ -55,8 +55,13 @@ async function loadLive() {
     rooms: rooms.data ?? [],
     items: (items.data ?? []).map(withRoom),
     bills: bills.data ?? [],
+    // room_key as well as room_name: the floor plan resolves a fixture to
+    // a room on the plan through the key, so an asset without one is
+    // unplaceable even when its room is perfectly well known.
     assets: (assets.data ?? []).map((a) => ({
-      ...a, room_name: roomById.get(a.room_id)?.name ?? null,
+      ...a,
+      room_key: roomById.get(a.room_id)?.key ?? null,
+      room_name: roomById.get(a.room_id)?.name ?? null,
     })),
     storage: (storage.data ?? []).map((s) => ({
       ...s, room_key: roomById.get(s.room_id)?.key ?? null,

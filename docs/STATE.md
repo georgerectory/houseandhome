@@ -8,7 +8,15 @@ this file is only what is not yet finished. Keep it under 40 lines.
 
 Nothing. Live: Supabase connected, schema applied, seed data loaded,
 sign-in working and verified against the live auth service, roadmap
-readable as a board, a timeline or a list, all five gates green.
+rebuilt on the source tool's design - four levels, two layouts, spanning
+bars with their titles inside them, collapsible bands and a drawer on
+every item - all five gates green.
+
+The shopping list and budget figures still have to be taken from the
+`rec` project. Its live data is currently unreachable: the Supabase
+connector points at GeorgeRectory, and `rec` sits under `seanparkerai`.
+Only the SHAPE of that data was captured, never the values, so nothing
+has been ported and nothing has been invented in its place.
 
 ## Next steps
 

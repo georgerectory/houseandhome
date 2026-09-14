@@ -95,6 +95,13 @@ for (const theme of THEMES) {
       page.waitForURL((u) => !u.pathname.endsWith('login.html'), { timeout: 5000 }),
       page.click('#submit'),
     ]);
+    // Signing in lands on the dashboard, which immediately fetches its
+    // fixtures. Let that settle before the sweep navigates away, or the
+    // aborted fetch surfaces as a console error on whichever page the
+    // sweep happens to be loading - an intermittent failure with nothing
+    // wrong behind it.
+    await page.waitForLoadState('networkidle');
+
     const errors = [];
     page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
     page.on('pageerror', (e) => errors.push(String(e)));
@@ -163,39 +170,169 @@ for (const theme of THEMES) {
       if (r.bodyBg === 'rgba(0, 0, 0, 0)') failures.push(`${label}: body has no background - it would borrow the host's`);
 
       // The roadmap is the one page with real interaction, so the sweep
-      // drives it rather than only measuring its default render. A view
-      // that throws on switch, or spills the page sideways once a Gantt
-      // is on screen, is exactly what this catches.
+      // drives it rather than only measuring its default render: every
+      // level, both layouts, a band collapse and the drawer. A view that
+      // throws on switch, or spills the page sideways once a board is on
+      // screen, is exactly what this catches.
       if (p === 'roadmap.html') {
-        for (const view of ['timeline', 'list', 'board']) {
-          await page.click(`[data-view="${view}"]`);
+        const probe = () => page.evaluate(() => ({
+          scrollW: document.documentElement.scrollWidth,
+          clientW: document.documentElement.clientWidth,
+          rendered: (document.getElementById('rm-board')?.textContent || '').trim().length,
+        }));
+
+        // A tab has to CHANGE something. Asserting only that the board
+        // rendered some characters passes a board that never repainted,
+        // which is exactly how a dead tab once shipped: the hash moved,
+        // the active tab did not, and the same board stayed on screen.
+        const state = () => page.evaluate(() => ({
+          scrollW: document.documentElement.scrollWidth,
+          clientW: document.documentElement.clientWidth,
+          board: (document.getElementById('rm-board')?.textContent || '').trim(),
+          activeLevel: document.querySelector('[data-level].is-on')?.dataset.level || null,
+          activeLayout: document.querySelector('[data-layout].is-on')?.dataset.layout || null,
+          hash: location.hash,
+        }));
+
+        for (const layoutKey of ['timeline', 'cascade']) {
+          await page.click(`[data-layout="${layoutKey}"]`);
           await page.waitForTimeout(160);
-          const r2 = await page.evaluate(() => ({
-            scrollW: document.documentElement.scrollWidth,
-            clientW: document.documentElement.clientWidth,
-            rendered: (document.getElementById('view')?.textContent || '').trim().length,
-          }));
-          if (r2.scrollW > r2.clientW + 1) {
-            failures.push(`${label}: horizontal page scroll in ${view} view (${r2.scrollW} > ${r2.clientW})`);
+          const seen = new Map();
+          for (const levelKey of ['projects', 'trades', 'work', 'backlog']) {
+            await page.click(`[data-level="${levelKey}"]`);
+            await page.waitForTimeout(160);
+            const r2 = await state();
+            const where = `${layoutKey}/${levelKey}`;
+            if (r2.scrollW > r2.clientW + 1) {
+              failures.push(`${label}: horizontal page scroll in ${where} (${r2.scrollW} > ${r2.clientW})`);
+            }
+            if (r2.board.length < 10) failures.push(`${label}: ${where} rendered nothing`);
+            if (r2.activeLevel !== levelKey) {
+              failures.push(`${label}: clicking ${levelKey} left ${r2.activeLevel} marked active`);
+            }
+            if (!r2.hash.includes(levelKey)) {
+              failures.push(`${label}: ${levelKey} did not reach the URL, so the board is not shareable`);
+            }
+            // The Trades roll-up ignores layout by design, so it is the
+            // one level allowed to look the same in both.
+            if (levelKey !== 'trades' && r2.activeLayout !== layoutKey) {
+              failures.push(`${label}: clicking ${layoutKey} left ${r2.activeLayout} marked active`);
+            }
+            for (const [prev, text] of seen) {
+              if (text === r2.board) {
+                failures.push(`${label}: ${where} renders the same board as ${prev}`);
+              }
+            }
+            seen.set(where, r2.board);
           }
-          if (r2.rendered < 20) failures.push(`${label}: ${view} view rendered nothing`);
         }
-        // Grouping must not throw on any axis, on any viewport.
-        for (const g of ['room', 'trade', 'theme', 'benefit_type', 'kind', 'none']) {
-          await page.selectOption('#group', g);
-          await page.waitForTimeout(120);
-          const r3 = await page.evaluate(() => ({
-            scrollW: document.documentElement.scrollWidth,
-            clientW: document.documentElement.clientWidth,
-            rendered: (document.getElementById('view')?.textContent || '').trim().length,
-          }));
-          if (r3.scrollW > r3.clientW + 1) {
-            failures.push(`${label}: horizontal page scroll grouped by ${g}`);
+
+        // The Trades roll-up is a level, not a layout, so it must render
+        // something the other levels do not - a tab that silently shows
+        // the same board as its neighbour is a dead control.
+        await page.click('[data-level="work"]');
+        await page.waitForTimeout(160);
+        const workBoard = await page.evaluate(() =>
+          (document.getElementById('rm-board')?.textContent || '').trim());
+        await page.click('[data-level="trades"]');
+        await page.waitForTimeout(160);
+        const tradesBoard = await page.evaluate(() => ({
+          text: (document.getElementById('rm-board')?.textContent || '').trim(),
+          counts: document.querySelectorAll('.rmv-sum-count').length,
+          layoutTabs: document.querySelectorAll('[data-layout]').length,
+          detailed: !!document.getElementById('rm-expanded'),
+        }));
+        if (tradesBoard.text === workBoard) {
+          failures.push(`${label}: the Trades level renders the same board as Work items`);
+        }
+        if (!tradesBoard.counts) failures.push(`${label}: the Trades roll-up showed no counts`);
+        if (tradesBoard.layoutTabs) {
+          failures.push(`${label}: layout tabs are still offered on a level they do not change`);
+        }
+        if (!tradesBoard.detailed) failures.push(`${label}: the Trades level has no Detailed toggle`);
+
+        // Detailed expands the counts into items, each opening the drawer.
+        await page.click('#rm-expanded');
+        await page.waitForTimeout(160);
+        const expanded = await page.evaluate(() => ({
+          items: document.querySelectorAll('.rmv-sum-item').length,
+          scrollW: document.documentElement.scrollWidth,
+          clientW: document.documentElement.clientWidth,
+        }));
+        if (!expanded.items) failures.push(`${label}: Detailed listed no items`);
+        if (expanded.scrollW > expanded.clientW + 1) {
+          failures.push(`${label}: page scroll in the expanded Trades roll-up`);
+        }
+        await page.click('#rm-expanded');
+        await page.waitForTimeout(140);
+
+        // Back to a populated board for the interaction checks.
+        await page.click('[data-level="backlog"]');
+        await page.waitForTimeout(140);
+        await page.click('[data-layout="timeline"]');
+        await page.waitForTimeout(180);
+
+        // Collapsing a column must not break the axis or the page width.
+        const bandBtn = page.locator('[data-band]').first();
+        if (await bandBtn.count()) {
+          await bandBtn.click();
+          await page.waitForTimeout(140);
+          const r3 = await probe();
+          if (r3.scrollW > r3.clientW + 1) failures.push(`${label}: page scroll after collapsing a band`);
+          if (r3.rendered < 10) failures.push(`${label}: board empty after collapsing a band`);
+          await page.locator('[data-band]').first().click();
+          await page.waitForTimeout(140);
+        }
+
+        // Every item is clickable and opens the drawer; Escape closes it.
+        const bar = page.locator('#rm-board [data-item-id]').first();
+        if (await bar.count()) {
+          await bar.click();
+          await page.waitForTimeout(220);
+          const drawer = await page.evaluate(() => {
+            const el = document.getElementById('rm-drawer');
+            return {
+              open: el && !el.hidden,
+              body: (document.getElementById('rmd-body')?.textContent || '').trim().length,
+              hasTitle: !!document.querySelector('.rmd-head h2'),
+              deepLinked: new URLSearchParams(location.search).has('item'),
+            };
+          });
+          if (!drawer.open) failures.push(`${label}: clicking an item did not open the drawer`);
+          if (drawer.body < 40) failures.push(`${label}: drawer opened empty (${drawer.body} chars)`);
+          if (!drawer.hasTitle) failures.push(`${label}: drawer has no title`);
+          if (!drawer.deepLinked) failures.push(`${label}: drawer did not deep-link the item`);
+
+          const afterOpen = await probe();
+          if (afterOpen.scrollW > afterOpen.clientW + 1) {
+            failures.push(`${label}: page scroll with the drawer open`);
           }
-          if (r3.rendered < 20) failures.push(`${label}: grouping by ${g} rendered nothing`);
+
+          await page.keyboard.press('Escape');
+          await page.waitForTimeout(180);
+          const closed = await page.evaluate(() => {
+            const el = document.getElementById('rm-drawer');
+            return el ? el.hidden : true;
+          });
+          if (!closed) failures.push(`${label}: Escape did not close the drawer`);
+        } else {
+          failures.push(`${label}: no clickable items on the board`);
         }
-        await page.selectOption('#group', 'horizon');
-        if (errors.length) failures.push(`${label}: console error while driving views - ${errors[0].slice(0, 120)}`);
+
+        // Filters must narrow without throwing.
+        for (const [selId, idx] of [['#rm-room', 1], ['#rm-trade', 1]]) {
+          const opts = await page.locator(`${selId} option`).count();
+          if (opts > idx) {
+            await page.selectOption(selId, { index: idx });
+            await page.waitForTimeout(140);
+            const r4 = await probe();
+            if (r4.scrollW > r4.clientW + 1) failures.push(`${label}: page scroll after filtering ${selId}`);
+            await page.selectOption(selId, '');
+            await page.waitForTimeout(100);
+          }
+        }
+
+        if (errors.length) failures.push(`${label}: console error while driving the board - ${errors[0].slice(0, 140)}`);
       }
 
       if (shot && vp.name !== 'Narrow phone') {

@@ -1,312 +1,326 @@
-// Roadmap. One set of rows, three readings.
+// Roadmap. Four levels, two layouts, one set of rows.
 //
-// Board     the horizon bands, or any other grouping as swimlanes
-// Timeline  a waterfall whose x-axis is affordability, not wishful dates
-// List      everything at once, dense
+// Ported from the roadmap tool this system is modelled on: a continuous
+// Previously|Recently|Now|Next|Later|Parked axis, bars that span the
+// bands they run across with their title inside them, column headers
+// that collapse, and a drawer on every item.
 //
-// Grouping is by the axes a house actually has - room, trade, intent,
-// benefit, kind - because a renovation backlog is not organised by
-// department. View, grouping and filters persist, so the roadmap opens
-// the way it was left.
+// The level and layout live in the URL hash (#level/layout) so a board is
+// shareable; the open item lives in ?item=<id> so a drawer is too.
+// Everything else - delivered, wide, filters - is a remembered
+// preference rather than part of the link.
 import { requireAuth } from '../core/auth.js';
 import { mountShell, render, confidenceBanner } from '../core/shell.js';
-import { load, openItems, confidenceSummary } from '../core/store.js';
-import { itemCard, itemDetail, itemChips, emptyState } from '../core/page.js';
-import { money, duration, provenance, titleCase, escape, HORIZON_LABEL } from '../core/format.js';
+import { load, confidenceSummary } from '../core/store.js';
+import { escape, titleCase } from '../core/format.js';
 import {
-  VIEWS, GROUPINGS, groupItems, applyFilters, optionsFor,
-  buildTimeline, toCSV, toJSON,
-} from '../engine/roadmap-views.js';
+  LEVELS, LAYOUTS, BANDS, context, markRecency, byTrade, byRoom, bySearch,
+} from '../engine/roadmap-model.js';
+import { timeline } from '../engine/roadmap-timeline.js';
+import { cascade } from '../engine/roadmap-cascade.js';
+import { summary } from '../engine/roadmap-summary.js';
+import { drawerHtml, itemExport } from '../engine/roadmap-detail.js';
+import { toCSV, toJSON } from '../engine/roadmap-export.js';
 
 const user = await requireAuth();
 if (!user) throw new Error('redirecting to login');
-
 mountShell('roadmap.html', { user });
 
 const d = await load();
-const all = d.items ?? [];
-const PREFS_KEY = 'hh-roadmap-view';
+markRecency(d.items ?? [], Date.now());
 
-const defaults = {
-  view: 'board', group: 'horizon', room: '', trade: '', theme: '',
-  kind: '', benefit: '', search: '', hideDone: true,
+const THEMES = [
+  ['make_safe', 'Make safe', 10], ['make_dry', 'Make dry', 20],
+  ['make_secure', 'Make secure', 30], ['make_warm', 'Make warm', 40],
+  ['make_working', 'Make working', 50], ['make_clean', 'Make clean', 60],
+  ['systems_tech', 'Systems and tech', 70], ['storage', 'Storage', 80],
+  ['cosmetic', 'Cosmetic', 90], ['outdoor', 'Outdoor', 100], ['comfort', 'Comfort', 110],
+].map(([key, label, sort_order]) => ({ key, label, sort_order }));
+
+const KEYS = {
+  level: 'hh-rm-level', layout: 'hh-rm-layout', delivered: 'hh-rm-delivered',
+  wide: 'hh-rm-wide', room: 'hh-rm-room', trade: 'hh-rm-trade',
+  hideQuick: 'hh-rm-hidequick', bands: 'hh-rm-bands', search: 'hh-rm-search',
+  expanded: 'hh-rm-expanded',
 };
-let prefs = { ...defaults };
-try { prefs = { ...defaults, ...JSON.parse(localStorage.getItem(PREFS_KEY) || '{}') }; } catch { /* ignore */ }
-const savePrefs = () => {
-  try { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); } catch { /* private mode */ }
+const store = {
+  get: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
+  set: (k, v) => { try { localStorage.setItem(k, v); } catch { /* private mode */ } },
 };
 
-const monthly = Number(d.pot?.monthly_contribution ?? 0);
-const potProv = provenance(d.pot?.contribution_confidence);
-const curve = {
-  decay: d.allocation_settings?.decay,
-  floorShare: d.allocation_settings?.floor_share,
+const known = (opts, v) => opts.some((o) => o.key === v);
+// A stored choice is honoured only if it is still offered, so a retired
+// level cannot strand a visitor on a view that no longer exists.
+const readChoice = (key, opts, fallback) => {
+  const v = store.get(KEYS[key]);
+  return known(opts, v) ? v : fallback;
 };
 
-const activeFilterCount = () =>
-  ['room', 'trade', 'theme', 'kind', 'benefit'].filter((k) => prefs[k]).length
-  + (prefs.hideDone ? 0 : 1);
+let level;
+let layout;
+function readHash() {
+  const parts = (location.hash || '').replace(/^#/, '').split('/');
+  level = known(LEVELS, parts[0]) ? parts[0] : readChoice('level', LEVELS, 'work');
+  layout = known(LAYOUTS, parts[1]) ? parts[1] : readChoice('layout', LAYOUTS, 'timeline');
+}
+const hashFor = () => `${level}/${layout}`;
+readHash();
 
-const select = (id, label, value, options, { includeAll = 'All' } = {}) => `
-  <span class="control">
-    <label for="${id}">${escape(label)}</label>
-    <select id="${id}" name="${id}">
-      ${includeAll ? `<option value="">${escape(includeAll)}</option>` : ''}
-      ${options.map((o) => {
-        const [val, text] = Array.isArray(o) ? o : [o, titleCase(o)];
-        return `<option value="${escape(val)}"${val === value ? ' selected' : ''}>${escape(text)}</option>`;
-      }).join('')}
-    </select>
-  </span>`;
+const prefs = {
+  delivered: store.get(KEYS.delivered) !== 'hidden',
+  wide: store.get(KEYS.wide) === 'on',
+  hideQuick: store.get(KEYS.hideQuick) === 'on',
+  expanded: store.get(KEYS.expanded) === 'on',
+  room: store.get(KEYS.room) ?? '',
+  trade: store.get(KEYS.trade) ?? '',
+  search: store.get(KEYS.search) ?? '',
+  bands: (() => { try { return JSON.parse(store.get(KEYS.bands) || '{}'); } catch { return {}; } })(),
+};
 
-function controls() {
-  return `
-  <form class="toolbar" id="controls" aria-label="Roadmap view options">
-    <div class="toolbar__row" role="group" aria-label="View">
-      ${VIEWS.map((v) => `
-        <button type="button" class="seg${v.key === prefs.view ? ' is-on' : ''}"
-                data-view="${v.key}" aria-pressed="${v.key === prefs.view}">${escape(v.label)}</button>
-      `).join('')}
-    </div>
+const allItems = d.items ?? [];
+const ctx = context({ items: allItems, themes: THEMES });
+const rooms = [...new Set(allItems.map((i) => i.room_name).filter(Boolean))].sort();
+const trades = [...new Set(allItems.flatMap((i) => [i.trade, ...(i.associated_trades ?? [])])
+  .filter(Boolean))].sort();
+
+function visibleItems() {
+  let list = allItems;
+  list = byRoom(list, prefs.room);
+  list = byTrade(list, prefs.trade);
+  list = bySearch(list, prefs.search);
+  return list;
+}
+
+const tabs = (opts, active, group) => opts.map((o) =>
+  `<button type="button" class="seg${o.key === active ? ' is-on' : ''}"
+    data-${group}="${o.key}" aria-pressed="${o.key === active}">${escape(o.label)}</button>`).join('');
+
+const sel = (id, label, value, options) => `<span class="control">
+  <label for="${id}">${escape(label)}</label>
+  <select id="${id}"><option value="">All</option>${options.map((o) =>
+    `<option value="${escape(o)}"${o === value ? ' selected' : ''}>${escape(titleCase(o))}</option>`).join('')}</select>
+</span>`;
+
+const toggle = (id, label, on, title) =>
+  `<button type="button" class="btn btn--quiet${on ? ' is-on' : ''}" id="${id}"
+    aria-pressed="${on}" title="${escape(title)}">${escape(label)}</button>`;
+
+function controlsHtml() {
+  return `<form class="toolbar" id="rm-controls" aria-label="Roadmap view">
+    <div class="toolbar__row" role="group" aria-label="Level">${tabs(LEVELS, level, 'level')}</div>
+    ${level === 'trades' ? '' : `<div class="toolbar__row" role="group" aria-label="Layout">${
+      tabs(LAYOUTS, layout, 'layout')}</div>`}
     <div class="toolbar__row">
-      ${select('group', 'Group by', prefs.group, GROUPINGS.map((g) => [g.key, g.label]), { includeAll: '' })}
+      ${sel('rm-room', 'Room', prefs.room, rooms)}
+      ${sel('rm-trade', 'Trade', prefs.trade, trades)}
       <span class="control control--grow">
-        <label for="search">Search</label>
-        <input id="search" name="search" type="search" value="${escape(prefs.search)}"
+        <label for="rm-search">Search</label>
+        <input id="rm-search" type="search" value="${escape(prefs.search)}"
                placeholder="title, room, trade, tool">
       </span>
     </div>
-
-    <!-- Six selects stacked is most of a phone screen, so the filters
-         collapse behind a disclosure on small viewports and are always
-         open from 768 up. The count on the summary is what stops a
-         filter being left on and forgotten behind a closed panel. -->
-    <details class="filters"${activeFilterCount() ? ' open' : ''}>
-      <summary>Filters${activeFilterCount() ? ` <span class="chip chip--accent">${activeFilterCount()}</span>` : ''}</summary>
-      <div class="toolbar__row filters__body">
-        ${select('room', 'Room', prefs.room, optionsFor(all, 'room_name'))}
-        ${select('trade', 'Trade', prefs.trade, optionsFor(all, 'trade'))}
-        ${select('theme', 'Intent', prefs.theme, optionsFor(all, 'theme'))}
-        ${select('kind', 'Kind', prefs.kind, optionsFor(all, 'kind'))}
-        ${select('benefit', 'Benefit', prefs.benefit, optionsFor(all, 'benefit_type'))}
-        <span class="control control--check">
-          <input id="hideDone" name="hideDone" type="checkbox"${prefs.hideDone ? ' checked' : ''}>
-          <label for="hideDone">Hide done</label>
-        </span>
-      </div>
-    </details>
-
     <div class="toolbar__row">
-      <button type="button" class="btn btn--quiet" id="export-csv">Export CSV</button>
-      <button type="button" class="btn btn--quiet" id="export-json">Export JSON</button>
-      <button type="button" class="btn btn--quiet" id="reset">Reset</button>
+      ${toggle('rm-delivered', prefs.delivered ? 'Hide done' : 'Show done', !prefs.delivered,
+        'Show or hide completed work')}
+      ${toggle('rm-hidequick', 'Hide quick jobs', prefs.hideQuick,
+        'Drop standalone repairs, maintenance, cleaning and admin')}
+      ${level === 'trades'
+        ? toggle('rm-expanded', 'Detailed', prefs.expanded, 'List the items under each intent')
+        : toggle('rm-wide', 'Wide', prefs.wide, 'Widen the timeline so it scrolls sideways')}
+      <button type="button" class="btn btn--quiet" id="rm-csv">Export CSV</button>
+      <button type="button" class="btn btn--quiet" id="rm-json">Export JSON</button>
+      <button type="button" class="btn btn--quiet" id="rm-reset">Reset</button>
     </div>
-    <p class="lede" id="summary" role="status"></p>
+    <p class="lede" id="rm-summary" role="status"></p>
   </form>
-  <div id="view"></div>`;
+  <div id="rm-board"></div>
+  <div id="rm-scrim" class="rmd-scrim" hidden></div>
+  <aside id="rm-drawer" class="rmd" hidden aria-label="Item detail" role="dialog" aria-modal="true">
+    <div class="rmd-bar"><button type="button" class="btn btn--quiet" id="rmd-close">Close</button></div>
+    <div id="rmd-body" class="rmd-body"></div>
+  </aside>`;
 }
 
-// --- Views -----------------------------------------------------------
-
-function boardView(groups) {
-  if (!groups.length) return emptyState('Nothing matches those filters.');
-  return `<div class="bands bands--auto">
-    ${groups.map((g) => `
-      <section class="band">
-        <div class="band__head">
-          <h2 class="band__title">${escape(g.key === g.label ? titleCase(HORIZON_LABEL[g.key] ?? g.label) : g.label)}</h2>
-          <span class="band__count num">${g.count}</span>
-        </div>
-        ${g.count
-          ? g.items.map((i) => itemCard(i, { showFunding: true })).join('')
-          : '<p class="empty">Nothing here.</p>'}
-      </section>`).join('')}
-  </div>`;
-}
-
-function listView(groups) {
-  if (!groups.length) return emptyState('Nothing matches those filters.');
-  return groups.map((g) => `
-    <section class="section">
-      <div class="section__head">
-        <h2>${escape(g.key === g.label ? titleCase(HORIZON_LABEL[g.key] ?? g.label) : g.label)}</h2>
-        <span class="band__count num">${g.count} · ${escape(money(g.totalCost))}</span>
-      </div>
-      ${g.count ? `<div class="table-wrap"><table class="table">
-        <thead><tr>
-          <th>#</th><th>Item</th><th class="num">Cost</th>
-          <th class="num">Time</th><th>When</th>
-        </tr></thead>
-        <tbody>${g.items.map((i) => {
-          const p = provenance(i.cost_confidence);
-          return `<tr>
-            <td class="num">${i.priority ?? '—'}</td>
-            <td>
-              <strong>${escape(i.title)}</strong>
-              <div class="card__meta">${itemChips(i)}</div>
-              ${itemDetail(i)}
-            </td>
-            <td class="num ${p.valueCls}">${escape(money(i.cost_expected ?? i.cost_best))}</td>
-            <td class="num">${escape(duration(i.duration_min_minutes, i.duration_max_minutes))}</td>
-            <td>${escape(titleCase(i.horizon))}</td>
-          </tr>`;
-        }).join('')}</tbody>
-      </table></div>` : '<p class="empty">Nothing here.</p>'}
-    </section>`).join('');
-}
-
-function timelineView(groups, filtered) {
-  const t = buildTimeline(filtered, { monthly, ...curve });
-
-  if (!t.fundable) {
-    return `<div class="notice notice--warn" role="status">
-      <span class="notice__title">No monthly contribution set</span>
-      This timeline places each item in the month it becomes affordable, so it
-      needs a contribution figure to compute anything. Set one and it will fill in.
-    </div>${boardView(groups)}`;
-  }
-
-  const byId = new Map(t.bars.map((b) => [b.item.id, b]));
-  const axis = Array.from({ length: t.months }, (_, i) => i + 1);
-
-  const lane = (b) => {
-    const prov = provenance(b.item.cost_confidence);
-    const start = b.beyond ? t.months + 1 : Math.max(1, b.start || 1);
-    const span = b.beyond ? 1 : Math.min(b.span, t.months - start + 2);
-    const cls = b.noCost ? 'gantt__bar gantt__bar--free'
-      : b.beyond ? 'gantt__bar gantt__bar--beyond' : 'gantt__bar';
-    const when = b.noCost ? 'No cost - can start now'
-      : b.beyond ? `Not funded within ${t.horizonMonths} months`
-      : `Funded in month ${b.fundedMonth}`;
-    return `<div class="gantt__row">
-      <div class="gantt__label">
-        <span class="gantt__title">${escape(b.item.title)}</span>
-        <span class="gantt__meta num ${prov.valueCls}">${escape(money(b.item.cost_expected ?? b.item.cost_best))}</span>
-      </div>
-      <div class="gantt__track" style="--months:${t.months + 1}">
-        <div class="${cls}" style="--start:${start};--span:${Math.max(1, span)}"
-             title="${escape(`${b.item.title} — ${when}`)}">
-          <span class="visually-hidden">${escape(when)}</span>
-        </div>
-      </div>
-    </div>`;
+function paint() {
+  const items = visibleItems();
+  const data = { items, themes: THEMES };
+  const opts = {
+    ctx, showDelivered: prefs.delivered, wide: prefs.wide,
+    hiddenBands: prefs.bands, hideQuick: prefs.hideQuick,
   };
+  opts.expanded = prefs.expanded;
+  document.getElementById('rm-board').innerHTML =
+    level === 'trades' ? summary(data, opts)
+      : layout === 'cascade' ? cascade(data, level, opts)
+        : timeline(data, level, opts);
 
-  return `
-    <div class="notice" role="status">
-      <span class="notice__title">How to read this</span>
-      The axis is months from now, and a bar sits in the month that item becomes
-      affordable under the current savings curve — not a date anyone has promised.
-      ${potProv.trusted ? '' : 'The contribution figure behind it is '
-        + escape(potProv.label.toLowerCase()) + ', so treat the whole chart as a projection.'}
-    </div>
-    <div class="gantt-wrap">
-      <div class="gantt">
-        <div class="gantt__row gantt__row--axis">
-          <div class="gantt__label"><span class="gantt__title">Item</span></div>
-          <div class="gantt__track gantt__axis" style="--months:${t.months + 1}">
-            ${axis.map((m) => `<span class="gantt__tick" style="--at:${m}">${m}</span>`).join('')}
-            ${t.anyBeyond ? `<span class="gantt__tick gantt__tick--beyond" style="--at:${t.months + 1}">${t.horizonMonths}+</span>` : ''}
-          </div>
-        </div>
-        ${groups.map((g) => g.count ? `
-          <div class="gantt__group">
-            <h3 class="gantt__group-title">${escape(g.key === g.label ? titleCase(HORIZON_LABEL[g.key] ?? g.label) : g.label)}
-              <span class="band__count num">${g.count}</span></h3>
-            ${g.items.map((i) => byId.get(i.id)).filter(Boolean).map(lane).join('')}
-          </div>` : '').join('')}
-      </div>
-    </div>`;
+  const hiddenCount = Object.values(prefs.bands).filter(Boolean).length;
+  document.getElementById('rm-summary').textContent =
+    `${items.length} of ${allItems.length} items`
+    + (prefs.delivered ? '' : ' · done hidden')
+    + (prefs.hideQuick ? ' · quick jobs hidden' : '')
+    + (hiddenCount ? ` · ${hiddenCount} column${hiddenCount === 1 ? '' : 's'} collapsed` : '');
+
+  for (const b of document.querySelectorAll('[data-level]')) {
+    const on = b.dataset.level === level;
+    b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on));
+  }
+  for (const b of document.querySelectorAll('[data-layout]')) {
+    const on = b.dataset.layout === layout;
+    b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on));
+  }
+}
+
+// --- Drawer ----------------------------------------------------------
+
+let lastFocus = null;
+const byId = (id) => allItems.find((i) => i.id === id);
+
+function setItemParam(id) {
+  const url = new URL(location.href);
+  if (id) url.searchParams.set('item', id); else url.searchParams.delete('item');
+  history.replaceState(null, '', url.href);
+}
+
+function openDrawer(item) {
+  if (!item) return;
+  const drawer = document.getElementById('rm-drawer');
+  const scrim = document.getElementById('rm-scrim');
+  document.getElementById('rmd-body').innerHTML = drawerHtml(item, ctx);
+  lastFocus = document.activeElement;
+  drawer.hidden = false;
+  scrim.hidden = false;
+  document.body.classList.add('rmd-open');
+  setItemParam(item.id);
+  document.getElementById('rmd-close').focus();
+
+  const ex = document.getElementById('rmd-export');
+  if (ex) ex.addEventListener('click', () =>
+    download(`${slug(item.title)}.json`, JSON.stringify(itemExport(item, ctx), null, 2), 'application/json'));
+}
+
+function closeDrawer() {
+  document.getElementById('rm-drawer').hidden = true;
+  document.getElementById('rm-scrim').hidden = true;
+  document.body.classList.remove('rmd-open');
+  setItemParam(null);
+  lastFocus?.focus?.();
+}
+
+const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
+
+function download(name, text, type) {
+  const url = URL.createObjectURL(new Blob([text], { type }));
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.append(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
 }
 
 // --- Wiring ----------------------------------------------------------
 
-function currentFiltered() {
-  return applyFilters(all, {
-    room: prefs.room, trade: prefs.trade, theme: prefs.theme,
-    kind: prefs.kind, benefit: prefs.benefit, search: prefs.search,
-    hideDone: prefs.hideDone,
-  });
-}
-
-function paint() {
-  const filtered = currentFiltered();
-  const groups = groupItems(filtered, prefs.group);
-  const host = document.getElementById('view');
-
-  host.innerHTML = prefs.view === 'timeline' ? timelineView(groups, filtered)
-    : prefs.view === 'list' ? listView(groups)
-    : boardView(groups);
-
-  const cost = filtered.reduce((s, i) => s + Number(i.cost_expected ?? 0), 0);
-  document.getElementById('summary').textContent =
-    `${filtered.length} item${filtered.length === 1 ? '' : 's'} of ${all.length}`
-    + ` · ${money(cost)} estimated` + (prefs.hideDone ? ' · done hidden' : '');
-
-  for (const b of document.querySelectorAll('[data-view]')) {
-    const on = b.dataset.view === prefs.view;
-    b.classList.toggle('is-on', on);
-    b.setAttribute('aria-pressed', String(on));
-  }
-}
-
-function download(name, text, type) {
-  const blob = new Blob([text], { type });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = name;
-  document.body.append(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-}
-
-render('[data-page-root]', `${confidenceBanner(confidenceSummary(d))}${controls()}`);
+let painted = '';
+render('[data-page-root]', `${confidenceBanner(confidenceSummary(d))}${controlsHtml()}`);
 paint();
+painted = hashFor();
 
-const form = document.getElementById('controls');
+// Delegated from the document, not bound to the toolbar: rerender()
+// replaces the toolbar element, so a listener attached to it would
+// survive exactly one re-render and then silently stop responding.
+document.addEventListener('click', (e) => {
+  if (!e.target.closest?.('#rm-controls')) return;
+  const lv = e.target.closest('[data-level]');
+  const ly = e.target.closest('[data-layout]');
+  // The hash is the single home for level and layout. A tab click writes
+  // it and nothing else; the render happens on the way back out of
+  // route(), so the URL and the board can never disagree.
+  if (lv) { store.set(KEYS.level, lv.dataset.level); go(lv.dataset.level, layout); return; }
+  if (ly) { store.set(KEYS.layout, ly.dataset.layout); go(level, ly.dataset.layout); return; }
 
-form.addEventListener('click', (e) => {
-  const v = e.target.closest('[data-view]');
-  if (v) { prefs.view = v.dataset.view; savePrefs(); paint(); return; }
-
-  const stamp = new Date().toISOString().slice(0, 10);
-  if (e.target.id === 'export-csv') {
-    // Export what is on screen: an export that ignores the filters is a
-    // different document to the one being looked at.
-    download(`roadmap-${stamp}.csv`, toCSV(currentFiltered()), 'text/csv;charset=utf-8');
-  }
-  if (e.target.id === 'export-json') {
-    download(`roadmap-${stamp}.json`, toJSON(currentFiltered()), 'application/json');
-  }
-  if (e.target.id === 'reset') {
-    prefs = { ...defaults };
-    savePrefs();
-    render('[data-page-root]', `${confidenceBanner(confidenceSummary(d))}${controls()}`);
-    paint();
-    wire();
+  const id = e.target.id;
+  if (id === 'rm-delivered') { prefs.delivered = !prefs.delivered; store.set(KEYS.delivered, prefs.delivered ? 'shown' : 'hidden'); rerender(); }
+  if (id === 'rm-hidequick') { prefs.hideQuick = !prefs.hideQuick; store.set(KEYS.hideQuick, prefs.hideQuick ? 'on' : 'off'); rerender(); }
+  if (id === 'rm-wide') { prefs.wide = !prefs.wide; store.set(KEYS.wide, prefs.wide ? 'on' : 'off'); rerender(); }
+  if (id === 'rm-expanded') { prefs.expanded = !prefs.expanded; store.set(KEYS.expanded, prefs.expanded ? 'on' : 'off'); rerender(); }
+  if (id === 'rm-csv') download(`roadmap-${today()}.csv`, toCSV(visibleItems()), 'text/csv;charset=utf-8');
+  if (id === 'rm-json') download(`roadmap-${today()}.json`, toJSON(visibleItems()), 'application/json');
+  if (id === 'rm-reset') {
+    Object.assign(prefs, { delivered: true, wide: false, hideQuick: false, expanded: false, room: '', trade: '', search: '', bands: {} });
+    for (const k of Object.values(KEYS)) store.set(k, '');
+    store.set(KEYS.bands, '{}');
+    rerender();
   }
 });
 
-function wire() {
-  const f = document.getElementById('controls');
-  f.addEventListener('change', onChange);
-  f.addEventListener('input', onInput);
-}
-function onChange(e) {
-  const t = e.target;
-  if (t.type === 'checkbox') prefs[t.name] = t.checked;
-  else if (t.name in prefs) prefs[t.name] = t.value;
-  savePrefs();
+const today = () => new Date().toISOString().slice(0, 10);
+
+function rerender() {
+  render('[data-page-root]', `${confidenceBanner(confidenceSummary(d))}${controlsHtml()}`);
   paint();
+  painted = hashFor();
 }
+
+document.addEventListener('change', (e) => {
+  if (e.target.id === 'rm-room') { prefs.room = e.target.value; store.set(KEYS.room, prefs.room); paint(); }
+  if (e.target.id === 'rm-trade') { prefs.trade = e.target.value; store.set(KEYS.trade, prefs.trade); paint(); }
+});
+
 let debounce;
-function onInput(e) {
-  if (e.target.id !== 'search') return;
+document.addEventListener('input', (e) => {
+  if (e.target.id !== 'rm-search') return;
   clearTimeout(debounce);
-  debounce = setTimeout(() => { prefs.search = e.target.value; savePrefs(); paint(); }, 150);
+  debounce = setTimeout(() => {
+    prefs.search = e.target.value; store.set(KEYS.search, prefs.search); paint();
+  }, 150);
+});
+
+// Board clicks: a band header collapses its column; anything with an item
+// id opens the drawer.
+document.addEventListener('click', (e) => {
+  const band = e.target.closest('[data-band]');
+  if (band) {
+    const k = band.dataset.band;
+    prefs.bands[k] = !prefs.bands[k];
+    store.set(KEYS.bands, JSON.stringify(prefs.bands));
+    paint();
+    return;
+  }
+  if (e.target.closest('#rmd-export')) return;
+  const hit = e.target.closest('[data-item-id]');
+  if (hit) { e.preventDefault(); openDrawer(byId(hit.dataset.itemId)); return; }
+  if (e.target.id === 'rmd-close' || e.target.id === 'rm-scrim') closeDrawer();
+});
+
+// A step row is a list item, so it needs keyboard activation of its own.
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !document.getElementById('rm-drawer').hidden) { closeDrawer(); return; }
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches?.('.rmv-step, .rmv-sum-item')) {
+    e.preventDefault();
+    openDrawer(byId(e.target.dataset.itemId));
+  }
+});
+
+/** Route to a level and layout by writing the hash. When the hash is
+ *  already what we are asking for, no hashchange fires, so route() is
+ *  called directly - otherwise re-selecting the current tab would do
+ *  nothing at all. */
+function go(nextLevel, nextLayout) {
+  const want = `${nextLevel}/${nextLayout}`;
+  if ((location.hash || '').replace(/^#/, '') === want) { route(); return; }
+  location.hash = want;
 }
-form.addEventListener('change', onChange);
-form.addEventListener('input', onInput);
+
+/** Paint whatever the hash now asks for, if it is not already on screen.
+ *  Compared against what was last PAINTED rather than against the
+ *  variables, which route() is about to overwrite. */
+function route() {
+  readHash();
+  if (hashFor() === painted) return;
+  rerender();
+}
+
+window.addEventListener('hashchange', route);
+
+// Deep link: ?item=<id> opens that drawer on load.
+const wanted = new URLSearchParams(location.search).get('item');
+if (wanted) openDrawer(byId(wanted));

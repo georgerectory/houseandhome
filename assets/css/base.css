@@ -69,6 +69,13 @@ a:hover { text-decoration-thickness: 2px; }
 
 img, svg, video { max-width: 100%; height: auto; }
 
+/* The hidden attribute must always win. A component that sets its own
+ * display (a flex drawer, a grid panel) silently overrides the browser
+ * default of display:none, leaving an invisible element still on top of
+ * the page and still swallowing clicks. Found exactly that way: a closed
+ * drawer was intercepting every click on the right of the board. */
+[hidden] { display: none !important; }
+
 table { border-collapse: collapse; width: 100%; }
 code, kbd, samp { font-family: var(--font-mono); font-size: 0.95em; }
 

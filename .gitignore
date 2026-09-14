@@ -7,3 +7,8 @@ assets/js/core/config.local.js
 # Screenshots produced by the responsive check.
 tests/screenshots/
 node_modules/
+
+# Carried-over financial extracts. The repo is public; these are not.
+# Only the README and this rule are tracked.
+data/carried/*
+!data/carried/README.md

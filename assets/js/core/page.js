@@ -30,7 +30,7 @@ export function fundingBar(i) {
 export function itemDetail(i) {
   const prov = provenance(i.cost_confidence);
   const rows = [
-    ['Priority', `#${i.priority}${i.score ? ` (score ${i.score})` : ''}`],
+    ['Priority', `#${i.priority}${i.priority_score ? ` (score ${i.priority_score})` : ''}`],
     ['Cost range', range(i.cost_best, i.cost_worst)],
     ['Working figure', `<span class="${prov.valueCls}">${escape(money(i.cost_expected))}</span>`],
     ['Cost confidence', `<span class="${prov.cls}">${escape(prov.label)}</span>`],
@@ -44,8 +44,9 @@ export function itemDetail(i) {
     i.benefit_type ? ['Benefit', titleCase(i.benefit_type)] : null,
   ].filter(Boolean);
 
-  const why = i.explain
-    ? `<p class="card__body">Ranked by: room ${i.explain.room_weight}/5 x theme ${i.explain.theme_weight}/5 x benefit ${i.explain.benefit_weight}/5 = ${i.explain.base}.</p>`
+  const e = i.priority_explain;
+  const why = e?.base
+    ? `<p class="card__body">Ranked by: room ${e.room_weight}/5 x theme ${e.theme_weight}/5 x benefit ${e.benefit_weight}/5 = ${e.base}.</p>`
     : '';
 
   return `<details class="detail">

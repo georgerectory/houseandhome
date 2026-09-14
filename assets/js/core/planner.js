@@ -86,10 +86,29 @@ export class Planner {
     window.addEventListener('resize', this._onResize);
   }
 
-  setModel(building, placements) {
+  /** Where the camera is now, so a rebuild can put it back. Switching
+   *  floors tears the model down and builds it again; snapping the view
+   *  back to the default angle every time would make the two levels
+   *  impossible to compare. */
+  cameraState() {
+    return {
+      position: this.camera.position.toArray(),
+      target: this.controls.target.toArray(),
+    };
+  }
+
+  setModel(building, placements, restore) {
     if (this.model) this.scene.remove(this.model.root);
     this.model = buildModel(building, placements, this.pal);
     this.scene.add(this.model.root);
+
+    if (restore?.position && restore?.target) {
+      this.camera.position.fromArray(restore.position);
+      this.controls.target.fromArray(restore.target);
+      this.controls.update();
+      this.resize();
+      return;
+    }
 
     // Frame the building from its own size rather than guessing a
     // camera position, so a bigger or smaller house both arrive

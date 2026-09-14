@@ -1,6 +1,7 @@
-// run-all-tests.mjs - one command, four gates.
+// run-all-tests.mjs - one command, every gate.
 //
 //   lint      the rules a browser cannot see
+//   secrets   nothing private is tracked by a public repository
 //   unit      the pure engines, tested as stated
 //   sql       the schema, guards and policies, on a real Postgres
 //   frontend  the actual pages, in a real browser, at six viewports
@@ -24,6 +25,9 @@ const hasPg = existsSync('/usr/lib/postgresql') || process.env.PGBIN;
 
 const results = [
   run('Lint', 'node', ['tools/lint-frontend.mjs']),
+  // Runs early and cheaply: if a private extract is staged, that is the
+  // one failure worth seeing before anything else scrolls past.
+  run('Secrets', 'node', ['tools/check-secrets.mjs']),
   run('Unit', 'node', ['--test', 'tests/unit/*.test.mjs']),
 ];
 

@@ -125,10 +125,11 @@ rooms. Links close (`valid_to`), never delete. A link you write is
 
 ## Testing
 
-`npm test` runs five gates. All must pass.
+`npm test` runs six gates. All must pass.
 
 | Gate | What it proves |
 |---|---|
+| `npm run test:secrets` | Nothing private is tracked by a public repository: no carried-over extract, no service_role key, no JWT. |
 | `npm run lint` | No `100vw`, raw `vh`, `max-width` layout query, breakpoint in the 600-800 iPad band, inline style, emoji or hard-coded hex. |
 | `npm run test:unit` | The allocation and priority engines behave as stated. |
 | `npm run test:sql` | The schema applies to a real Postgres; guards, triggers and RLS isolation all hold. |
@@ -177,6 +178,24 @@ bundler.
 
 Keep modules around 400 lines. Past that, split into a subfolder behind
 a thin re-export shim so the import path does not change.
+
+## Carrying data in from the earlier system
+
+The figures worth carrying live under a different Supabase account, and a
+session can only be authenticated to one at a time, so they cross as a
+JSON file. The protocol is `docs/CARRY-OVER.md`; the tool is
+`tools/carry.mjs`. Five rules govern it:
+
+1. **The extract is read-only.** Nothing is ever written to the source.
+2. **The blob never enters this repository.** `data/carried/` is
+   gitignored and the Secrets gate fails if one is tracked, including
+   force-added.
+3. **The load is idempotent**, keyed on
+   `(household_id, source_system, source_group, source_ref)`.
+4. **A reviewed line is never reopened** - the load does not touch
+   `review_status`, `reviewed_at` or `superseded_note`.
+5. **Nothing carried is true.** Every row lands `pending` and drives no
+   total, projection or allocation.
 
 ## Supabase
 

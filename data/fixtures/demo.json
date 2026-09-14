@@ -200,11 +200,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 5,
-      "themeWeight": 5,
-      "benefitWeight": 5,
-      "score": 125,
-      "explain": {
+      "priority": 1,
+      "priority_score": 125,
+      "priority_explain": {
         "room_weight": 5,
         "theme_weight": 5,
         "benefit_weight": 5,
@@ -214,8 +212,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 1
+      }
     },
     {
       "id": "work-0000",
@@ -252,11 +249,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 4,
-      "themeWeight": 5,
-      "benefitWeight": 5,
-      "score": 100,
-      "explain": {
+      "priority": 2,
+      "priority_score": 100,
+      "priority_explain": {
         "room_weight": 4,
         "theme_weight": 5,
         "benefit_weight": 5,
@@ -266,8 +261,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 2
+      }
     },
     {
       "id": "work-0001",
@@ -306,11 +300,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 4,
-      "themeWeight": 5,
-      "benefitWeight": 5,
-      "score": 100,
-      "explain": {
+      "priority": 3,
+      "priority_score": 100,
+      "priority_explain": {
         "room_weight": 4,
         "theme_weight": 5,
         "benefit_weight": 5,
@@ -320,8 +312,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 3
+      }
     },
     {
       "id": "work-0009",
@@ -360,11 +351,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 5,
-      "themeWeight": 5,
-      "benefitWeight": 4,
-      "score": 100,
-      "explain": {
+      "priority": 4,
+      "priority_score": 100,
+      "priority_explain": {
         "room_weight": 5,
         "theme_weight": 5,
         "benefit_weight": 4,
@@ -374,8 +363,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 4
+      }
     },
     {
       "id": "buy-0022",
@@ -411,11 +399,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 4,
-      "themeWeight": 4,
-      "benefitWeight": 5,
-      "score": 80,
-      "explain": {
+      "priority": 5,
+      "priority_score": 80,
+      "priority_explain": {
         "room_weight": 4,
         "theme_weight": 4,
         "benefit_weight": 5,
@@ -425,8 +411,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 5
+      }
     },
     {
       "id": "work-0003",
@@ -464,11 +449,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 4,
-      "themeWeight": 4,
-      "benefitWeight": 5,
-      "score": 80,
-      "explain": {
+      "priority": 6,
+      "priority_score": 80,
+      "priority_explain": {
         "room_weight": 4,
         "theme_weight": 4,
         "benefit_weight": 5,
@@ -478,8 +461,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 6
+      }
     },
     {
       "id": "work-0007",
@@ -514,11 +496,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 5,
-      "themeWeight": 3,
-      "benefitWeight": 5,
-      "score": 75,
-      "explain": {
+      "priority": 7,
+      "priority_score": 75,
+      "priority_explain": {
         "room_weight": 5,
         "theme_weight": 3,
         "benefit_weight": 5,
@@ -528,8 +508,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 7
+      }
     },
     {
       "id": "work-0004",
@@ -566,11 +545,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 4,
-      "themeWeight": 4,
-      "benefitWeight": 4,
-      "score": 64,
-      "explain": {
+      "priority": 8,
+      "priority_score": 64,
+      "priority_explain": {
         "room_weight": 4,
         "theme_weight": 4,
         "benefit_weight": 4,
@@ -580,8 +557,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 8
+      }
     },
     {
       "id": "work-0006",
@@ -620,11 +596,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 4,
-      "themeWeight": 4,
-      "benefitWeight": 4,
-      "score": 64,
-      "explain": {
+      "priority": 9,
+      "priority_score": 64,
+      "priority_explain": {
         "room_weight": 4,
         "theme_weight": 4,
         "benefit_weight": 4,
@@ -634,8 +608,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 9
+      }
     },
     {
       "id": "buy-0010",
@@ -671,11 +644,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 4,
-      "themeWeight": 3,
-      "benefitWeight": 5,
-      "score": 60,
-      "explain": {
+      "priority": 10,
+      "priority_score": 60,
+      "priority_explain": {
         "room_weight": 4,
         "theme_weight": 3,
         "benefit_weight": 5,
@@ -685,8 +656,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 10
+      }
     },
     {
       "id": "buy-0043",
@@ -722,11 +692,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 3,
-      "themeWeight": 4,
-      "benefitWeight": 5,
-      "score": 60,
-      "explain": {
+      "priority": 11,
+      "priority_score": 60,
+      "priority_explain": {
         "room_weight": 3,
         "theme_weight": 4,
         "benefit_weight": 5,
@@ -736,8 +704,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 11
+      }
     },
     {
       "id": "work-0002",
@@ -776,11 +743,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 3,
-      "themeWeight": 5,
-      "benefitWeight": 4,
-      "score": 60,
-      "explain": {
+      "priority": 12,
+      "priority_score": 60,
+      "priority_explain": {
         "room_weight": 3,
         "theme_weight": 5,
         "benefit_weight": 4,
@@ -790,8 +755,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 12
+      }
     },
     {
       "id": "work-0019",
@@ -830,11 +794,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 3,
-      "themeWeight": 4,
-      "benefitWeight": 5,
-      "score": 60,
-      "explain": {
+      "priority": 13,
+      "priority_score": 60,
+      "priority_explain": {
         "room_weight": 3,
         "theme_weight": 4,
         "benefit_weight": 5,
@@ -844,8 +806,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 13
+      }
     },
     {
       "id": "buy-0001",
@@ -881,11 +842,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 2,
-      "themeWeight": 5,
-      "benefitWeight": 5,
-      "score": 50,
-      "explain": {
+      "priority": 14,
+      "priority_score": 50,
+      "priority_explain": {
         "room_weight": 2,
         "theme_weight": 5,
         "benefit_weight": 5,
@@ -895,8 +854,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 14
+      }
     },
     {
       "id": "buy-0011",
@@ -932,11 +890,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 3,
-      "themeWeight": 3,
-      "benefitWeight": 5,
-      "score": 45,
-      "explain": {
+      "priority": 15,
+      "priority_score": 45,
+      "priority_explain": {
         "room_weight": 3,
         "theme_weight": 3,
         "benefit_weight": 5,
@@ -946,8 +902,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 15
+      }
     },
     {
       "id": "buy-0020",
@@ -983,11 +938,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 3,
-      "themeWeight": 3,
-      "benefitWeight": 3,
-      "score": 27,
-      "explain": {
+      "priority": 16,
+      "priority_score": 27,
+      "priority_explain": {
         "room_weight": 3,
         "theme_weight": 3,
         "benefit_weight": 3,
@@ -997,8 +950,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 16
+      }
     },
     {
       "id": "buy-0021",
@@ -1034,11 +986,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 3,
-      "themeWeight": 3,
-      "benefitWeight": 3,
-      "score": 27,
-      "explain": {
+      "priority": 17,
+      "priority_score": 27,
+      "priority_explain": {
         "room_weight": 3,
         "theme_weight": 3,
         "benefit_weight": 3,
@@ -1048,8 +998,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 17
+      }
     },
     {
       "id": "buy-0037",
@@ -1085,11 +1034,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 3,
-      "themeWeight": 3,
-      "benefitWeight": 3,
-      "score": 27,
-      "explain": {
+      "priority": 18,
+      "priority_score": 27,
+      "priority_explain": {
         "room_weight": 3,
         "theme_weight": 3,
         "benefit_weight": 3,
@@ -1099,8 +1046,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 18
+      }
     },
     {
       "id": "work-0013",
@@ -1138,11 +1084,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 3,
-      "themeWeight": 3,
-      "benefitWeight": 3,
-      "score": 27,
-      "explain": {
+      "priority": 19,
+      "priority_score": 27,
+      "priority_explain": {
         "room_weight": 3,
         "theme_weight": 3,
         "benefit_weight": 3,
@@ -1152,8 +1096,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 19
+      }
     },
     {
       "id": "buy-0014",
@@ -1189,11 +1132,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 4,
-      "themeWeight": 3,
-      "benefitWeight": 2,
-      "score": 24,
-      "explain": {
+      "priority": 20,
+      "priority_score": 24,
+      "priority_explain": {
         "room_weight": 4,
         "theme_weight": 3,
         "benefit_weight": 2,
@@ -1203,8 +1144,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 20
+      }
     },
     {
       "id": "buy-0023",
@@ -1240,11 +1180,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 4,
-      "themeWeight": 3,
-      "benefitWeight": 2,
-      "score": 24,
-      "explain": {
+      "priority": 21,
+      "priority_score": 24,
+      "priority_explain": {
         "room_weight": 4,
         "theme_weight": 3,
         "benefit_weight": 2,
@@ -1254,8 +1192,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 21
+      }
     },
     {
       "id": "work-0010",
@@ -1293,11 +1230,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 4,
-      "themeWeight": 2,
-      "benefitWeight": 3,
-      "score": 24,
-      "explain": {
+      "priority": 22,
+      "priority_score": 24,
+      "priority_explain": {
         "room_weight": 4,
         "theme_weight": 2,
         "benefit_weight": 3,
@@ -1307,8 +1242,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 22
+      }
     },
     {
       "id": "buy-0013",
@@ -1344,11 +1278,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 5,
-      "themeWeight": 2,
-      "benefitWeight": 2,
-      "score": 20,
-      "explain": {
+      "priority": 23,
+      "priority_score": 20,
+      "priority_explain": {
         "room_weight": 5,
         "theme_weight": 2,
         "benefit_weight": 2,
@@ -1358,8 +1290,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 23
+      }
     },
     {
       "id": "buy-0000",
@@ -1395,11 +1326,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 2,
-      "themeWeight": 3,
-      "benefitWeight": 3,
-      "score": 18,
-      "explain": {
+      "priority": 24,
+      "priority_score": 18,
+      "priority_explain": {
         "room_weight": 2,
         "theme_weight": 3,
         "benefit_weight": 3,
@@ -1409,8 +1338,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 24
+      }
     },
     {
       "id": "buy-0002",
@@ -1446,11 +1374,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 2,
-      "themeWeight": 3,
-      "benefitWeight": 3,
-      "score": 18,
-      "explain": {
+      "priority": 25,
+      "priority_score": 18,
+      "priority_explain": {
         "room_weight": 2,
         "theme_weight": 3,
         "benefit_weight": 3,
@@ -1460,8 +1386,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 25
+      }
     },
     {
       "id": "buy-0009",
@@ -1497,11 +1422,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 2,
-      "themeWeight": 3,
-      "benefitWeight": 3,
-      "score": 18,
-      "explain": {
+      "priority": 26,
+      "priority_score": 18,
+      "priority_explain": {
         "room_weight": 2,
         "theme_weight": 3,
         "benefit_weight": 3,
@@ -1511,8 +1434,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 26
+      }
     },
     {
       "id": "buy-0017",
@@ -1548,11 +1470,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 3,
-      "themeWeight": 2,
-      "benefitWeight": 3,
-      "score": 18,
-      "explain": {
+      "priority": 27,
+      "priority_score": 18,
+      "priority_explain": {
         "room_weight": 3,
         "theme_weight": 2,
         "benefit_weight": 3,
@@ -1562,8 +1482,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 27
+      }
     },
     {
       "id": "buy-0036",
@@ -1599,11 +1518,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 2,
-      "themeWeight": 3,
-      "benefitWeight": 3,
-      "score": 18,
-      "explain": {
+      "priority": 28,
+      "priority_score": 18,
+      "priority_explain": {
         "room_weight": 2,
         "theme_weight": 3,
         "benefit_weight": 3,
@@ -1613,8 +1530,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 28
+      }
     },
     {
       "id": "work-0014",
@@ -1652,11 +1568,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 2,
-      "themeWeight": 3,
-      "benefitWeight": 3,
-      "score": 18,
-      "explain": {
+      "priority": 29,
+      "priority_score": 18,
+      "priority_explain": {
         "room_weight": 2,
         "theme_weight": 3,
         "benefit_weight": 3,
@@ -1666,8 +1580,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 29
+      }
     },
     {
       "id": "work-0015",
@@ -1705,11 +1618,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 2,
-      "themeWeight": 3,
-      "benefitWeight": 3,
-      "score": 18,
-      "explain": {
+      "priority": 30,
+      "priority_score": 18,
+      "priority_explain": {
         "room_weight": 2,
         "theme_weight": 3,
         "benefit_weight": 3,
@@ -1719,8 +1630,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 30
+      }
     },
     {
       "id": "buy-0015",
@@ -1756,11 +1666,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 4,
-      "themeWeight": 2,
-      "benefitWeight": 2,
-      "score": 16,
-      "explain": {
+      "priority": 31,
+      "priority_score": 16,
+      "priority_explain": {
         "room_weight": 4,
         "theme_weight": 2,
         "benefit_weight": 2,
@@ -1770,8 +1678,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 31
+      }
     },
     {
       "id": "buy-0018",
@@ -1807,11 +1714,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 4,
-      "themeWeight": 2,
-      "benefitWeight": 2,
-      "score": 16,
-      "explain": {
+      "priority": 32,
+      "priority_score": 16,
+      "priority_explain": {
         "room_weight": 4,
         "theme_weight": 2,
         "benefit_weight": 2,
@@ -1821,8 +1726,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 32
+      }
     },
     {
       "id": "buy-0024",
@@ -1858,11 +1762,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 4,
-      "themeWeight": 2,
-      "benefitWeight": 2,
-      "score": 16,
-      "explain": {
+      "priority": 33,
+      "priority_score": 16,
+      "priority_explain": {
         "room_weight": 4,
         "theme_weight": 2,
         "benefit_weight": 2,
@@ -1872,8 +1774,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 33
+      }
     },
     {
       "id": "buy-0038",
@@ -1909,11 +1810,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 4,
-      "themeWeight": 2,
-      "benefitWeight": 2,
-      "score": 16,
-      "explain": {
+      "priority": 34,
+      "priority_score": 16,
+      "priority_explain": {
         "room_weight": 4,
         "theme_weight": 2,
         "benefit_weight": 2,
@@ -1923,8 +1822,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 34
+      }
     },
     {
       "id": "buy-0039",
@@ -1960,11 +1858,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 4,
-      "themeWeight": 2,
-      "benefitWeight": 2,
-      "score": 16,
-      "explain": {
+      "priority": 35,
+      "priority_score": 16,
+      "priority_explain": {
         "room_weight": 4,
         "theme_weight": 2,
         "benefit_weight": 2,
@@ -1974,8 +1870,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 35
+      }
     },
     {
       "id": "work-0005",
@@ -2013,11 +1908,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 1,
-      "themeWeight": 4,
-      "benefitWeight": 4,
-      "score": 16,
-      "explain": {
+      "priority": 36,
+      "priority_score": 16,
+      "priority_explain": {
         "room_weight": 1,
         "theme_weight": 4,
         "benefit_weight": 4,
@@ -2027,8 +1920,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 36
+      }
     },
     {
       "id": "work-0011",
@@ -2066,11 +1958,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 4,
-      "themeWeight": 2,
-      "benefitWeight": 2,
-      "score": 16,
-      "explain": {
+      "priority": 37,
+      "priority_score": 16,
+      "priority_explain": {
         "room_weight": 4,
         "theme_weight": 2,
         "benefit_weight": 2,
@@ -2080,8 +1970,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 37
+      }
     },
     {
       "id": "work-0012",
@@ -2120,11 +2009,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 4,
-      "themeWeight": 2,
-      "benefitWeight": 2,
-      "score": 16,
-      "explain": {
+      "priority": 38,
+      "priority_score": 16,
+      "priority_explain": {
         "room_weight": 4,
         "theme_weight": 2,
         "benefit_weight": 2,
@@ -2134,8 +2021,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 38
+      }
     },
     {
       "id": "buy-0003",
@@ -2171,11 +2057,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 2,
-      "themeWeight": 2,
-      "benefitWeight": 3,
-      "score": 12,
-      "explain": {
+      "priority": 39,
+      "priority_score": 12,
+      "priority_explain": {
         "room_weight": 2,
         "theme_weight": 2,
         "benefit_weight": 3,
@@ -2185,8 +2069,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 39
+      }
     },
     {
       "id": "buy-0004",
@@ -2222,11 +2105,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 2,
-      "themeWeight": 2,
-      "benefitWeight": 3,
-      "score": 12,
-      "explain": {
+      "priority": 40,
+      "priority_score": 12,
+      "priority_explain": {
         "room_weight": 2,
         "theme_weight": 2,
         "benefit_weight": 3,
@@ -2236,8 +2117,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 40
+      }
     },
     {
       "id": "buy-0005",
@@ -2273,11 +2153,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 2,
-      "themeWeight": 2,
-      "benefitWeight": 3,
-      "score": 12,
-      "explain": {
+      "priority": 41,
+      "priority_score": 12,
+      "priority_explain": {
         "room_weight": 2,
         "theme_weight": 2,
         "benefit_weight": 3,
@@ -2287,8 +2165,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 41
+      }
     },
     {
       "id": "buy-0006",
@@ -2324,11 +2201,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 2,
-      "themeWeight": 2,
-      "benefitWeight": 3,
-      "score": 12,
-      "explain": {
+      "priority": 42,
+      "priority_score": 12,
+      "priority_explain": {
         "room_weight": 2,
         "theme_weight": 2,
         "benefit_weight": 3,
@@ -2338,8 +2213,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 42
+      }
     },
     {
       "id": "buy-0007",
@@ -2375,11 +2249,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 2,
-      "themeWeight": 2,
-      "benefitWeight": 3,
-      "score": 12,
-      "explain": {
+      "priority": 43,
+      "priority_score": 12,
+      "priority_explain": {
         "room_weight": 2,
         "theme_weight": 2,
         "benefit_weight": 3,
@@ -2389,8 +2261,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 43
+      }
     },
     {
       "id": "buy-0008",
@@ -2426,11 +2297,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 2,
-      "themeWeight": 2,
-      "benefitWeight": 3,
-      "score": 12,
-      "explain": {
+      "priority": 44,
+      "priority_score": 12,
+      "priority_explain": {
         "room_weight": 2,
         "theme_weight": 2,
         "benefit_weight": 3,
@@ -2440,8 +2309,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 44
+      }
     },
     {
       "id": "buy-0019",
@@ -2477,11 +2345,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 4,
-      "themeWeight": 3,
-      "benefitWeight": 1,
-      "score": 12,
-      "explain": {
+      "priority": 45,
+      "priority_score": 12,
+      "priority_explain": {
         "room_weight": 4,
         "theme_weight": 3,
         "benefit_weight": 1,
@@ -2491,8 +2357,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 45
+      }
     },
     {
       "id": "buy-0029",
@@ -2528,11 +2393,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 3,
-      "themeWeight": 2,
-      "benefitWeight": 2,
-      "score": 12,
-      "explain": {
+      "priority": 46,
+      "priority_score": 12,
+      "priority_explain": {
         "room_weight": 3,
         "theme_weight": 2,
         "benefit_weight": 2,
@@ -2542,8 +2405,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 46
+      }
     },
     {
       "id": "buy-0044",
@@ -2579,11 +2441,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 3,
-      "themeWeight": 2,
-      "benefitWeight": 2,
-      "score": 12,
-      "explain": {
+      "priority": 47,
+      "priority_score": 12,
+      "priority_explain": {
         "room_weight": 3,
         "theme_weight": 2,
         "benefit_weight": 2,
@@ -2593,8 +2453,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 47
+      }
     },
     {
       "id": "buy-0045",
@@ -2630,11 +2489,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 2,
-      "themeWeight": 2,
-      "benefitWeight": 3,
-      "score": 12,
-      "explain": {
+      "priority": 48,
+      "priority_score": 12,
+      "priority_explain": {
         "room_weight": 2,
         "theme_weight": 2,
         "benefit_weight": 3,
@@ -2644,8 +2501,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 48
+      }
     },
     {
       "id": "buy-0012",
@@ -2681,11 +2537,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 5,
-      "themeWeight": 2,
-      "benefitWeight": 1,
-      "score": 10,
-      "explain": {
+      "priority": 49,
+      "priority_score": 10,
+      "priority_explain": {
         "room_weight": 5,
         "theme_weight": 2,
         "benefit_weight": 1,
@@ -2695,8 +2549,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 49
+      }
     },
     {
       "id": "work-0017",
@@ -2736,11 +2589,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 1,
-      "themeWeight": 2,
-      "benefitWeight": 4,
-      "score": 8,
-      "explain": {
+      "priority": 50,
+      "priority_score": 8,
+      "priority_explain": {
         "room_weight": 1,
         "theme_weight": 2,
         "benefit_weight": 4,
@@ -2750,8 +2601,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 50
+      }
     },
     {
       "id": "buy-0016",
@@ -2787,11 +2637,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 3,
-      "themeWeight": 2,
-      "benefitWeight": 1,
-      "score": 6,
-      "explain": {
+      "priority": 51,
+      "priority_score": 6,
+      "priority_explain": {
         "room_weight": 3,
         "theme_weight": 2,
         "benefit_weight": 1,
@@ -2801,8 +2649,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 51
+      }
     },
     {
       "id": "buy-0025",
@@ -2838,11 +2685,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 3,
-      "themeWeight": 2,
-      "benefitWeight": 1,
-      "score": 6,
-      "explain": {
+      "priority": 52,
+      "priority_score": 6,
+      "priority_explain": {
         "room_weight": 3,
         "theme_weight": 2,
         "benefit_weight": 1,
@@ -2852,8 +2697,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 52
+      }
     },
     {
       "id": "buy-0026",
@@ -2889,11 +2733,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 3,
-      "themeWeight": 2,
-      "benefitWeight": 1,
-      "score": 6,
-      "explain": {
+      "priority": 53,
+      "priority_score": 6,
+      "priority_explain": {
         "room_weight": 3,
         "theme_weight": 2,
         "benefit_weight": 1,
@@ -2903,8 +2745,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 53
+      }
     },
     {
       "id": "buy-0027",
@@ -2940,11 +2781,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 3,
-      "themeWeight": 2,
-      "benefitWeight": 1,
-      "score": 6,
-      "explain": {
+      "priority": 54,
+      "priority_score": 6,
+      "priority_explain": {
         "room_weight": 3,
         "theme_weight": 2,
         "benefit_weight": 1,
@@ -2954,8 +2793,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 54
+      }
     },
     {
       "id": "buy-0028",
@@ -2991,11 +2829,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 3,
-      "themeWeight": 2,
-      "benefitWeight": 1,
-      "score": 6,
-      "explain": {
+      "priority": 55,
+      "priority_score": 6,
+      "priority_explain": {
         "room_weight": 3,
         "theme_weight": 2,
         "benefit_weight": 1,
@@ -3005,8 +2841,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 55
+      }
     },
     {
       "id": "buy-0030",
@@ -3042,11 +2877,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 3,
-      "themeWeight": 2,
-      "benefitWeight": 1,
-      "score": 6,
-      "explain": {
+      "priority": 56,
+      "priority_score": 6,
+      "priority_explain": {
         "room_weight": 3,
         "theme_weight": 2,
         "benefit_weight": 1,
@@ -3056,8 +2889,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 56
+      }
     },
     {
       "id": "buy-0042",
@@ -3093,11 +2925,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 3,
-      "themeWeight": 2,
-      "benefitWeight": 1,
-      "score": 6,
-      "explain": {
+      "priority": 57,
+      "priority_score": 6,
+      "priority_explain": {
         "room_weight": 3,
         "theme_weight": 2,
         "benefit_weight": 1,
@@ -3107,8 +2937,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 57
+      }
     },
     {
       "id": "work-0018",
@@ -3151,11 +2980,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 3,
-      "themeWeight": 2,
-      "benefitWeight": 1,
-      "score": 6,
-      "explain": {
+      "priority": 58,
+      "priority_score": 6,
+      "priority_explain": {
         "room_weight": 3,
         "theme_weight": 2,
         "benefit_weight": 1,
@@ -3165,8 +2992,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 58
+      }
     },
     {
       "id": "work-0020",
@@ -3203,11 +3029,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 3,
-      "themeWeight": 2,
-      "benefitWeight": 1,
-      "score": 6,
-      "explain": {
+      "priority": 59,
+      "priority_score": 6,
+      "priority_explain": {
         "room_weight": 3,
         "theme_weight": 2,
         "benefit_weight": 1,
@@ -3217,8 +3041,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 59
+      }
     },
     {
       "id": "work-0021",
@@ -3258,11 +3081,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 3,
-      "themeWeight": 2,
-      "benefitWeight": 1,
-      "score": 6,
-      "explain": {
+      "priority": 60,
+      "priority_score": 6,
+      "priority_explain": {
         "room_weight": 3,
         "theme_weight": 2,
         "benefit_weight": 1,
@@ -3272,8 +3093,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 60
+      }
     },
     {
       "id": "buy-0031",
@@ -3309,11 +3129,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 2,
-      "themeWeight": 2,
-      "benefitWeight": 1,
-      "score": 4,
-      "explain": {
+      "priority": 61,
+      "priority_score": 4,
+      "priority_explain": {
         "room_weight": 2,
         "theme_weight": 2,
         "benefit_weight": 1,
@@ -3323,8 +3141,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 61
+      }
     },
     {
       "id": "buy-0032",
@@ -3360,11 +3177,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 2,
-      "themeWeight": 2,
-      "benefitWeight": 1,
-      "score": 4,
-      "explain": {
+      "priority": 62,
+      "priority_score": 4,
+      "priority_explain": {
         "room_weight": 2,
         "theme_weight": 2,
         "benefit_weight": 1,
@@ -3374,8 +3189,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 62
+      }
     },
     {
       "id": "buy-0033",
@@ -3411,11 +3225,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 2,
-      "themeWeight": 2,
-      "benefitWeight": 1,
-      "score": 4,
-      "explain": {
+      "priority": 63,
+      "priority_score": 4,
+      "priority_explain": {
         "room_weight": 2,
         "theme_weight": 2,
         "benefit_weight": 1,
@@ -3425,8 +3237,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 63
+      }
     },
     {
       "id": "buy-0034",
@@ -3462,11 +3273,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 2,
-      "themeWeight": 2,
-      "benefitWeight": 1,
-      "score": 4,
-      "explain": {
+      "priority": 64,
+      "priority_score": 4,
+      "priority_explain": {
         "room_weight": 2,
         "theme_weight": 2,
         "benefit_weight": 1,
@@ -3476,8 +3285,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 64
+      }
     },
     {
       "id": "buy-0035",
@@ -3513,11 +3321,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 2,
-      "themeWeight": 2,
-      "benefitWeight": 1,
-      "score": 4,
-      "explain": {
+      "priority": 65,
+      "priority_score": 4,
+      "priority_explain": {
         "room_weight": 2,
         "theme_weight": 2,
         "benefit_weight": 1,
@@ -3527,8 +3333,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 65
+      }
     },
     {
       "id": "work-0016",
@@ -3563,11 +3368,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 2,
-      "themeWeight": 2,
-      "benefitWeight": 1,
-      "score": 4,
-      "explain": {
+      "priority": 66,
+      "priority_score": 4,
+      "priority_explain": {
         "room_weight": 2,
         "theme_weight": 2,
         "benefit_weight": 1,
@@ -3577,8 +3380,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 66
+      }
     },
     {
       "id": "buy-0040",
@@ -3614,11 +3416,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 1,
-      "themeWeight": 2,
-      "benefitWeight": 1,
-      "score": 2,
-      "explain": {
+      "priority": 67,
+      "priority_score": 2,
+      "priority_explain": {
         "room_weight": 1,
         "theme_weight": 2,
         "benefit_weight": 1,
@@ -3628,8 +3428,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 67
+      }
     },
     {
       "id": "buy-0041",
@@ -3665,11 +3464,9 @@
       "house_benefit": null,
       "benefit_status": null,
       "confidence": "drafted",
-      "roomWeight": 1,
-      "themeWeight": 2,
-      "benefitWeight": 1,
-      "score": 2,
-      "explain": {
+      "priority": 68,
+      "priority_score": 2,
+      "priority_explain": {
         "room_weight": 1,
         "theme_weight": 2,
         "benefit_weight": 1,
@@ -3679,8 +3476,7 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      },
-      "priority": 68
+      }
     }
   ],
   "bills": [
@@ -3988,6 +3784,28 @@
       "kind": "shelf",
       "room_key": "boot-room",
       "label_code": "B-01"
+    }
+  ],
+  "carried_finance": [
+    {
+      "id": "carried-0",
+      "source_system": "rec",
+      "source_group": "ongoing_bills",
+      "source_ref": "sample-1",
+      "label": "Sample carried bill",
+      "amount": 0,
+      "cadence": "monthly",
+      "review_status": "pending"
+    },
+    {
+      "id": "carried-1",
+      "source_system": "rec",
+      "source_group": "shopping_list",
+      "source_ref": "sample-2",
+      "label": "Sample carried purchase",
+      "amount": 0,
+      "cadence": null,
+      "review_status": "pending"
     }
   ],
   "inventory": [

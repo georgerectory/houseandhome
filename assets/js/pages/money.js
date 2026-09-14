@@ -10,6 +10,21 @@ import { emptyState } from '../core/page.js';
 import { money, preciseMoney, provenance, titleCase, escape } from '../core/format.js';
 import { allocate, projectFunding } from '../../js/engine/allocate.js';
 
+/** What each carried group turns into once someone has been through it.
+ *  Mirrors GROUPS in tools/carry-lib.mjs, which is what validates a blob
+ *  on the way in. */
+const CARRIED_MEANS = {
+  shopping_list: 'Purchases on the shopping list.',
+  one_time_costs: 'One-off setup costs.',
+  ongoing_bills: 'Bills that count toward running costs.',
+  subscriptions: 'Subscriptions, with a review date.',
+  expenses: 'Recorded spending against items.',
+  gift_cards: 'Held against a purchase, or dismissed.',
+  savings: 'Informs the pot. Never sets it.',
+  investments_history: 'Reference only.',
+  debts: 'Informs affordability. Never sets it.',
+};
+
 const user = await requireAuth();
 if (!user) throw new Error('redirecting to login');
 
@@ -25,6 +40,18 @@ const outstanding = totalOutstanding(d);
 const potProv = provenance(d.pot?.contribution_confidence);
 
 const soonest = projection.filter((p) => p.monthsToFund).sort((a, b) => a.monthsToFund - b.monthsToFund);
+
+// The carried-over archive. Grouped for display and NEVER summed into
+// anything above: these are figures from an earlier system, captured
+// during a search that has since moved on, and not one of them has been
+// checked. They are a prompt sheet for a review conversation.
+const carried = d.carried_finance ?? [];
+const carriedGroups = [...carried.reduce((m, r) => {
+  const g = r.source_group ?? 'other';
+  if (!m.has(g)) m.set(g, []);
+  m.get(g).push(r);
+  return m;
+}, new Map())].sort((a, b) => b[1].length - a[1].length);
 
 render('[data-page-root]', `
   ${confidenceBanner(confidenceSummary(d))}
@@ -78,6 +105,27 @@ render('[data-page-root]', `
       </tr>`).join('')}</tbody>
     </table></div>` : emptyState('No projection available.')}
   </section>
+
+  ${carried.length ? `<section class="section">
+    <div class="section__head"><h2>Carried over, not yet reviewed</h2>
+      <span class="band__count num">${carried.length}</span></div>
+    <p class="lede">Figures brought across from the earlier system. They were captured
+      during a property search that has since moved on, so items have been bought,
+      prices have changed and circumstances have shifted. <strong>None of them is
+      counted in anything above</strong> — not the outstanding total, not the
+      allocation, not the projection. They are here so nothing is forgotten, not so
+      anything is assumed.</p>
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>Group</th><th class="num">Lines</th><th>What it becomes once reviewed</th></tr></thead>
+      <tbody>${carriedGroups.map(([g, rows]) => `<tr>
+        <td>${escape(titleCase(g))}</td>
+        <td class="num">${rows.length}</td>
+        <td>${escape(CARRIED_MEANS[g] ?? 'Reviewed, then kept or dismissed.')}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>
+    <p class="lede">Reviewing a line is a conversation, not a form: say what is still
+      real and at what amount, and it moves to a table that does count.</p>
+  </section>` : ''}
 
   <section class="section">
     <div class="section__head"><h2>Bills</h2></div>

@@ -145,7 +145,16 @@ BUY.forEach(([title, category, cb, cw, theme, benefit, roomKey], i) => {
 });
 
 // Rank exactly as the database would, then band the top of the list.
-items = rank(items);
+// rank() returns the ENGINE's vocabulary - score and explain. The
+// database stores those as priority_score and priority_explain, and the
+// front end reads the database's names. Translating here, once, is what
+// stops a page rendering correctly against the fixture and blankly
+// against the real thing.
+items = rank(items).map(({ score, explain, roomWeight, themeWeight, benefitWeight, ...i }) => ({
+  ...i,
+  priority_score: score,
+  priority_explain: explain,
+}));
 const HORIZON = (p) => (p <= 6 ? 'now' : p <= 16 ? 'next' : p <= 34 ? 'later' : 'someday');
 items = items.map((i) => ({ ...i, horizon: HORIZON(i.priority) }));
 
@@ -207,6 +216,18 @@ const data = {
     { id: uid('store', 0), name: 'Loft boxes', kind: 'box', room_key: 'loft', label_code: 'L-01' },
     { id: uid('store', 1), name: 'Garage rack', kind: 'rack', room_key: 'garage', label_code: 'G-01' },
     { id: uid('store', 2), name: 'Boot room shelf', kind: 'shelf', room_key: 'boot-room', label_code: 'B-01' },
+  ],
+  // Illustrative carried-over lines, so the demo exercises the archive's
+  // rendering. SYNTHETIC, like everything else in this file, and marked
+  // unreviewed so it is excluded from every total exactly as real
+  // carried data would be.
+  carried_finance: [
+    { id: 'carried-0', source_system: 'rec', source_group: 'ongoing_bills',
+      source_ref: 'sample-1', label: 'Sample carried bill', amount: 0,
+      cadence: 'monthly', review_status: 'pending' },
+    { id: 'carried-1', source_system: 'rec', source_group: 'shopping_list',
+      source_ref: 'sample-2', label: 'Sample carried purchase', amount: 0,
+      cadence: null, review_status: 'pending' },
   ],
   inventory: [
     { id: uid('inv', 0), name: 'Christmas decorations', category: 'seasonal', storage: 'Loft boxes', season_window: ['winter'], confidence: 'drafted' },

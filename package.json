@@ -12,6 +12,7 @@
     "test:parity": "node tools/parity-check.mjs",
     "test:frontend": "node tools/check-frontend.mjs",
     "lint": "node tools/lint-frontend.mjs",
+    "test:secrets": "node tools/check-secrets.mjs",
     "screenshots": "node tools/check-frontend.mjs --screenshots",
     "fixtures": "node tools/build-fixtures.mjs",
     "pages": "node tools/build-pages.mjs"

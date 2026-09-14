@@ -89,9 +89,18 @@ export function mountShell(active, { user = null } = {}) {
     out.textContent = 'Sign out';
     out.setAttribute('aria-label', `Sign out of ${user.username}`);
     out.addEventListener('click', async () => {
-      const { signOut } = await import('./auth.js');
-      await signOut();
-      location.replace('login.html');
+      // Sign out ALWAYS leaves the page, even if clearing the session
+      // fails. Without the finally, a failed client load rejects here
+      // and the button does nothing at all - the reader clicks Sign out
+      // and stays where they are, apparently still signed in.
+      try {
+        const { signOut } = await import('./auth.js');
+        await signOut();
+      } catch (err) {
+        console.error('sign out failed; leaving the page anyway', err);
+      } finally {
+        location.replace('login.html');
+      }
     });
     actions.append(out);
   }

@@ -12,11 +12,12 @@ source tool's design. Shopping live. House draws a floor plan and a 3D
 model of a PLACEHOLDER building, with grid references computed from
 metric coordinates rather than stored.
 
-**`rec`'s figures are NOT ported.** Its database is unreachable (the
-connector points at GeorgeRectory; `rec` is under `seanparkerai`) and its
-repo fixtures are labelled synthetic by the file itself.
-`carried_finance` is where they land when readable. Nothing has been
-invented in their place.
+**`rec`'s figures are NOT ported yet, and the route in is now built.**
+`docs/CARRY-OVER.md` and `tools/carry.mjs` do the two-phase carry: a
+read-only extract while the connector is on `seanparkerai`, then a
+checksummed, idempotent load once it is back here. Proven end to end
+against the live database and covered by seven SQL tests. Nothing has
+been invented in the meantime.
 
 ## Next steps
 

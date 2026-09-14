@@ -247,6 +247,9 @@ function body() {
 // being kept alive behind a hidden canvas: a WebGL context running
 // invisibly costs the same as a visible one.
 let planner = null;
+// Survives a repaint so switching floors does not also snap the camera
+// back to its opening angle.
+let cameraState = null;
 
 /**
  * Bring up the 3D view.
@@ -263,7 +266,7 @@ async function mountModel() {
   try {
     const { Planner } = await import('../core/planner.js');
     planner = new Planner(canvas);
-    planner.setModel(building, placements);
+    planner.setModel(building, placements, cameraState);
     planner.showLevel(levelId);
     planner.start();
   } catch (err) {
@@ -278,7 +281,11 @@ async function mountModel() {
 }
 
 function paint() {
-  if (planner) { planner.dispose(); planner = null; }
+  if (planner) {
+    cameraState = planner.cameraState();
+    planner.dispose();
+    planner = null;
+  }
   render('[data-page-root]', body());
   if (view === 'model') mountModel();
 }
@@ -289,8 +296,12 @@ paint();
 document.addEventListener('click', (e) => {
   const vw = e.target.closest('[data-view]');
   if (vw) {
+    const was = view;
     view = vw.dataset.view;
     store.set(VIEW_KEY, view);
+    // Leaving the model forgets the angle: coming back later should
+    // frame the house, not resume a view the reader has forgotten.
+    if (was === 'model' && view !== 'model') cameraState = null;
     paint();
     return;
   }

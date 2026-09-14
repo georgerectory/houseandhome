@@ -14,7 +14,12 @@
 const DEFAULTS = {
   supabaseUrl: 'https://fggexvcodgmpkxkgpxet.supabase.co',
   supabaseAnonKey: 'sb_publishable_8aJevWV59aW0A7KLFM4I8A_5ig6wyiG',
-  supabaseModule: 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm',
+  // Pinned to an EXACT version, not the '@2' range it used to carry. A
+  // range means a breaking publish upstream can take the live site down
+  // without a commit here, and there would be nothing in the repository
+  // to explain why. Bumping it is a deliberate change with a test run
+  // behind it.
+  supabaseModule: 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/+esm',
 };
 
 // A page may override these before the modules load. The only consumer

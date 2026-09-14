@@ -27,7 +27,8 @@ async function loadLive() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { location.replace('login.html'); return null; }
 
-  const [rooms, items, bills, assets, storage, inventory, settings, prices] = await Promise.all([
+  const [rooms, items, bills, assets, storage, inventory, settings, prices,
+    carried] = await Promise.all([
     sb.from('rooms').select('*'),
     sb.from('work_items').select('*').order('priority'),
     sb.from('bills').select('*').eq('is_active', true),
@@ -36,13 +37,31 @@ async function loadLive() {
     sb.from('inventory_items').select('*'),
     sb.from('allocation_settings').select('*').maybeSingle(),
     sb.from('price_references').select('*'),
+    // Only what is still unreviewed: a line that has been dealt with has
+    // left the prompt sheet, and showing it again would ask the owner to
+    // decide something they have already decided.
+    sb.from('carried_finance').select('*').eq('review_status', 'pending'),
   ]);
-  const { data: pot } = await sb.from('pots').select('*').eq('is_active', true).maybeSingle();
+  const { data: pot, error: potError } = await sb.from('pots')
+    .select('*').eq('is_active', true).maybeSingle();
+
+  // A failed query returns null data, which renders identically to an
+  // empty database: "No work items yet." That is the worst possible
+  // failure mode for a system whose whole job is to be honest about what
+  // it knows, so a broken read is raised rather than swallowed.
+  const failed = Object.entries({
+    rooms, items, bills, assets, storage, inventory, settings, prices, carried,
+    pot: { error: potError },
+  }).filter(([, r]) => r?.error).map(([name, r]) => `${name}: ${r.error.message}`);
+  if (failed.length) {
+    throw new Error(`Could not read the database - ${failed.join('; ')}`);
+  }
 
   // Pages read room_name off an item; resolve it once here rather than
   // making every page join, and rather than asking PostgREST for an
   // embedded select that RLS would have to re-check per row.
   const roomById = new Map((rooms.data ?? []).map((r) => [r.id, r]));
+  const storageById = new Map((storage.data ?? []).map((sl) => [sl.id, sl]));
   const withRoom = (i) => ({
     ...i,
     room_key: roomById.get(i.room_id)?.key ?? null,
@@ -66,9 +85,19 @@ async function loadLive() {
     storage: (storage.data ?? []).map((s) => ({
       ...s, room_key: roomById.get(s.room_id)?.key ?? null,
     })),
-    inventory: (inventory.data ?? []).map((v) => ({ ...v, storage: null })),
+    // Pages show what is IN a storage location by its name, so resolve
+    // the link here rather than leaving every inventory row claiming it
+    // is stored nowhere.
+    inventory: (inventory.data ?? []).map((v) => ({
+      ...v,
+      storage: storageById.get(v.storage_location_id)?.name ?? null,
+    })),
     allocation_settings: settings.data ?? { decay: 0.85, floor_share: 0.10 },
     price_references: prices.data ?? [],
+    // An ARCHIVE, not a ledger. Deliberately not fed into any selector
+    // below: nothing here may reach a total, a projection or an
+    // allocation until a person has confirmed it.
+    carried_finance: carried.data ?? [],
   };
   return cache;
 }

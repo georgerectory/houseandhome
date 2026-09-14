@@ -252,8 +252,21 @@ create table if not exists public.carried_finance (
     check (review_status in ('pending','superseded','dismissed')),
   superseded_note text,
   reviewed_at  timestamptz,
+  -- Provenance and the natural key. These figures cross from another
+  -- Supabase account as a JSON file, because this session can only be
+  -- authenticated to one account at a time. That makes loading a
+  -- REPEATABLE operation: an extract may be re-run and a load may be
+  -- interrupted, and neither must leave a second copy of a line.
+  -- source_ref is the row's identity in the system it came from.
+  source_system text not null default 'rec',
+  source_ref   text not null default '',
+  captured_at  timestamptz,
+  batch_id     uuid,
   created_at   timestamptz not null default now()
 );
+
+create unique index if not exists carried_finance_source_key
+  on public.carried_finance (household_id, source_system, source_group, source_ref);
 
 create index if not exists carried_finance_review_idx
   on public.carried_finance (household_id, review_status, source_group);

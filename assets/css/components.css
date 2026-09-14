@@ -552,3 +552,40 @@ fieldset[role="group"] {
   .filters > summary { display: none; }
   .filters > .filters__body { display: flex; }
 }
+
+/* --- Shopping -------------------------------------------------------- */
+
+/* A trip is a section with its own subtotal, so it needs to read as a
+ * unit without a card's shadow and border doing the work twice. */
+.shop-trip { border-top: 1px solid var(--rule); padding-top: var(--space-4); }
+
+.shop-ready { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); }
+.shop-ready > li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: var(--tap-min-floor);
+  padding: var(--space-2) var(--space-3);
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+}
+
+/* An estimate outside its benchmark range is the most useful thing on
+ * the page, so it is called out in the row rather than left to be
+ * inferred from two numbers sitting near each other. */
+.shop-flag {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-xs);
+  color: var(--warn);
+}
+
+.shop-marks { list-style: none; margin: var(--space-1) 0 0; padding: 0; display: grid; gap: 2px; }
+.shop-marks > li {
+  display: flex;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
+}
+.shop-mark-age { color: var(--ink-faint); }

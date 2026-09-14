@@ -10,6 +10,7 @@ const PAGES = [
   { href: 'roadmap.html',  label: 'Roadmap' },
   { href: 'backlog.html',  label: 'Backlog' },
   { href: 'money.html',    label: 'Money' },
+  { href: 'shopping.html', label: 'Shopping' },
   { href: 'house.html',    label: 'House' },
   { href: 'handbook.html', label: 'Handbook' },
 ];

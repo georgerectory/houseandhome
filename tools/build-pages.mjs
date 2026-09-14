@@ -12,6 +12,7 @@ const PAGES = [
   ['roadmap.html', 'Roadmap', 'The same work as a board, a timeline or a list — grouped by room, trade, intent or benefit.'],
   ['backlog.html', 'Backlog', 'Every job and purchase, ranked and filterable.'],
   ['money.html', 'Money', 'The pot, what it is funding, and what is due.'],
+  ['shopping.html', 'Shopping', 'What to buy, grouped into trips, with what each run costs.'],
   ['house.html', 'House', 'Rooms, storage and equipment.'],
   ['handbook.html', 'Handbook', 'What this house is and what was decided.'],
 ];

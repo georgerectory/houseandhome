@@ -12,11 +12,14 @@ rebuilt on the source tool's design - four levels, two layouts, spanning
 bars with their titles inside them, collapsible bands and a drawer on
 every item - all five gates green.
 
-The shopping list and budget figures still have to be taken from the
-`rec` project. Its live data is currently unreachable: the Supabase
-connector points at GeorgeRectory, and `rec` sits under `seanparkerai`.
-Only the SHAPE of that data was captured, never the values, so nothing
-has been ported and nothing has been invented in its place.
+The Shopping page is live: 46 purchases, £8,703 of drafted estimates,
+grouped into trips by room, intent, when or channel.
+
+`rec`'s own figures have NOT been ported. Its live database is
+unreachable - the Supabase connector points at GeorgeRectory and `rec`
+sits under `seanparkerai` - and its repo fixtures are labelled synthetic
+by the file itself. `carried_finance` is the table those figures land in
+when they can be read. Nothing has been invented in their place.
 
 ## Next steps
 

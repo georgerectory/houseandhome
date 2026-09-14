@@ -41,7 +41,8 @@ const server = createServer(async (req, res) => {
 await new Promise((r) => server.listen(0, '127.0.0.1', r));
 PORT = server.address().port;
 
-const PAGES = ['index.html', 'roadmap.html', 'backlog.html', 'money.html', 'house.html', 'handbook.html'];
+const PAGES = ['index.html', 'roadmap.html', 'backlog.html', 'money.html',
+  'shopping.html', 'house.html', 'handbook.html'];
 // The login screen is checked separately: it has no nav and is reached
 // without a session.
 const PUBLIC_PAGES = ['login.html'];

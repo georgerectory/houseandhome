@@ -27,7 +27,7 @@ async function loadLive() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { location.replace('login.html'); return null; }
 
-  const [rooms, items, bills, assets, storage, inventory, settings] = await Promise.all([
+  const [rooms, items, bills, assets, storage, inventory, settings, prices] = await Promise.all([
     sb.from('rooms').select('*'),
     sb.from('work_items').select('*').order('priority'),
     sb.from('bills').select('*').eq('is_active', true),
@@ -35,6 +35,7 @@ async function loadLive() {
     sb.from('storage_locations').select('*'),
     sb.from('inventory_items').select('*'),
     sb.from('allocation_settings').select('*').maybeSingle(),
+    sb.from('price_references').select('*'),
   ]);
   const { data: pot } = await sb.from('pots').select('*').eq('is_active', true).maybeSingle();
 
@@ -62,6 +63,7 @@ async function loadLive() {
     })),
     inventory: (inventory.data ?? []).map((v) => ({ ...v, storage: null })),
     allocation_settings: settings.data ?? { decay: 0.85, floor_share: 0.10 },
+    price_references: prices.data ?? [],
   };
   return cache;
 }

@@ -321,13 +321,24 @@ drop trigger if exists accounts_updated_at on public.accounts;
 create trigger accounts_updated_at before update on public.accounts
   for each row execute function public.set_updated_at();
 
--- What is actually available toward the house, netted once and in one
--- place rather than by every caller remembering to subtract.
+-- Two questions, two answers, neither of them lying.
 --
--- Only TRUSTED figures count: an unconfirmed balance contributes
--- nothing, the same rule the allocation engine already lives by.
--- unconfirmed_accounts is returned alongside so a surface can say how
--- much is being left out rather than quietly understating the position.
+--   net_position      what is actually YOURS. What a deposit is built
+--                     from, and what a lender will recognise.
+--   available_to_draw net position plus every undrawn facility. What
+--                     could be laid hands on today, borrowing included.
+--
+-- Keeping them apart is the whole point. An overdraft adds to the second
+-- and nothing to the first: drawing it moves money from "available" to
+-- "owed", it does not create any.
+--
+-- Only TRUSTED figures count, the same rule the allocation engine lives
+-- by, and unconfirmed_accounts is returned alongside so a surface can
+-- say how much is being left out rather than quietly understating.
+--
+-- undrawn works for a facility from either side: an account in credit
+-- with a 1000 limit has 1000 undrawn; one overdrawn by 607.38 against
+-- the same limit has 392.62 left.
 --
 -- security_invoker is NOT optional. A view runs with its creator's
 -- permissions by default, which would read straight past row-level
@@ -344,6 +355,15 @@ select a.household_id,
        sum(case when cl.is_trusted
                 then coalesce(a.balance,0) * (case when a.is_liability then -1 else 1 end)
                 else 0 end) as net_position,
+       sum(case when cl.is_trusted then greatest(
+                coalesce(a.facility_limit,0)
+                  - (case when a.is_liability then coalesce(a.balance,0) else 0 end), 0)
+                else 0 end) as undrawn_facilities,
+       sum(case when cl.is_trusted
+                then coalesce(a.balance,0) * (case when a.is_liability then -1 else 1 end)
+                   + greatest(coalesce(a.facility_limit,0)
+                     - (case when a.is_liability then coalesce(a.balance,0) else 0 end), 0)
+                else 0 end) as available_to_draw,
        count(*) filter (where not cl.is_trusted) as unconfirmed_accounts
   from public.accounts a
   join public.confidence_levels cl on cl.key = a.confidence

@@ -157,11 +157,22 @@ export function houseFunds(d) {
   const sum = (list, f) => list.reduce((s, a) => s + f(a), 0);
   const assets = trusted.filter((a) => !a.is_liability);
   const debts = trusted.filter((a) => a.is_liability);
+  // Undrawn works for a facility from either side: an account in credit
+  // with a 1000 limit has 1000 undrawn; one overdrawn by 607.38 against
+  // the same limit has 392.62 left.
+  const undrawn = (a) => Math.max(0,
+    Number(a.facility_limit ?? 0) - (a.is_liability ? Number(a.balance ?? 0) : 0));
+  const net = sum(assets, (a) => Number(a.balance ?? 0)) - sum(debts, (a) => Number(a.balance ?? 0));
   return {
     totalAssets: sum(assets, (a) => Number(a.balance ?? 0)),
     earmarkedAssets: sum(assets, (a) => Number(a.balance ?? 0) * (a.earmark_pct ?? 0) / 100),
     totalLiabilities: sum(debts, (a) => Number(a.balance ?? 0)),
-    netPosition: sum(assets, (a) => Number(a.balance ?? 0)) - sum(debts, (a) => Number(a.balance ?? 0)),
+    netPosition: net,
+    // What could be laid hands on today, borrowing included. Reported
+    // separately from netPosition and never instead of it: an overdraft
+    // adds to this and nothing to what is actually yours.
+    undrawnFacilities: sum(trusted, undrawn),
+    availableToDraw: net + sum(trusted, undrawn),
     accounts: rows,
     unconfirmed: rows.filter((a) => !['confirmed', 'actual'].includes(a.confidence)),
   };

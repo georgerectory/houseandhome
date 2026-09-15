@@ -70,7 +70,11 @@ render('[data-page-root]', `
       <span class="num">${escape(money(funds.netPosition))}</span></div>
     <p class="lede">Confirmed balances only, netted. A liability is stored as a positive
       amount owed and subtracted here, so a total can never be wrong because someone
-      forgot which way round a debt goes.${funds.unconfirmed.length
+      forgot which way round a debt goes.${funds.undrawnFacilities > 0
+        ? ` With overdrafts and credit limits drawn down in full you could lay hands on
+            ${escape(money(funds.availableToDraw))} — but ${escape(money(funds.undrawnFacilities))}
+            of that is borrowing, not money, and a lender will not count it toward a deposit.`
+        : ''}${funds.unconfirmed.length
         ? ` ${funds.unconfirmed.length} account${funds.unconfirmed.length === 1 ? '' : 's'}
             below ${funds.unconfirmed.length === 1 ? 'is' : 'are'} not confirmed and
             ${funds.unconfirmed.length === 1 ? 'counts' : 'count'} toward nothing.` : ''}</p>

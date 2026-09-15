@@ -414,3 +414,13 @@ create index if not exists work_notes_household_idx on public.work_notes (househ
 drop trigger if exists work_notes_updated_at on public.work_notes;
 create trigger work_notes_updated_at before update on public.work_notes
   for each row execute function public.set_updated_at();
+
+-- Until a property is bound, every renovation cost is a forecast against
+-- a generic house rather than a quote for a real one. See the note on
+-- bills.basis in 40_money.sql.
+alter table public.work_items
+  add column if not exists cost_basis text not null default 'predicted'
+    check (cost_basis in ('current','predicted'));
+
+comment on column public.work_items.cost_basis is
+  'predicted by default: until a property is bound, every renovation cost is a forecast against a generic house.';

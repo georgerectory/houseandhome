@@ -273,3 +273,95 @@ create index if not exists carried_finance_review_idx
 
 comment on table public.carried_finance is
   'Archive of figures migrated from an earlier system. Never a source of truth: excluded from all totals until reviewed and re-entered.';
+
+-- ---------------------------------------------------------------
+-- accounts - what is actually held, right now.
+--
+-- carried_finance is an ARCHIVE of what another system once said, and
+-- pots.unallocated_balance is the house pot. Neither is a statement of
+-- present position, so without this table the question "what do I
+-- actually have toward the deposit" cannot be answered from the
+-- database at all.
+--
+-- A liability carries a POSITIVE balance meaning "owed", with
+-- is_liability true. Keeping the sign out of the number means a total
+-- can never be wrong because somebody forgot which way round a debt
+-- goes. facility_limit separates "available" from "mine": a bank
+-- showing 392.62 available against a 1000 overdraft is 607.38
+-- OVERDRAWN, and those are not the same fact.
+-- ---------------------------------------------------------------
+create table if not exists public.accounts (
+  id             uuid primary key default gen_random_uuid(),
+  household_id   uuid not null references public.households (id) on delete cascade,
+  name           text not null,
+  provider       text,
+  kind           text not null
+    check (kind in ('current_account','savings','isa','investment','pension',
+                    'credit_card','overdraft','loan','cash','other')),
+  is_liability   boolean not null default false,
+  balance        numeric(14,2),
+  facility_limit numeric(14,2),
+  earmark_pct    smallint not null default 0 check (earmark_pct between 0 and 100),
+  earmarked_for  text,
+  as_of          date,
+  confidence     text not null default 'drafted'
+    references public.confidence_levels (key),
+  confirmed_at   timestamptz,
+  notes          text,
+  is_active      boolean not null default true,
+  created_at     timestamptz not null default now(),
+  updated_at     timestamptz not null default now(),
+  unique (household_id, name)
+);
+
+create index if not exists accounts_household_idx
+  on public.accounts (household_id, is_active, kind);
+
+drop trigger if exists accounts_updated_at on public.accounts;
+create trigger accounts_updated_at before update on public.accounts
+  for each row execute function public.set_updated_at();
+
+-- What is actually available toward the house, netted once and in one
+-- place rather than by every caller remembering to subtract.
+--
+-- Only TRUSTED figures count: an unconfirmed balance contributes
+-- nothing, the same rule the allocation engine already lives by.
+-- unconfirmed_accounts is returned alongside so a surface can say how
+-- much is being left out rather than quietly understating the position.
+--
+-- security_invoker is NOT optional. A view runs with its creator's
+-- permissions by default, which would read straight past row-level
+-- security and hand one household another's balances.
+create or replace view public.house_funds
+with (security_invoker = on) as
+select a.household_id,
+       sum(case when not a.is_liability and cl.is_trusted
+                then coalesce(a.balance,0) * a.earmark_pct / 100.0 else 0 end) as earmarked_assets,
+       sum(case when not a.is_liability and cl.is_trusted
+                then coalesce(a.balance,0) else 0 end) as total_assets,
+       sum(case when a.is_liability and cl.is_trusted
+                then coalesce(a.balance,0) else 0 end) as total_liabilities,
+       sum(case when cl.is_trusted
+                then coalesce(a.balance,0) * (case when a.is_liability then -1 else 1 end)
+                else 0 end) as net_position,
+       count(*) filter (where not cl.is_trusted) as unconfirmed_accounts
+  from public.accounts a
+  join public.confidence_levels cl on cl.key = a.confidence
+ where a.is_active
+ group by a.household_id;
+
+-- ---------------------------------------------------------------
+-- basis - the difference between a fact and a forecast.
+--
+-- A water bill for a house nobody owns cannot ever be observed, so it
+-- can never be 'actual'. The owner can still endorse 30 a month as a
+-- sensible prediction. confidence says how well evidenced a number is;
+-- basis says what KIND of claim it is. Conflating them is how a guess
+-- about a house that does not exist ends up reading like a statement.
+-- ---------------------------------------------------------------
+alter table public.bills
+  add column if not exists basis text not null default 'current'
+    check (basis in ('current','predicted'));
+
+comment on column public.bills.basis is
+  'current: a bill being paid today. predicted: a forecast for a house not yet owned, which can be confirmed as a sensible estimate but never observed.';

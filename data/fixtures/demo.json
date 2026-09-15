@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generated": "2026-09-14",
+    "generated": "2026-09-15",
     "note": "Demo dataset. Every row is drafted and unconfirmed: no figure here has been checked, and the interface must present all of it as provisional."
   },
   "household": {
@@ -3784,6 +3784,36 @@
       "kind": "shelf",
       "room_key": "boot-room",
       "label_code": "B-01"
+    }
+  ],
+  "accounts": [
+    {
+      "id": "acct-0",
+      "name": "Sample savings",
+      "provider": "Sample",
+      "kind": "savings",
+      "is_liability": false,
+      "balance": 0,
+      "facility_limit": null,
+      "earmark_pct": 100,
+      "earmarked_for": "house deposit",
+      "as_of": null,
+      "confidence": "drafted",
+      "is_active": true
+    },
+    {
+      "id": "acct-1",
+      "name": "Sample current account",
+      "provider": "Sample",
+      "kind": "current_account",
+      "is_liability": true,
+      "balance": 0,
+      "facility_limit": 1000,
+      "earmark_pct": 0,
+      "earmarked_for": null,
+      "as_of": null,
+      "confidence": "drafted",
+      "is_active": true
     }
   ],
   "carried_finance": [

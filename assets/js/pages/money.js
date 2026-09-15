@@ -5,7 +5,7 @@
 // the same rows, so two pages can never disagree about the same money.
 import { requireAuth } from '../core/auth.js';
 import { mountShell, render, confidenceBanner } from '../core/shell.js';
-import { load, fundable, totalOutstanding, confidenceSummary } from '../core/store.js';
+import { load, fundable, totalOutstanding, confidenceSummary, houseFunds } from '../core/store.js';
 import { emptyState } from '../core/page.js';
 import { money, preciseMoney, provenance, titleCase, escape } from '../core/format.js';
 import { allocate, projectFunding } from '../../js/engine/allocate.js';
@@ -45,6 +45,7 @@ const soonest = projection.filter((p) => p.monthsToFund).sort((a, b) => a.months
 // anything above: these are figures from an earlier system, captured
 // during a search that has since moved on, and not one of them has been
 // checked. They are a prompt sheet for a review conversation.
+const funds = houseFunds(d);
 const carried = d.carried_finance ?? [];
 const carriedGroups = [...carried.reduce((m, r) => {
   const g = r.source_group ?? 'other';
@@ -63,6 +64,37 @@ render('[data-page-root]', `
     allocation against an unconfirmed contribution, so everything below is a
     projection, not a plan.
   </div>` : ''}
+
+  ${funds.accounts.length ? `<section class="section">
+    <div class="section__head"><h2>What is actually held</h2>
+      <span class="num">${escape(money(funds.netPosition))}</span></div>
+    <p class="lede">Confirmed balances only, netted. A liability is stored as a positive
+      amount owed and subtracted here, so a total can never be wrong because someone
+      forgot which way round a debt goes.${funds.unconfirmed.length
+        ? ` ${funds.unconfirmed.length} account${funds.unconfirmed.length === 1 ? '' : 's'}
+            below ${funds.unconfirmed.length === 1 ? 'is' : 'are'} not confirmed and
+            ${funds.unconfirmed.length === 1 ? 'counts' : 'count'} toward nothing.` : ''}</p>
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>Account</th><th>Kind</th><th class="num">Balance</th>
+        <th class="num">For the house</th><th>As of</th><th>Record</th></tr></thead>
+      <tbody>${[...funds.accounts].sort((a, b) =>
+        Number(a.is_liability) - Number(b.is_liability)
+        || Number(b.balance ?? 0) - Number(a.balance ?? 0)).map((a) => {
+        const p = provenance(a.confidence);
+        const bal = Number(a.balance ?? 0);
+        return `<tr>
+          <td>${escape(a.name)}${a.facility_limit
+            ? `<br><span class="prov">${escape(money(Number(a.facility_limit) - bal))} of
+               ${escape(money(a.facility_limit))} still available</span>` : ''}</td>
+          <td>${escape(titleCase(a.kind))}</td>
+          <td class="num ${p.valueCls}">${a.is_liability ? '&minus;' : ''}${escape(money(bal))}</td>
+          <td class="num">${a.earmark_pct ? escape(money(bal * a.earmark_pct / 100)) : '—'}</td>
+          <td>${escape(a.as_of ?? '—')}</td>
+          <td><span class="${p.cls}">${escape(p.label)}</span></td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div>
+  </section>` : ''}
 
   <section class="verdict">
     <span class="verdict__label">Outstanding across the whole list</span>

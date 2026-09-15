@@ -28,7 +28,7 @@ async function loadLive() {
   if (!session) { location.replace('login.html'); return null; }
 
   const [rooms, items, bills, assets, storage, inventory, settings, prices,
-    carried] = await Promise.all([
+    carried, accounts] = await Promise.all([
     sb.from('rooms').select('*'),
     sb.from('work_items').select('*').order('priority'),
     sb.from('bills').select('*').eq('is_active', true),
@@ -41,6 +41,7 @@ async function loadLive() {
     // left the prompt sheet, and showing it again would ask the owner to
     // decide something they have already decided.
     sb.from('carried_finance').select('*').eq('review_status', 'pending'),
+    sb.from('accounts').select('*').eq('is_active', true),
   ]);
   const { data: pot, error: potError } = await sb.from('pots')
     .select('*').eq('is_active', true).maybeSingle();
@@ -51,7 +52,7 @@ async function loadLive() {
   // it knows, so a broken read is raised rather than swallowed.
   const failed = Object.entries({
     rooms, items, bills, assets, storage, inventory, settings, prices, carried,
-    pot: { error: potError },
+    accounts, pot: { error: potError },
   }).filter(([, r]) => r?.error).map(([name, r]) => `${name}: ${r.error.message}`);
   if (failed.length) {
     throw new Error(`Could not read the database - ${failed.join('; ')}`);
@@ -98,6 +99,7 @@ async function loadLive() {
     // below: nothing here may reach a total, a projection or an
     // allocation until a person has confirmed it.
     carried_finance: carried.data ?? [],
+    accounts: accounts.data ?? [],
   };
   return cache;
 }
@@ -136,4 +138,31 @@ export function confidenceSummary(d) {
   const rows = openItems(d);
   const trusted = rows.filter((i) => ['confirmed', 'actual'].includes(i.cost_confidence)).length;
   return { total: rows.length, trusted, unconfirmed: rows.length - trusted };
+}
+
+/**
+ * What is actually held, netted.
+ *
+ * Mirrors the house_funds view in 40_money.sql - the same rule, because
+ * the page and the database disagreeing about how much money exists is
+ * the worst bug this system could have.
+ *
+ * Only TRUSTED balances count. An unconfirmed one is reported separately
+ * so a surface can say what it is leaving out rather than quietly
+ * understating the position.
+ */
+export function houseFunds(d) {
+  const rows = (d.accounts ?? []).filter((a) => a.is_active !== false);
+  const trusted = rows.filter((a) => ['confirmed', 'actual'].includes(a.confidence));
+  const sum = (list, f) => list.reduce((s, a) => s + f(a), 0);
+  const assets = trusted.filter((a) => !a.is_liability);
+  const debts = trusted.filter((a) => a.is_liability);
+  return {
+    totalAssets: sum(assets, (a) => Number(a.balance ?? 0)),
+    earmarkedAssets: sum(assets, (a) => Number(a.balance ?? 0) * (a.earmark_pct ?? 0) / 100),
+    totalLiabilities: sum(debts, (a) => Number(a.balance ?? 0)),
+    netPosition: sum(assets, (a) => Number(a.balance ?? 0)) - sum(debts, (a) => Number(a.balance ?? 0)),
+    accounts: rows,
+    unconfirmed: rows.filter((a) => !['confirmed', 'actual'].includes(a.confidence)),
+  };
 }

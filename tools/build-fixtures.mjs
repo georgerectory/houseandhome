@@ -217,6 +217,17 @@ const data = {
     { id: uid('store', 1), name: 'Garage rack', kind: 'rack', room_key: 'garage', label_code: 'G-01' },
     { id: uid('store', 2), name: 'Boot room shelf', kind: 'shelf', room_key: 'boot-room', label_code: 'B-01' },
   ],
+  // Illustrative accounts, so the demo exercises the netting and the
+  // liability rendering. SYNTHETIC, and deliberately including one
+  // unconfirmed row so the "counts toward nothing" path is covered.
+  accounts: [
+    { id: 'acct-0', name: 'Sample savings', provider: 'Sample', kind: 'savings',
+      is_liability: false, balance: 0, facility_limit: null, earmark_pct: 100,
+      earmarked_for: 'house deposit', as_of: null, confidence: 'drafted', is_active: true },
+    { id: 'acct-1', name: 'Sample current account', provider: 'Sample', kind: 'current_account',
+      is_liability: true, balance: 0, facility_limit: 1000, earmark_pct: 0,
+      earmarked_for: null, as_of: null, confidence: 'drafted', is_active: true },
+  ],
   // Illustrative carried-over lines, so the demo exercises the archive's
   // rendering. SYNTHETIC, like everything else in this file, and marked
   // unreviewed so it is excluded from every total exactly as real

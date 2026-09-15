@@ -12,12 +12,21 @@ source tool's design. Shopping live. House draws a floor plan and a 3D
 model of a PLACEHOLDER building, with grid references computed from
 metric coordinates rather than stored.
 
-**`rec`'s figures are NOT ported yet, and the route in is now built.**
-`docs/CARRY-OVER.md` and `tools/carry.mjs` do the two-phase carry: a
-read-only extract while the connector is on `seanparkerai`, then a
-checksummed, idempotent load once it is back here. Proven end to end
-against the live database and covered by seven SQL tests. Nothing has
-been invented in the meantime.
+**`rec`'s figures are carried.** 77 rows across 9 groups, extracted
+read-only (nothing written to `rec`: every touched table's `updated_at`
+is unchanged), checksummed, and loaded idempotently. Every group
+reconciles against the source on both count and total. All 77 are
+`pending` and drive nothing: the pot is still 400.00 drafted and
+outstanding still 11062.50.
+
+Not carried, deliberately: income (NI number, payslip reference, tax
+code), mortgage assumptions, the purchase goal, per-holding portfolio
+composition. `rec` remains their home.
+
+**Next: the Finance and Shopping reviews.** `rec` says the monthly
+contribution goal was 2000 against an observed 12-month average of
+2305.99 net; our pot is drafted at 400. That gap changes the whole
+allocation and must not be closed by guessing.
 
 ## Next steps
 
@@ -34,14 +43,12 @@ been invented in the meantime.
 
 ## Open decisions
 
-- **Allocation curve.** Decay 0.85, floor share 0.10, tunable per
-  household in `allocation_settings` rather than constant in code.
-  Revisit against a real list.
+- **Allocation curve.** Decay 0.85, floor share 0.10, tunable in
+  `allocation_settings` rather than constant in code. Revisit against a
+  real list.
 - **Learning thresholds.** Tables exist; the derivation job does not.
-  With no completed work there is nothing to learn from, and guessing
-  thresholds now bakes in numbers nobody could defend. Calibrate from
-  `gate_stats` once there are real outcomes.
-- **Browser-to-Supabase is unverified from CI.** The sandbox blocks
-  supabase.co, so the live sign-in flow cannot be driven there. The
-  credential is verified at the database level and the guard fails
-  closed. Confirm in a real browser after any auth change.
+  Nothing to learn from yet, and guessing bakes in numbers nobody could
+  defend. Calibrate from `gate_stats` once there are real outcomes.
+- **Browser-to-Supabase unverified from CI.** The sandbox blocks
+  supabase.co. The credential is verified at the database level and the
+  guard fails closed. Confirm in a real browser after any auth change.

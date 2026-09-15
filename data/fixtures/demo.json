@@ -212,7 +212,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "work-0000",
@@ -261,7 +262,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "work-0001",
@@ -312,7 +314,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "work-0009",
@@ -363,7 +366,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0022",
@@ -411,7 +415,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "work-0003",
@@ -461,7 +466,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "work-0007",
@@ -508,7 +514,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "work-0004",
@@ -557,7 +564,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "work-0006",
@@ -608,7 +616,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0010",
@@ -656,7 +665,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0043",
@@ -704,7 +714,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "work-0002",
@@ -755,7 +766,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "work-0019",
@@ -806,7 +818,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0001",
@@ -854,7 +867,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0011",
@@ -902,7 +916,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0020",
@@ -950,7 +965,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0021",
@@ -998,7 +1014,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0037",
@@ -1046,7 +1063,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "work-0013",
@@ -1096,7 +1114,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0014",
@@ -1144,7 +1163,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0023",
@@ -1192,7 +1212,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "work-0010",
@@ -1242,7 +1263,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0013",
@@ -1290,7 +1312,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0000",
@@ -1338,7 +1361,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0002",
@@ -1386,7 +1410,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0009",
@@ -1434,7 +1459,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0017",
@@ -1482,7 +1508,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0036",
@@ -1530,7 +1557,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "work-0014",
@@ -1580,7 +1608,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "work-0015",
@@ -1630,7 +1659,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0015",
@@ -1678,7 +1708,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0018",
@@ -1726,7 +1757,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0024",
@@ -1774,7 +1806,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0038",
@@ -1822,7 +1855,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0039",
@@ -1870,7 +1904,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "work-0005",
@@ -1920,7 +1955,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "work-0011",
@@ -1970,7 +2006,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "work-0012",
@@ -2021,7 +2058,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0003",
@@ -2069,7 +2107,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0004",
@@ -2117,7 +2156,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0005",
@@ -2165,7 +2205,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0006",
@@ -2213,7 +2254,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0007",
@@ -2261,7 +2303,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0008",
@@ -2309,7 +2352,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0019",
@@ -2357,7 +2401,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0029",
@@ -2405,7 +2450,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0044",
@@ -2453,7 +2499,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0045",
@@ -2501,7 +2548,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0012",
@@ -2549,7 +2597,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "work-0017",
@@ -2601,7 +2650,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0016",
@@ -2649,7 +2699,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0025",
@@ -2697,7 +2748,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0026",
@@ -2745,7 +2797,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0027",
@@ -2793,7 +2846,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0028",
@@ -2841,7 +2895,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0030",
@@ -2889,7 +2944,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0042",
@@ -2937,7 +2993,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "work-0018",
@@ -2992,7 +3049,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "work-0020",
@@ -3041,7 +3099,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "work-0021",
@@ -3093,7 +3152,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0031",
@@ -3141,7 +3201,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0032",
@@ -3189,7 +3250,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0033",
@@ -3237,7 +3299,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0034",
@@ -3285,7 +3348,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0035",
@@ -3333,7 +3397,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "work-0016",
@@ -3380,7 +3445,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0040",
@@ -3428,7 +3494,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     },
     {
       "id": "buy-0041",
@@ -3476,7 +3543,8 @@
         "decay_pressure": 0,
         "blocked_by": 0,
         "blocked_penalty": 0
-      }
+      },
+      "cost_basis": "predicted"
     }
   ],
   "bills": [
@@ -3488,7 +3556,8 @@
       "amount": null,
       "confidence": "drafted",
       "is_active": true,
-      "cost_class": "running"
+      "cost_class": "running",
+      "basis": "predicted"
     },
     {
       "id": "bill-0001",
@@ -3498,7 +3567,8 @@
       "amount": null,
       "confidence": "drafted",
       "is_active": true,
-      "cost_class": "running"
+      "cost_class": "running",
+      "basis": "predicted"
     },
     {
       "id": "bill-0002",
@@ -3508,7 +3578,8 @@
       "amount": null,
       "confidence": "drafted",
       "is_active": true,
-      "cost_class": "running"
+      "cost_class": "running",
+      "basis": "predicted"
     },
     {
       "id": "bill-0003",
@@ -3518,7 +3589,8 @@
       "amount": null,
       "confidence": "drafted",
       "is_active": true,
-      "cost_class": "running"
+      "cost_class": "running",
+      "basis": "predicted"
     },
     {
       "id": "bill-0004",
@@ -3528,7 +3600,8 @@
       "amount": null,
       "confidence": "drafted",
       "is_active": true,
-      "cost_class": "running"
+      "cost_class": "running",
+      "basis": "predicted"
     },
     {
       "id": "bill-0005",
@@ -3538,7 +3611,8 @@
       "amount": null,
       "confidence": "drafted",
       "is_active": true,
-      "cost_class": "running"
+      "cost_class": "running",
+      "basis": "current"
     },
     {
       "id": "bill-0006",
@@ -3548,7 +3622,8 @@
       "amount": null,
       "confidence": "drafted",
       "is_active": true,
-      "cost_class": "running"
+      "cost_class": "running",
+      "basis": "predicted"
     }
   ],
   "assets": [

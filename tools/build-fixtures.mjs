@@ -154,6 +154,9 @@ items = rank(items).map(({ score, explain, roomWeight, themeWeight, benefitWeigh
   ...i,
   priority_score: score,
   priority_explain: explain,
+  // Until a property is bound every renovation cost is a forecast
+  // against a generic house, never an observation of a real one.
+  cost_basis: 'predicted',
 }));
 const HORIZON = (p) => (p <= 6 ? 'now' : p <= 16 ? 'next' : p <= 34 ? 'later' : 'someday');
 items = items.map((i) => ({ ...i, horizon: HORIZON(i.priority) }));
@@ -166,6 +169,9 @@ const bills = [
 ].map(([name, category, cadence], i) => ({
   id: uid('bill', i), name, category, cadence,
   amount: null, confidence: 'drafted', is_active: true, cost_class: 'running',
+  // A bill for a house nobody owns is a forecast. Only the mobile is a
+  // bill anyone is actually paying today.
+  basis: category === 'mobile' ? 'current' : 'predicted',
 }));
 
 // The fixed equipment register. Coordinates are metres in the

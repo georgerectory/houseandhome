@@ -23,6 +23,7 @@ begin
   foreach t in array array[
     'households','household_members','confidence_levels','user_profiles',
     'properties','levels','rooms','room_features','storage_locations',
+    'building_stages','building_changes',
     'trades','themes','benefit_types','milestones','work_item_templates',
     'work_items','work_notes',
     'link_entity_types','link_kinds','knowledge_links',
@@ -91,6 +92,7 @@ declare t text;
 begin
   foreach t in array array[
     'properties','rooms','room_features','storage_locations',
+    'building_stages','building_changes',
     'milestones','work_items','work_notes','knowledge_links',
     'pots','deposits','allocations','bills','subscriptions','spend_events',
     'price_references','carried_finance','allocation_settings','accounts',

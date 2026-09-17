@@ -5,6 +5,7 @@ import { mountShell, render } from '../core/shell.js';
 import { load, openItems, confidenceSummary } from '../core/store.js';
 import { titleCase, escape } from '../core/format.js';
 import { placeAll, roomLabel, spreadInferred } from '../engine/floorplan.js';
+import { loadComposed } from '../core/building-data.js';
 
 const user = await requireAuth();
 if (!user) throw new Error('redirecting to login');
@@ -14,12 +15,12 @@ mountShell('handbook.html', { user });
 const d = await load();
 const conf = confidenceSummary(d);
 
-// The building geometry is repo content: a placeholder until a property
-// is bought. It is read here only to resolve grid references, so the
-// handbook names a position in the same words the floor plan does.
-const building = await fetch(new URL('../../../data/buildings/placeholder.json', import.meta.url))
-  .then((r) => (r.ok ? r.json() : null))
-  .catch(() => null);
+// The building geometry is repo content. It is read here only to resolve
+// grid references, so the handbook names a position in the same words the
+// floor plan does - against the AS-BOUGHT stage, because that is the
+// house the register describes today.
+const model = await loadComposed(null, null);
+const building = model?.composed ?? null;
 
 const roomNames = Object.fromEntries((d.rooms ?? []).map((r) => [r.key, r.name]));
 const fixtures = building
@@ -66,7 +67,7 @@ render('[data-page-root]', `
       </tr>`).join('')}</tbody>
     </table></div>` : '<p class="empty">No plan is loaded, so nothing has a grid reference yet.</p>'}
     <p>Anything without a reference is either missing a position or sits in a room
-      the placeholder building does not have. Both are listed on the House page
+      this version of the building does not have. Both are listed on the House page
       rather than quietly left out.</p>
   </section>
 

@@ -604,6 +604,83 @@ carefully a location is recorded.
 This is a materially better answer than the one v1.0 was heading toward, and it
 came from reading the code rather than reasoning about it.
 
+
+### 7.4 Stages and variants - the model has versions
+
+Q10 assumed one building. It is two axes.
+
+A **stage** is a structural state: `as-bought`, `post-extension`. It owns
+levels, walls, openings, rooms, stairs, roofs, chimneys and features. A
+**variant** is a furniture arrangement belonging to one stage and owns nothing
+structural. Every stage has an `empty` variant, so the empty house is a real
+object you can inspect and fork rather than a rendering flag - which matters,
+because the first thing anyone wants to see on move-in day is the empty shell.
+
+**A fork is a copy, not a delta.** A new stage or variant carries `derivedFrom`
+and a `changes` narrative, and its geometry is its own. There is no merge to get
+wrong, `git diff` shows exactly what changed, and the *geometric* difference is
+computed by `stageDiff()` rather than hand-written - so a narrative that claims
+something the geometry does not do is caught rather than believed.
+
+This supersedes `rec`'s `scenarios` (named sets of walls to REMOVE). Removal is
+a special case of a stage, and the extension adds far more than it takes away.
+
+**Where each half lives.** Geometry is repo content under `data/buildings/<id>/`
+for the same three reasons every time: nothing in it is private, it has to be
+unit-testable from disk with no auth, and git is a better version history for a
+model than a table. Supabase holds only the registry - `building_stages` and
+`building_changes` in `15_building.sql` - because a `work_item` cannot link to a
+JSON file and the roadmap has to be able to point at a version of the house.
+
+**The roadmap tie.** One new `link_kinds` row, `realises`: completing the FROM
+work item PRODUCES the TO structural change. The thirteen existing kinds do not
+cover it - `affects` is past-tense and describes condition rather than creation.
+Kinds are explicitly data in `30_links.sql`, which is why this is a row and not
+a migration to the graph's shape. Each change carries the quantity behind it
+(new wall on plan, floor added, wall coming down, roof area), measured by
+`stageDiff()` and never typed. All of it is `drafted`, because the geometry it
+comes from is `researched` at best and `run_deposit_allocation()` already
+refuses unconfirmed figures.
+
+**Walls are gridlines; rooms are derived.** The spec names a centreline and a
+thickness per wall, and a room names the four lines that bound it. Its rectangle
+is computed from their inner faces, so a room cannot drift from its own walls -
+the same argument the grid reference makes in D12, applied one level down.
+`tools/build-building.mjs` does the arithmetic; the geometry gate re-runs it and
+fails on drift.
+
+### 7.5 The survey - checking the model against the drawings
+
+D14 said the *measurement method* was worth inheriting. This is that method made
+into a gate and a page.
+
+Nothing in the model is surveyed. Every figure is read off the agent's floor
+plan, a design study or the listing photograph, or derived from them. So
+`building.json` carries `sources` and `statedDimensions`: what each document
+SAID, before the model existed. `engine/survey.js` compares each one against
+what the geometry computes and reports the difference in millimetres, in three
+bands - exact, within the source's own stated precision, or needs checking.
+
+**A residual is never absorbed.** The design study states an 8.0m depth; the room
+dimensions solve to 7.72m. The same study's floor-area figure (about 112 m2)
+agrees with 7.72 to 0.4 m2 and would be 116.7 at 8.00, so the area figure
+adjudicates and the model is built at 7.72 - with the 280mm on the page, in the
+audit, permanently, until somebody measures it.
+
+Alongside that, the survey asks whether the geometry is a building at all
+(overlapping rooms, a shell that does not close, an opening off the end of its
+wall, a floor with nothing under it, a stair that does not reach the landing),
+and whether you can move around in it - a 5cm occupancy grid, a distance
+transform for the widest circle that fits, and a flood fill for the widest route
+between doorways. Elevations are generated from the model on all four sides, so
+the roof, the chimneys and the window arrangement can be compared by eye with
+the drawings and the photograph.
+
+`npm run test:geometry` runs the same functions the page runs, so CI and the
+browser cannot reach different verdicts. A structural fault fails the build; a
+furnished variant you cannot walk across is reported as a finding, because a
+variant is a proposal and the answer is to move the sofa.
+
 ---
 
 ## 8. How Claude operates this system

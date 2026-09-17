@@ -112,6 +112,31 @@ export const roomsOn = (building, levelId) =>
   (building?.rooms ?? []).filter((r) => r.level === levelId);
 export const wallsOn = (building, levelId) =>
   (building?.walls ?? []).filter((w) => w.level === levelId);
+export const featuresOn = (building, levelId) =>
+  (building?.features ?? []).filter((f) => f.level === levelId);
+export const furnitureOn = (building, levelId) =>
+  (building?.furniture ?? []).filter((f) => f.level === levelId);
+export const stairsOn = (building, levelId) =>
+  (building?.stairs ?? []).filter((s) => s.level === levelId || s.to === levelId
+    || (building?.rooms ?? []).some((r) => r.id === s.to && r.level === levelId));
+
+/** A room is one rectangle or, where the house is not that tidy, a union
+ *  of them. A landing wrapping a stairwell and a master wrapping an
+ *  en-suite are both genuinely L-shaped, and calling either a rectangle
+ *  would overstate the floor by several square metres. `rect` stays as
+ *  the bounding box so anything that only wants an extent is unaffected. */
+export const roomRects = (room) => (room ? (room.rects ?? [room.rect]) : []);
+
+/** What a wall is actually made of, in metres across. The plan and the
+ *  3D model both draw the wall solid, and they must use this one number
+ *  or the drawing and the model are of two different houses. */
+export function wallThickness(wall, building) {
+  if (wall?.thickness != null) return wall.thickness;
+  const d = building?.defaults ?? {};
+  if (wall?.kind === 'internal') return d.wallInternal ?? 0.1;
+  if (wall?.kind === 'party') return d.wallParty ?? 0.3;
+  return d.wallExternal ?? 0.23;
+}
 
 /** Openings belong to a wall, so a level's openings are whichever sit on
  *  that level's walls. Resolved here rather than by each renderer. */
@@ -148,18 +173,25 @@ export function openingSegment(opening, building) {
 }
 
 /** The extent of one level, padded, so a renderer can size a viewBox
- *  without knowing anything about buildings. Walls are included because
- *  an external wall sits outside the rooms it encloses. */
+ *  without knowing anything about buildings. Walls are included AT THEIR
+ *  FULL THICKNESS, because an external wall sits outside the rooms it
+ *  encloses and half of it would otherwise fall off the edge. */
 export function bounds(building, levelId, pad = 0.3) {
   const xs = [];
   const ys = [];
   for (const r of roomsOn(building, levelId)) {
-    xs.push(r.rect[0], r.rect[2]);
-    ys.push(r.rect[1], r.rect[3]);
+    for (const q of roomRects(r)) { xs.push(q[0], q[2]); ys.push(q[1], q[3]); }
   }
   for (const w of wallsOn(building, levelId)) {
-    xs.push(w.a[0], w.b[0]);
-    ys.push(w.a[1], w.b[1]);
+    const t = wallThickness(w, building) / 2;
+    xs.push(w.a[0] - t, w.b[0] + t);
+    ys.push(w.a[1] - t, w.b[1] + t);
+  }
+  // A porch sits outside every wall it belongs to, so a plan that sized
+  // itself on the walls alone would cut it in half.
+  for (const f of featuresOn(building, levelId)) {
+    xs.push(f.rect[0], f.rect[2]);
+    ys.push(f.rect[1], f.rect[3]);
   }
   if (!xs.length) return null;
   return {
@@ -175,8 +207,8 @@ export function bounds(building, levelId, pad = 0.3) {
  *  to exactly one room. */
 export function roomAt(building, levelId, x, y) {
   if (x == null || y == null) return null;
-  return roomsOn(building, levelId).find((r) =>
-    x >= r.rect[0] && x < r.rect[2] && y >= r.rect[1] && y < r.rect[3]) ?? null;
+  return roomsOn(building, levelId).find((r) => roomRects(r).some((q) =>
+    x >= q[0] && x < q[2] && y >= q[1] && y < q[3])) ?? null;
 }
 
 /** What to CALL a room. The survey named these rooms; the household
@@ -190,13 +222,21 @@ export const roomLabel = (room, roomNameByKey) =>
 export const roomByKey = (building, key) =>
   (building?.rooms ?? []).find((r) => r.roomKey === key) ?? null;
 
-export const roomCentre = (room) => (room
-  ? { x: (room.rect[0] + room.rect[2]) / 2, y: (room.rect[1] + room.rect[3]) / 2 }
-  : null);
+/** The centre of the LARGEST rectangle, not of the bounding box. On an
+ *  L-shaped room the bounding box's centre can fall outside the room
+ *  entirely, which is where the name would then be printed. */
+export const roomCentre = (room) => {
+  const rects = roomRects(room);
+  if (!rects.length) return null;
+  const big = largestRect(rects);
+  return { x: (big[0] + big[2]) / 2, y: (big[1] + big[3]) / 2 };
+};
 
-export const roomArea = (room) => (room
-  ? Math.abs((room.rect[2] - room.rect[0]) * (room.rect[3] - room.rect[1]))
-  : 0);
+export const largestRect = (rects) => rects.reduce((best, q) =>
+  ((q[2] - q[0]) * (q[3] - q[1]) > (best[2] - best[0]) * (best[3] - best[1]) ? q : best));
+
+export const roomArea = (room) => roomRects(room)
+  .reduce((s, q) => s + Math.abs((q[2] - q[0]) * (q[3] - q[1])), 0);
 
 // --- Placing things --------------------------------------------------
 

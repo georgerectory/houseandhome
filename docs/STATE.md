@@ -6,49 +6,45 @@ this file is only what is not yet finished. Keep it under 40 lines.
 
 ## In progress
 
-Nothing. All five gates green. Live: schema applied, seed data loaded,
-sign-in verified against the real auth service. Roadmap rebuilt on the
-source tool's design. Shopping live. House draws a floor plan and a 3D
-model of a PLACEHOLDER building, with grid references computed from
-metric coordinates rather than stored.
+Nothing. All seven gates green.
 
-**`rec`'s figures are carried.** 77 rows across 9 groups, extracted
-read-only (nothing written to `rec`: every touched table's `updated_at`
-is unchanged), checksummed, and loaded idempotently. Every group
-reconciles against the source on both count and total. All 77 are
-`pending` and drive nothing: the pot is still 400.00 drafted and
-outstanding still 11062.50.
+**A candidate property is modelled.** 48 Ameysford Road, Ferndown, guide
+price 250000: not bought, not surveyed, no offer accepted. The
+placeholder building is gone. The House page draws two STAGES - as bought
+and after the extension - each with an empty variant and a furnished one,
+switchable from a dropdown, with a Survey view that reports every figure
+the source drawings state against what the geometry computes.
 
-Not carried, deliberately: income (NI number, payslip reference, tax
-code), mortgage assumptions, the purchase goal, per-holding portfolio
-composition. `rec` remains their home.
+Everything in the model is `researched` or `drafted`. The three sources
+disagree in places and the audit says where: the design study's stated
+8.0m depth against a derived 7.72m is the largest, and its own
+floor-area figure is what settles it at 7.72.
 
-**Next: the Finance and Shopping reviews.** `rec` says the monthly
-contribution goal was 2000 against an observed 12-month average of
-2305.99 net; our pot is drafted at 400. That gap changes the whole
-allocation and must not be closed by guessing.
+**`rec`'s figures are carried.** 77 rows across 9 groups, all `pending`,
+driving nothing: the pot is still 400.00 drafted and outstanding 11062.50.
 
 ## Next steps
 
-1. **Refine the data.** All 68 items, their costs and the £400 monthly
-   contribution are `drafted`. `run_deposit_allocation()` refuses to move
-   real money until the contribution is confirmed, which is deliberate.
-2. **Enable leaked-password protection** - a dashboard toggle, not a
-   migration. The two `authenticated` SECURITY DEFINER findings are
-   expected and documented in CLAUDE.md.
-3. **Bind a property** when one is bought: create `properties`, replace
-   the template rooms, re-scope estimates, and replace
-   `data/buildings/placeholder.json` with the real survey. The plan, the
-   grid and the 3D model all read that one file.
+1. **Measure the house** if an offer is accepted. Four figures carry the
+   rest: the envelope depth (280mm unresolved), the hall width (0.87m
+   derived, and a stair needs 0.76 of it), the storey heights, and where
+   the rear wing sits across the width.
+2. **Refine the data.** All 68 items, their costs and the 400 monthly
+   contribution are `drafted`. The five extension projects carry no cost
+   at all and are not fundable, deliberately: an extension is not costed
+   off a drawing.
+3. **Surface the graph on the Roadmap.** `realises` links now join each
+   extension job to the structural change it produces, and
+   `recompute_priorities()` already reads them for ordering, but
+   `store.js` does not load `knowledge_links` so the page cannot show
+   them. That is the next thing worth building.
+4. **Enable leaked-password protection** - a dashboard toggle, not a
+   migration.
 
 ## Open decisions
 
-- **Allocation curve.** Decay 0.85, floor share 0.10, tunable in
-  `allocation_settings` rather than constant in code. Revisit against a
+- **Allocation curve.** Decay 0.85, floor share 0.10. Revisit against a
   real list.
 - **Learning thresholds.** Tables exist; the derivation job does not.
-  Nothing to learn from yet, and guessing bakes in numbers nobody could
-  defend. Calibrate from `gate_stats` once there are real outcomes.
 - **Browser-to-Supabase unverified from CI.** The sandbox blocks
-  supabase.co. The credential is verified at the database level and the
-  guard fails closed. Confirm in a real browser after any auth change.
+  supabase.co. Confirm in a real browser after any auth change.

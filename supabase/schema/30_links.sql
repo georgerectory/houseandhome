@@ -43,7 +43,12 @@ insert into public.link_entity_types (key, table_name, label, sort_order) values
   ('decision',         'decisions',         'Decision',         80),
   ('palette',          'palettes',          'Palette',          90),
   ('contractor',       'contractors',       'Contractor',      100),
-  ('bill',             'bills',             'Bill',            110)
+  ('bill',             'bills',             'Bill',            110),
+  -- A stage of the building and one structural change within it. The
+  -- geometry lives in the repository; these two rows are what lets the
+  -- roadmap point at it.
+  ('building_stage',   'building_stages',   'Building version', 120),
+  ('building_change',  'building_changes',  'Building change',  130)
 on conflict (key) do nothing;
 
 -- The vocabulary, as data so the docs and the tests can be checked
@@ -95,7 +100,9 @@ insert into public.link_kinds
   ('about', 'About', 'Described by', 'knowledge', false,
    'A note, decision or fact describes the TO row.', 120),
   ('affects', 'Affects', 'Affected by', 'knowledge', false,
-   'Completing the FROM work changed the TO thing. This is what makes "what state is this room actually in" answerable by traversal rather than memory.', 130)
+   'Completing the FROM work changed the TO thing. This is what makes "what state is this room actually in" answerable by traversal rather than memory.', 130),
+  ('realises', 'Realises', 'Realised by', 'sequence', false,
+   'Completing the FROM work item PRODUCES the TO structural change, so the model of the house after it is done becomes the model of the house. The existing kinds do not cover this: affects is past-tense and describes condition rather than creation, and part_of deliberately does not roll up. This is the join that lets the roadmap answer "what is left before the post-extension model is real" by traversal, and lets a quantity measured off the geometry stand behind a job.', 140)
 on conflict (key) do nothing;
 
 create table if not exists public.knowledge_links (

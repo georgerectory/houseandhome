@@ -6,7 +6,7 @@
 // the SQL through psql and the JS through the module, on the same
 // inputs, and fails on any difference at all.
 import { execFileSync } from 'node:child_process';
-import { writeFileSync, unlinkSync } from 'node:fs';
+import { writeFileSync, unlinkSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -51,9 +51,15 @@ create table if not exists auth.users (
 
   sh(`${PGBIN}/psql -h ${SOCK} -p ${PORT} -U postgres -q -c "drop database if exists ${DB}" -c "create database ${DB}"`);
   sh(`${PGBIN}/psql -h ${SOCK} -p ${PORT} -U postgres -d ${DB} -q -v ON_ERROR_STOP=1 -f ${stage}/00_shim.sql`);
-  for (const f of ['00_core','05_auth','10_property','20_work','30_links','40_money',
-                   '50_assets','60_knowledge','70_learning','80_functions','90_policies']) {
-    sh(`${PGBIN}/psql -h ${SOCK} -p ${PORT} -U postgres -d ${DB} -q -v ON_ERROR_STOP=1 -f ${stage}/${f}.sql`);
+  // Read the directory rather than list the files. A hard-coded list is a
+  // second home for "which schema files exist", and the day somebody adds
+  // one and forgets this line, the parity gate applies a schema the SQL
+  // gate does not - which is exactly the drift both gates are for.
+  const files = readdirSync(stage)
+    .filter((f) => f.endsWith('.sql') && f !== '00_shim.sql')
+    .sort();
+  for (const f of files) {
+    sh(`${PGBIN}/psql -h ${SOCK} -p ${PORT} -U postgres -d ${DB} -q -v ON_ERROR_STOP=1 -f ${stage}/${f}`);
   }
   sh(`${PGBIN}/psql -h ${SOCK} -p ${PORT} -U postgres -d ${DB} -q -c "insert into households (id,name) values ('11111111-1111-1111-1111-111111111111','Parity') on conflict do nothing"`);
   execFileSync('rm', ['-rf', stage]);

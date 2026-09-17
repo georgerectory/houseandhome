@@ -39,6 +39,9 @@
 }
 .fp-room--untyped > rect { fill: var(--paper); }
 
+/* A halo, so a room name stays readable where it crosses a bath or a
+ * bed. Painting the stroke first puts the halo behind the glyphs instead
+ * of thickening them. */
 .fp-room-name {
   fill: var(--ink);
   font-family: var(--font-body);
@@ -46,6 +49,17 @@
   font-weight: 600;
   text-anchor: middle;
   dominant-baseline: middle;
+  paint-order: stroke;
+  stroke: var(--paper-sunken);
+  stroke-width: 0.09;
+  stroke-linejoin: round;
+}
+.fp-room-dim,
+.fp-flabel {
+  paint-order: stroke;
+  stroke: var(--paper-sunken);
+  stroke-width: 0.06;
+  stroke-linejoin: round;
 }
 .fp-room-dim {
   fill: var(--ink-faint);
@@ -54,20 +68,133 @@
   dominant-baseline: middle;
 }
 
-/* Wall weight carries meaning: an external wall is a thick line, an
- * internal one thin, a party wall thickest of all. */
-.fp-wall { stroke: var(--ink); stroke-linecap: square; }
-.fp-wall--external { stroke-width: 0.23; }
-.fp-wall--internal { stroke-width: 0.12; }
-.fp-wall--party { stroke-width: 0.3; }
+/* A wall is a SOLID, not a line. Its thickness comes from the model, so
+ * the plan and the 3D view are drawing one wall rather than two
+ * descriptions of it that can drift apart.
+ *
+ * Existing brickwork and new work are told apart, and they are told
+ * apart THE WAY THE SOURCE DRAWING TELLS THEM APART - existing in brick,
+ * new in dark - so the two can be laid side by side and compared without
+ * anyone having to translate a legend first. */
+.fp-wall { fill: var(--plan-external); stroke: none; }
+.fp-wall--internal { fill: var(--plan-wall-internal); }
+.fp-wall--new { fill: var(--plan-wall-new); }
+
+/* The stage underneath, in compare mode. */
+.fp-ghost {
+  fill: none;
+  stroke: var(--ink-faint);
+  stroke-width: 0.03;
+  stroke-dasharray: 0.14 0.1;
+}
 
 /* An opening cuts the wall rather than adding a mark to it, so a door
  * reads as a gap the way it does on a real plan. */
-.fp-opening { stroke: var(--paper-raised); stroke-linecap: butt; }
-.fp-opening--window { stroke-width: 0.24; }
-.fp-opening--door { stroke-width: 0.26; }
-.fp-opening--garage_door,
-.fp-opening--opening { stroke-width: 0.26; }
+.fp-hole { fill: var(--paper-raised); stroke: none; }
+.fp-glazing { stroke: var(--plan-glass); stroke-width: 0.05; }
+/* The swing is the most useful mark on a floor plan: it is what tells
+ * you the chest of drawers cannot go there. Drawn from the same numbers
+ * the clearance check reserves the floor with. */
+.fp-swing {
+  fill: none;
+  stroke: var(--plan-swing);
+  stroke-width: 0.02;
+  stroke-dasharray: 0.1 0.07;
+}
+.fp-leaf { stroke: var(--ink-muted); stroke-width: 0.035; }
+.fp-fold { fill: var(--ink-faint); stroke: none; }
+
+/* Built in, so it does not move: hatched rather than outlined. */
+.fp-feature > rect {
+  fill: var(--plan-built);
+  stroke: var(--ink-muted);
+  stroke-width: 0.02;
+}
+.fp-feature--porch > rect { fill: none; stroke-dasharray: 0.1 0.08; }
+
+/* The flight, its treads, and which way is up. */
+.fp-stair > rect { fill: var(--plan-built); stroke: var(--ink-muted); stroke-width: 0.02; }
+.fp-stair--void > rect { fill: none; stroke-dasharray: 0.12 0.08; }
+.fp-tread { stroke: var(--ink-muted); stroke-width: 0.018; }
+.fp-arrow { stroke: var(--ink); stroke-width: 0.035; }
+.fp-stair-label {
+  fill: var(--ink-faint);
+  font-size: 0.17px;
+  text-anchor: middle;
+}
+
+/* Furniture. The BOX is the truth - it is what the 3D model extrudes and
+ * what the clearance check measures around - and the marks inside it are
+ * only there so a bath is not mistaken for a bed. */
+.fp-fbox {
+  fill: var(--plan-furniture);
+  stroke: var(--ink-muted);
+  stroke-width: 0.02;
+}
+.is-fixed .fp-fbox { fill: var(--plan-furniture-fixed); }
+.fp-fdetail { fill: none; stroke: var(--ink-muted); stroke-width: 0.018; }
+.fp-fdetail--fill { fill: var(--plan-built); }
+.fp-flabel {
+  fill: var(--ink-muted);
+  font-family: var(--font-body);
+  font-size: var(--fp-fs, 0.17px);
+  text-anchor: middle;
+  dominant-baseline: middle;
+  pointer-events: none;
+}
+
+/* The circulation overlay: whether you can actually get across the room,
+ * and the floor each thing needs kept clear in front of it. */
+.fp-clear > rect { fill: var(--ok-soft); opacity: 0.45; }
+.fp-clear--tight > rect { fill: var(--warn-soft); }
+.fp-clear--blocked > rect { fill: var(--alert-soft); }
+.fp-clear--no-doors > rect { fill: none; }
+.fp-zone {
+  fill: var(--plan-clearance);
+  opacity: 0.5;
+  stroke: var(--warn);
+  stroke-width: 0.015;
+  stroke-dasharray: 0.08 0.06;
+}
+
+/* North, a metre, and the overall sizes. */
+.fp-compass > line,
+.fp-compass > polygon { stroke: var(--ink-muted); stroke-width: 0.025; fill: var(--ink-muted); }
+.fp-compass-label,
+.fp-scale-label {
+  fill: var(--ink-faint);
+  font-size: 0.22px;
+  text-anchor: middle;
+}
+.fp-scale-bar { fill: var(--ink-muted); }
+.fp-scale-tick { stroke: var(--ink-muted); stroke-width: 0.02; }
+.fp-dim { stroke: var(--plan-dimension); stroke-width: 0.018; }
+.fp-dim-tick { stroke: var(--plan-dimension); stroke-width: 0.018; }
+.fp-dim-text {
+  fill: var(--plan-dimension);
+  font-size: 0.24px;
+  text-anchor: middle;
+}
+.fp-dim-text--side { text-anchor: end; dominant-baseline: middle; }
+
+/* The elevations: the building drawn from outside, from the same
+ * numbers. Metres across, metres up. */
+.el {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
+.el-wall { fill: var(--plan-external); stroke: var(--ink-muted); stroke-width: 0.02; }
+.el-roof { fill: var(--plan-roof); stroke: var(--ink-muted); stroke-width: 0.02; }
+.el-stack { fill: var(--plan-external); stroke: var(--ink-muted); stroke-width: 0.02; }
+.el-porch { fill: none; stroke: var(--ink-muted); stroke-width: 0.03; }
+.el-opening { fill: var(--plan-glass); stroke: var(--ink-muted); stroke-width: 0.02; }
+.el-opening--door { fill: var(--plan-built); }
+.el-ground { stroke: var(--ink); stroke-width: 0.05; }
 
 .fp-pin > circle {
   fill: var(--accent);
@@ -117,6 +244,38 @@
   background: var(--accent);
 }
 .fp-swatch--inferred { background: none; border: 2px dashed var(--accent); }
+/* The wall legend. Existing and new are the whole content of a drawing
+ * for an extension, so they get named rather than left to be guessed. */
+.fp-swatch--existing { border-radius: 2px; background: var(--plan-external); }
+.fp-swatch--new { border-radius: 2px; background: var(--plan-wall-new); }
+
+/* Version and furniture, side by side where there is room for them and
+ * stacked where there is not. */
+.fp-picker {
+  display: grid;
+  gap: var(--space-3);
+  margin-block: var(--space-3);
+}
+@media (min-width: 480px) {
+  .fp-picker { grid-template-columns: 1fr 1fr; }
+}
+
+.fp-list {
+  margin: var(--space-2) 0 0;
+  padding-inline-start: var(--space-4);
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+}
+.fp-list > li { margin-block: var(--space-1); }
+
+/* A note under the row it belongs to, rather than a column nobody reads.
+ * This is where a residual explains itself. */
+.fp-note-row > td {
+  padding-block-start: 0;
+  border-block-start: 0;
+  color: var(--ink-muted);
+  font-size: var(--text-xs);
+}
 
 /* The 3D canvas sits in the same box as the plan so switching between
  * them does not move the page under the reader. */
@@ -152,6 +311,15 @@
   --plan-floor:    oklch(84% 0.022 80);
   --plan-glass:    oklch(80% 0.06 225);
   --plan-ground:   oklch(88% 0.03 135);
+  --plan-roof:     oklch(45% 0.02 250);
+  --plan-wall-internal: oklch(52% 0.010 85);
+  --plan-wall-new: oklch(30% 0.025 250);
+  --plan-built:    oklch(88% 0.015 85);
+  --plan-furniture: oklch(93% 0.012 85);
+  --plan-furniture-fixed: oklch(89% 0.02 200);
+  --plan-swing:    oklch(62% 0.02 85);
+  --plan-dimension: oklch(55% 0.09 250);
+  --plan-clearance: oklch(90% 0.07 95);
 }
 :root[data-theme="dark"] {
   --plan-external: oklch(46% 0.05 55);
@@ -159,6 +327,15 @@
   --plan-floor:    oklch(32% 0.018 80);
   --plan-glass:    oklch(58% 0.05 225);
   --plan-ground:   oklch(28% 0.02 135);
+  --plan-roof:     oklch(30% 0.02 250);
+  --plan-wall-internal: oklch(58% 0.010 85);
+  --plan-wall-new: oklch(78% 0.030 250);
+  --plan-built:    oklch(36% 0.015 85);
+  --plan-furniture: oklch(30% 0.012 85);
+  --plan-furniture-fixed: oklch(34% 0.02 200);
+  --plan-swing:    oklch(52% 0.02 85);
+  --plan-dimension: oklch(68% 0.09 250);
+  --plan-clearance: oklch(40% 0.06 95);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -167,5 +344,14 @@
     --plan-floor:    oklch(32% 0.018 80);
     --plan-glass:    oklch(58% 0.05 225);
     --plan-ground:   oklch(28% 0.02 135);
+    --plan-roof:     oklch(30% 0.02 250);
+    --plan-wall-internal: oklch(58% 0.010 85);
+    --plan-wall-new: oklch(78% 0.030 250);
+    --plan-built:    oklch(36% 0.015 85);
+    --plan-furniture: oklch(30% 0.012 85);
+    --plan-furniture-fixed: oklch(34% 0.02 200);
+    --plan-swing:    oklch(52% 0.02 85);
+    --plan-dimension: oklch(68% 0.09 250);
+    --plan-clearance: oklch(40% 0.06 95);
   }
 }

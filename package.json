@@ -8,6 +8,7 @@
     "serve": "python3 -m http.server 8000",
     "test": "node tools/run-all-tests.mjs",
     "test:unit": "node --test \"tests/unit/*.test.mjs\"",
+    "test:geometry": "node tools/check-geometry.mjs",
     "test:sql": "bash tools/run-sql-tests.sh",
     "test:parity": "node tools/parity-check.mjs",
     "test:frontend": "node tools/check-frontend.mjs",

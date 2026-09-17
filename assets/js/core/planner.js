@@ -39,6 +39,12 @@ function palette() {
     external: tokenColour('--plan-external', 0xb08265),
     internal: tokenColour('--plan-internal', 0xe6e0d8),
     party: tokenColour('--plan-external', 0xb08265),
+    wallNew: tokenColour('--plan-wall-new', 0x2c3342),
+    roof: tokenColour('--plan-roof', 0x3d4552),
+    built: tokenColour('--plan-built', 0xe0d9cd),
+    furniture: tokenColour('--plan-furniture', 0xefe9df),
+    furnitureFixed: tokenColour('--plan-furniture-fixed', 0xd6e2e8),
+    pot: tokenColour('--plan-built', 0xe0d9cd),
     floor: tokenColour('--plan-floor', 0xd9cfc2),
     glass: tokenColour('--plan-glass', 0x9fc4d8),
     garageDoor: tokenColour('--plan-internal', 0xefebe2),
@@ -97,10 +103,12 @@ export class Planner {
     };
   }
 
-  setModel(building, placements, restore) {
+  setModel(building, placements, restore, opts = {}) {
     if (this.model) this.scene.remove(this.model.root);
-    this.model = buildModel(building, placements, this.pal);
+    this.model = buildModel(building, placements, this.pal, opts);
     this.scene.add(this.model.root);
+    this.showRoof(this.roofOn ?? true);
+    this.showFurniture(this.furnitureOn ?? true);
 
     if (restore?.position && restore?.target) {
       this.camera.position.fromArray(restore.position);
@@ -114,13 +122,14 @@ export class Planner {
     // camera position, so a bigger or smaller house both arrive
     // filling the view: back off far enough that the widest span fits
     // the vertical field of view, with a margin for the labels.
-    const s = this.model.size;
+    const s = this.model.fullSize ?? this.model.size;
     const span = Math.max(s.x, s.z, s.y, 4);
     const fov = (this.camera.fov * Math.PI) / 180;
-    const dist = (span / 2) / Math.tan(fov / 2) * 0.92;
+    const dist = (span / 2) / Math.tan(fov / 2) * 1.05;
     const k = dist / Math.sqrt(3);
-    this.camera.position.set(k, k * 0.85, k);
-    this.controls.target.set(0, s.y / 2, 0);
+    const mid = this.model.centre?.y ?? s.y / 2;
+    this.camera.position.set(k, mid + k * 0.85, k);
+    this.controls.target.set(0, mid, 0);
     this.controls.update();
     this.resize();
   }
@@ -129,11 +138,45 @@ export class Planner {
    *  look into the ground floor without a cutaway. */
   showLevel(levelId) {
     if (!this.model) return;
-    for (const [id, g] of Object.entries(this.model.levelGroups)) {
-      g.visible = !levelId || id === levelId;
+    this.levelId = levelId;
+    for (const key of ['levelGroups', 'markerGroups', 'furnitureGroups']) {
+      for (const [id, g] of Object.entries(this.model[key])) {
+        g.visible = !levelId || id === levelId;
+      }
     }
-    for (const [id, g] of Object.entries(this.model.markerGroups)) {
-      g.visible = !levelId || id === levelId;
+    if (!this.furnitureOn) this.showFurniture(false);
+    this.applyRoof();
+  }
+
+  /**
+   * The roof off is how you look down into the house. It is on by
+   * default because the roof is most of what the outside of this
+   * building is, and half the point of the model is checking it.
+   *
+   * It also follows the level filter. Looking at the ground floor with
+   * the first floor hidden and the roof still on gives you a roof
+   * hovering two and a half metres above nothing, which reads as a bug
+   * rather than as a cutaway.
+   */
+  showRoof(on) {
+    this.roofOn = on;
+    this.applyRoof();
+  }
+
+  applyRoof() {
+    if (!this.model) return;
+    const onTop = !this.levelId || this.levelId === this.model.topLevelId;
+    this.model.roofGroup.visible = !!this.roofOn && onTop;
+  }
+
+  /** Furniture off leaves the empty shell without changing variant. The
+   *  variant is still the honest way to see an empty house; this is for
+   *  looking past the sofa at the wall behind it. */
+  showFurniture(on) {
+    this.furnitureOn = on;
+    if (!this.model) return;
+    for (const [id, g] of Object.entries(this.model.furnitureGroups)) {
+      g.visible = on && (!this.levelId || id === this.levelId);
     }
   }
 

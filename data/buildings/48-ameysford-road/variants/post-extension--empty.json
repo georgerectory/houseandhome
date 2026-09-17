@@ -1,0 +1,10 @@
+{
+ "id": "post-extension--empty",
+ "schemaVersion": 2,
+ "building": "48-ameysford-road",
+ "stage": "post-extension",
+ "name": "Empty shell",
+ "summary": "The extension finished and nothing moved back in.",
+ "changes": [],
+ "furniture": []
+}

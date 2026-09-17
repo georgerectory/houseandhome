@@ -3,6 +3,8 @@
 //   lint      the rules a browser cannot see
 //   secrets   nothing private is tracked by a public repository
 //   unit      the pure engines, tested as stated
+//   geometry  every stage of every building is a building, and agrees
+//             with the drawings it was measured from
 //   sql       the schema, guards and policies, on a real Postgres
 //   frontend  the actual pages, in a real browser, at six viewports
 //             in both themes
@@ -29,6 +31,7 @@ const results = [
   // one failure worth seeing before anything else scrolls past.
   run('Secrets', 'node', ['tools/check-secrets.mjs']),
   run('Unit', 'node', ['--test', 'tests/unit/*.test.mjs']),
+  run('Geometry', 'node', ['tools/check-geometry.mjs']),
 ];
 
 if (hasPg) {

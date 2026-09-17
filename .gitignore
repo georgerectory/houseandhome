@@ -12,3 +12,10 @@ node_modules/
 # Only the README and this rule are tracked.
 data/carried/*
 !data/carried/README.md
+
+# The source drawings a building model was measured from. The repo is
+# public, these are somebody else's copyright, and they identify the
+# property. The Survey view overlays them when they are present locally
+# and says so when they are not.
+data/buildings/*/sources/*
+!data/buildings/*/sources/README.md

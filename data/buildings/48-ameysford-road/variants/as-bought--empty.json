@@ -1,0 +1,10 @@
+{
+ "id": "as-bought--empty",
+ "schemaVersion": 2,
+ "building": "48-ameysford-road",
+ "stage": "as-bought",
+ "name": "Empty shell",
+ "summary": "The house on the day the keys arrive: nothing in it.",
+ "changes": [],
+ "furniture": []
+}

@@ -64,9 +64,15 @@ if (shot) mkdirSync(join(ROOT, 'tests/screenshots'), { recursive: true });
 // downloading a second copy.
 const CHROME = process.env.CHROME_PATH
   || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
+// Software WebGL, deliberately. Without it headless Chromium has no 3D
+// at all, the House page takes its degradation path, and the check
+// cannot tell "this browser has no WebGL" from "the 3D view is broken" -
+// which is exactly how a bad import path ships behind a polite notice.
 const browser = await chromium.launch({
   executablePath: existsSync(CHROME) ? CHROME : undefined,
-  args: ['--no-sandbox', '--disable-dev-shm-usage'],
+  args: ['--no-sandbox', '--disable-dev-shm-usage',
+    '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader',
+    '--ignore-gpu-blocklist'],
 });
 let failures = [];
 let checks = 0;
@@ -185,6 +191,11 @@ for (const theme of THEMES) {
           clientW: document.documentElement.clientWidth,
         }));
 
+        // Start from a known view: the page remembers the last one, and
+        // a sweep that began on the Survey tab would test nothing.
+        await page.click('[data-view="plan"]');
+        await page.waitForTimeout(150);
+
         const seenRefs = new Map();
         for (const lv of ['ground', 'first']) {
           await page.click(`[data-level-id="${lv}"]`);
@@ -217,8 +228,17 @@ for (const theme of THEMES) {
         await page.waitForTimeout(2200);
         const model = await page.evaluate(() => {
           const c = document.getElementById('fp-canvas');
+          // Whether this browser can do WebGL at all. Without it, the
+          // degradation message is the correct outcome; WITH it, the
+          // message means something is broken - a bad import path, a
+          // throw in the geometry - and a check that accepts both
+          // cannot tell those apart, which is how a broken 3D view ships
+          // behind a polite notice.
+          const probe = document.createElement('canvas');
+          const webgl = !!(probe.getContext('webgl2') || probe.getContext('webgl'));
           return {
             canvas: !!c,
+            webgl,
             hidden: !!c?.hidden,
             painted: c && c.width > 0 && c.height > 0,
             note: (document.getElementById('fp-note')?.textContent || '').trim(),
@@ -231,10 +251,73 @@ for (const theme of THEMES) {
         if (model.hidden && !/could not start/.test(model.note)) {
           failures.push(`${label}: the 3D view failed without saying so`);
         }
+        if (model.hidden && model.webgl) {
+          failures.push(`${label}: the 3D view gave up although this browser has WebGL`);
+        }
         if (model.scrollW > model.clientW + 1) failures.push(`${label}: page scroll in the 3D view`);
         await page.click('[data-view="plan"]');
         await page.waitForTimeout(200);
         if (!(await planState()).svg) failures.push(`${label}: the plan did not come back`);
+
+        // Versions and furniture. Changing either has to change the
+        // DRAWING, not just the dropdown: a selector that looks like it
+        // works and redraws the same house is worse than none.
+        const stageIds = await page.$$eval('#stage option', (o) => o.map((x) => x.value));
+        const shape = () => page.evaluate(() => ({
+          rooms: document.querySelectorAll('.fp-room').length,
+          furniture: document.querySelectorAll('.fp-furniture').length,
+          swings: document.querySelectorAll('.fp-swing').length,
+          walls: document.querySelectorAll('.fp-wall').length,
+          scrollW: document.documentElement.scrollWidth,
+          clientW: document.documentElement.clientWidth,
+        }));
+        if (stageIds.length < 2) failures.push(`${label}: only ${stageIds.length} version offered`);
+        const before = await shape();
+        if (!before.swings) failures.push(`${label}: no door swings drawn`);
+        if (!before.walls) failures.push(`${label}: no walls drawn`);
+
+        for (const stageId of stageIds.slice(1)) {
+          await page.selectOption('#stage', stageId);
+          await page.waitForTimeout(250);
+          const after = await shape();
+          if (after.rooms === before.rooms && after.walls === before.walls) {
+            failures.push(`${label}: selecting ${stageId} redrew the same building`);
+          }
+          if (after.scrollW > after.clientW + 1) failures.push(`${label}: page scroll on ${stageId}`);
+
+          const variantIds = await page.$$eval('#variant option', (o) => o.map((x) => x.value));
+          const furnished = variantIds[variantIds.length - 1];
+          if (variantIds.length > 1) {
+            await page.selectOption('#variant', furnished);
+            await page.waitForTimeout(250);
+            const f = await shape();
+            if (!f.furniture) failures.push(`${label}: ${furnished} drew no furniture`);
+            if (f.scrollW > f.clientW + 1) failures.push(`${label}: page scroll with furniture`);
+          }
+        }
+
+        // The Survey view is the one that makes the rest trustworthy, so
+        // it has to actually draw: the audit table AND the elevations.
+        await page.click('[data-view="survey"]');
+        await page.waitForTimeout(400);
+        const survey = await page.evaluate(() => ({
+          rows: document.querySelectorAll('.table tbody tr').length,
+          elevations: document.querySelectorAll('svg.el').length,
+          verdicts: document.querySelectorAll('.prov').length,
+          scrollW: document.documentElement.scrollWidth,
+          clientW: document.documentElement.clientWidth,
+        }));
+        if (survey.rows < 10) failures.push(`${label}: the survey drew ${survey.rows} rows`);
+        if (survey.elevations !== 4) {
+          failures.push(`${label}: the survey drew ${survey.elevations} elevations, not 4`);
+        }
+        if (!survey.verdicts) failures.push(`${label}: the survey reached no verdict on anything`);
+        if (survey.scrollW > survey.clientW + 1) failures.push(`${label}: page scroll in the survey`);
+
+        // Leave it where the next viewport expects to find it.
+        await page.selectOption('#stage', stageIds[0]);
+        await page.click('[data-view="plan"]');
+        await page.waitForTimeout(200);
       }
 
       // The roadmap is the one page with real interaction, so the sweep

@@ -1,0 +1,232 @@
+{
+ "id": "48-ameysford-road",
+ "name": "48 Ameysford Road",
+ "addressLine": "48 Ameysford Road, Ferndown",
+ "status": "considering",
+ "bought": false,
+ "surveyed": false,
+ "defaultStage": "as-bought",
+ "note": "A candidate property, not a purchase. No offer has been accepted and no survey has been done. Every dimension in this model is read off a drawing or derived from one, so none of it may size a real job or order a real material until it is measured on site.",
+ "orientation": {
+  "planUpIs": "north",
+  "planNorthOffsetDeg": 0,
+  "frontElevation": "south",
+  "street": "Ameysford Road",
+  "note": "The front door faces south onto Ameysford Road; the garden is north. Pine Close is to the west, No. 46 to the east."
+ },
+ "grid": {
+  "cell": 1,
+  "originX": 0,
+  "originY": 0
+ },
+ "defaults": {
+  "wallExternal": 0.23,
+  "wallInternal": 0.13,
+  "wallParty": 0.3,
+  "floorThickness": 0.3,
+  "doorHeight": 1.98,
+  "doorWidth": 0.83,
+  "windowSill": 0.9,
+  "windowHead": 2.05,
+  "garageDoorHeight": 2.13,
+  "eavesHeight": 5,
+  "roofPitchDeg": 35,
+  "roofOverhang": 0.3
+ },
+ "envelope": {
+  "widthM": 8.2,
+  "depthM": 7.72
+ },
+ "sources": [
+  {
+   "id": "agent-plan",
+   "kind": "floor_plan",
+   "label": "Estate agent's floor plan, as the house stands",
+   "confidence": "researched",
+   "supplies": [
+    "room clear sizes to the centimetre",
+    "room adjacency",
+    "stair and fireplace positions"
+   ]
+  },
+  {
+   "id": "design-study",
+   "kind": "concept",
+   "label": "Layout study: final version without right extensions",
+   "confidence": "drafted",
+   "supplies": [
+    "post-extension layout",
+    "room areas",
+    "envelope",
+    "roof form and ridge height",
+    "internal floor area"
+   ],
+   "note": "The study labels itself a concept, not a design. Its figures are approximate by its own admission."
+  },
+  {
+   "id": "listing-photo",
+   "kind": "photograph",
+   "label": "Listing photograph, front and west elevation",
+   "confidence": "researched",
+   "supplies": [
+    "window count and arrangement",
+    "chimney positions",
+    "porch",
+    "gable roof form"
+   ]
+  }
+ ],
+ "statedDimensions": [
+  {
+   "of": "room:as-bought/dining",
+   "kind": "clearSize",
+   "value": [
+    3.26,
+    3.89
+   ],
+   "source": "agent-plan"
+  },
+  {
+   "of": "room:as-bought/lounge",
+   "kind": "clearSize",
+   "value": [
+    3.35,
+    3.87
+   ],
+   "source": "agent-plan"
+  },
+  {
+   "of": "room:as-bought/kitchen",
+   "kind": "clearSize",
+   "value": [
+    3.01,
+    3.14
+   ],
+   "source": "agent-plan"
+  },
+  {
+   "of": "room:as-bought/bed1",
+   "kind": "clearSize",
+   "value": [
+    3.33,
+    3.91
+   ],
+   "source": "agent-plan"
+  },
+  {
+   "of": "room:as-bought/bed2",
+   "kind": "clearSize",
+   "value": [
+    3.34,
+    3.87
+   ],
+   "source": "agent-plan"
+  },
+  {
+   "of": "room:as-bought/bathroom",
+   "kind": "clearSize",
+   "value": [
+    2.97,
+    3.13
+   ],
+   "source": "agent-plan"
+  },
+  {
+   "of": "room:post-extension/kitchen-diner",
+   "kind": "areaM2",
+   "value": 18,
+   "source": "design-study"
+  },
+  {
+   "of": "room:post-extension/snug",
+   "kind": "areaM2",
+   "value": 13,
+   "source": "design-study"
+  },
+  {
+   "of": "room:post-extension/living",
+   "kind": "areaM2",
+   "value": 13,
+   "source": "design-study"
+  },
+  {
+   "of": "room:post-extension/boot",
+   "kind": "areaM2",
+   "value": 5,
+   "source": "design-study"
+  },
+  {
+   "of": "room:post-extension/master",
+   "kind": "areaM2",
+   "value": 13,
+   "source": "design-study"
+  },
+  {
+   "of": "room:post-extension/bed1",
+   "kind": "areaM2",
+   "value": 13,
+   "source": "design-study"
+  },
+  {
+   "of": "room:post-extension/office",
+   "kind": "areaM2",
+   "value": 8,
+   "source": "design-study"
+  },
+  {
+   "of": "room:post-extension/bed3",
+   "kind": "areaM2",
+   "value": 7,
+   "source": "design-study"
+  },
+  {
+   "of": "room:post-extension/bathroom",
+   "kind": "areaM2",
+   "value": 4,
+   "source": "design-study"
+  },
+  {
+   "of": "stage:post-extension",
+   "kind": "envelopeWidthM",
+   "value": 8.2,
+   "source": "design-study"
+  },
+  {
+   "of": "stage:post-extension",
+   "kind": "envelopeDepthM",
+   "value": 8,
+   "source": "design-study",
+   "tolerance": 0.3,
+   "note": "Stated to one decimal place in a headline. The same study's floor-area figure agrees with 7.72, not 8.00."
+  },
+  {
+   "of": "stage:post-extension",
+   "kind": "internalAreaM2",
+   "value": 112,
+   "source": "design-study"
+  },
+  {
+   "of": "stage:post-extension",
+   "kind": "ridgeHeightM",
+   "value": 7.8,
+   "source": "design-study",
+   "tolerance": 0.12
+  },
+  {
+   "of": "stage:post-extension",
+   "kind": "newExternalWallM",
+   "value": 12,
+   "source": "design-study",
+   "tolerance": 1.5
+  },
+  {
+   "of": "stage:as-bought",
+   "kind": "ridgeHeightM",
+   "value": 6.5,
+   "source": "design-study",
+   "tolerance": 0.12,
+   "note": "Stated indirectly: the new ridge is about 1.3m higher than the existing one."
+  }
+ ],
+ "schemaVersion": 2
+}

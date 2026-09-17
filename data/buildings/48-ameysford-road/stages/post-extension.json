@@ -1,0 +1,1480 @@
+{
+ "id": "post-extension",
+ "schemaVersion": 2,
+ "building": "48-ameysford-road",
+ "name": "After the extension",
+ "sequence": 20,
+ "status": "planned",
+ "derivedFrom": "as-bought",
+ "summary": "The design study's layout: the rear wing kept and filled in both sides to a square 8.2 x 7.72m footprint, one hipped roof over the lot, three bedrooms plus an office, and a kitchen-diner across the whole garden side.",
+ "changes": [
+  "Fill in the west side of the rear wing for a WC and a boot room / utility.",
+  "Fill in the east side of the rear wing and remove the wing's east wall, making one kitchen-diner across the garden side.",
+  "Remove the main block's rear wall at first-floor level east of the landing, so the master can take the en-suite.",
+  "Replace both existing roofs with one hipped roof over the whole square: four hips, no valleys.",
+  "Raise both chimney stacks through the new side slopes.",
+  "Leave the east gable wall, both flues and both fireplaces untouched."
+ ],
+ "derivation": [
+  {
+   "id": "width",
+   "question": "How wide is the hall?",
+   "working": "0.23 + 3.26 + 0.13 + hall + 0.13 + 3.35 + 0.23 = 8.2",
+   "result": "hall = 0.87",
+   "residualMm": 0,
+   "note": "The two front rooms and the envelope are both stated; the hall is what is left. 0.87m is narrow and entirely ordinary for a cottage of this age."
+  },
+  {
+   "id": "depth",
+   "question": "How deep is the building?",
+   "working": "0.23 + 3.14 (kitchen) + 0.23 (shared wall) + 3.89 (front rooms) + 0.23 = 7.72",
+   "result": "depth = 7.72, against a stated 8.00",
+   "residualMm": 280,
+   "note": "The stated 8.0 is a headline rounded to one decimal. The SAME study states an internal floor area of about 112 square metres, and (8.20 - 0.46) x (7.72 - 0.46) x 2 = 112.4. At a depth of 8.00 it would be 116.7. The area figure adjudicates in favour of 7.72, so the model is built at 7.72 and the 280mm is reported rather than absorbed."
+  },
+  {
+   "id": "eaves",
+   "question": "How high are the eaves, and therefore the storeys?",
+   "working": "hipped roof at 35 deg over a 7.72m depth rises 3.86 x tan35 = 2.70; stated ridge 7.8 - 2.70 = 5.10, and the existing gabled roof over a 4.35m span rises 2.175 x tan35 = 1.52",
+   "result": "eaves = 5, existing ridge 6.52, new ridge 7.70",
+   "residualMm": 100,
+   "note": "Setting the eaves at 5.00 makes the existing ridge 6.52 and the new one 7.70 - a rise of 1.18 against a stated \"about 1.3\", and a new ridge 100mm under the stated 7.8. Both inside the tolerance the study's own \"about\" implies. The eaves then has to carry 0.15 slab + 2.40 + 0.30 joists + 2.30 = 5.15, so the ceiling heights are the figures with the least evidence behind them."
+  },
+  {
+   "id": "wing-position",
+   "question": "Where does the rear wing sit across the width?",
+   "working": "west infill a + 0.23 + 3.01 (wing) + 0.23 + east infill b = 7.74, with a x 3.14 sized to the stated 5 sq m boot room plus a WC",
+   "result": "a = 2.07, b = 2.20; wing outer faces at x = 2.30 and 5.77",
+   "residualMm": 0,
+   "note": "The agent's plan does not dimension this. It is pinned by the extension instead: the design study's boot room and kitchen-diner areas only work with the wing about here, and it puts the bathroom directly over the landing, which is what the agent's plan shows."
+  }
+ ],
+ "levels": [
+  {
+   "id": "ground",
+   "name": "Ground floor",
+   "code": "G",
+   "elevation": 0,
+   "ceilingHeight": 2.4,
+   "sortOrder": 10
+  },
+  {
+   "id": "first",
+   "name": "First floor",
+   "code": "1",
+   "elevation": 2.7,
+   "ceilingHeight": 2.3,
+   "sortOrder": 20
+  }
+ ],
+ "rooms": [
+  {
+   "id": "wc",
+   "level": "ground",
+   "name": "WC",
+   "rect": [
+    0.23,
+    0.23,
+    1.33,
+    1.55
+   ],
+   "areaM2": 1.45,
+   "roomKey": "wc",
+   "roomType": "wc",
+   "clearSize": [
+    1.1,
+    1.32
+   ]
+  },
+  {
+   "id": "boot",
+   "level": "ground",
+   "name": "Boot room / utility",
+   "rect": [
+    0.23,
+    0.23,
+    2.3,
+    3.37
+   ],
+   "rects": [
+    [
+     1.46,
+     0.23,
+     2.3,
+     1.55
+    ],
+    [
+     0.23,
+     1.68,
+     2.3,
+     3.37
+    ]
+   ],
+   "areaM2": 4.61,
+   "roomKey": "boot-room",
+   "roomType": "boot_room",
+   "clearSize": [
+    2.07,
+    1.69
+   ]
+  },
+  {
+   "id": "kitchen-diner",
+   "level": "ground",
+   "name": "Kitchen-diner",
+   "rect": [
+    2.53,
+    0.23,
+    7.97,
+    3.37
+   ],
+   "areaM2": 17.08,
+   "was": "kitchen",
+   "roomKey": "kitchen",
+   "roomType": "kitchen",
+   "clearSize": [
+    5.44,
+    3.14
+   ]
+  },
+  {
+   "id": "snug",
+   "level": "ground",
+   "name": "Snug",
+   "rect": [
+    0.23,
+    3.6,
+    3.49,
+    7.49
+   ],
+   "areaM2": 12.68,
+   "was": "dining",
+   "roomKey": "dining",
+   "roomType": "living",
+   "clearSize": [
+    3.26,
+    3.89
+   ]
+  },
+  {
+   "id": "hall",
+   "level": "ground",
+   "name": "Hallway",
+   "rect": [
+    3.62,
+    3.6,
+    4.49,
+    7.49
+   ],
+   "areaM2": 3.38,
+   "roomKey": "hallway",
+   "roomType": "hallway",
+   "clearSize": [
+    0.87,
+    3.89
+   ]
+  },
+  {
+   "id": "living",
+   "level": "ground",
+   "name": "Living room",
+   "rect": [
+    4.62,
+    3.6,
+    7.97,
+    7.49
+   ],
+   "areaM2": 13.03,
+   "was": "lounge",
+   "roomKey": "lounge",
+   "roomType": "living",
+   "clearSize": [
+    3.35,
+    3.89
+   ]
+  },
+  {
+   "id": "bed3",
+   "level": "first",
+   "name": "Bedroom 3",
+   "rect": [
+    0.23,
+    0.23,
+    2.45,
+    3.37
+   ],
+   "areaM2": 6.97,
+   "roomType": "bedroom",
+   "clearSize": [
+    2.22,
+    3.14
+   ]
+  },
+  {
+   "id": "bathroom",
+   "level": "first",
+   "name": "Bathroom",
+   "rect": [
+    2.58,
+    0.23,
+    4.49,
+    1.935
+   ],
+   "areaM2": 3.26,
+   "roomKey": "bathroom",
+   "roomType": "bathroom",
+   "clearSize": [
+    1.91,
+    1.705
+   ]
+  },
+  {
+   "id": "landing",
+   "level": "first",
+   "name": "Landing",
+   "rect": [
+    2.58,
+    2.065,
+    4.49,
+    7.49
+   ],
+   "rects": [
+    [
+     2.58,
+     2.065,
+     4.49,
+     3.37
+    ],
+    [
+     3.69,
+     3.6,
+     4.49,
+     7.49
+    ]
+   ],
+   "areaM2": 5.61,
+   "roomType": "landing",
+   "clearSize": [
+    0.8,
+    3.89
+   ]
+  },
+  {
+   "id": "office",
+   "level": "first",
+   "name": "Office",
+   "rect": [
+    4.62,
+    0.23,
+    7.97,
+    2.885
+   ],
+   "areaM2": 8.89,
+   "roomKey": "office",
+   "roomType": "office",
+   "clearSize": [
+    3.35,
+    2.655
+   ]
+  },
+  {
+   "id": "ensuite",
+   "level": "first",
+   "name": "En-suite",
+   "rect": [
+    6.3,
+    3.015,
+    7.97,
+    4.435
+   ],
+   "areaM2": 2.37,
+   "roomType": "wc",
+   "note": "A shower room, not a bathroom: 2.4 square metres takes a shower and a WC and nothing else.",
+   "clearSize": [
+    1.67,
+    1.42
+   ]
+  },
+  {
+   "id": "master",
+   "level": "first",
+   "name": "Master bedroom",
+   "rect": [
+    4.62,
+    3.015,
+    7.97,
+    7.49
+   ],
+   "rects": [
+    [
+     4.62,
+     3.015,
+     6.17,
+     7.49
+    ],
+    [
+     6.17,
+     4.565,
+     7.97,
+     7.49
+    ]
+   ],
+   "areaM2": 12.2,
+   "was": "bed2",
+   "roomKey": "bedroom",
+   "roomType": "bedroom",
+   "clearSize": [
+    1.55,
+    4.475
+   ]
+  },
+  {
+   "id": "bed1",
+   "level": "first",
+   "name": "Bedroom 1",
+   "rect": [
+    0.23,
+    3.6,
+    3.56,
+    7.49
+   ],
+   "areaM2": 12.95,
+   "roomType": "bedroom",
+   "clearSize": [
+    3.33,
+    3.89
+   ]
+  }
+ ],
+ "walls": [
+  {
+   "id": "ground-x-w-main-new",
+   "level": "ground",
+   "line": "w-main",
+   "axis": "x",
+   "a": [
+    0.115,
+    0.115
+   ],
+   "b": [
+    0.115,
+    3.485
+   ],
+   "kind": "external",
+   "thickness": 0.23,
+   "provenance": "new",
+   "structural": true,
+   "removable": false
+  },
+  {
+   "id": "ground-x-w-main",
+   "level": "ground",
+   "line": "w-main",
+   "axis": "x",
+   "a": [
+    0.115,
+    3.485
+   ],
+   "b": [
+    0.115,
+    7.605
+   ],
+   "kind": "external",
+   "thickness": 0.23,
+   "provenance": "existing",
+   "structural": true,
+   "removable": false
+  },
+  {
+   "id": "ground-x-e-main-new",
+   "level": "ground",
+   "line": "e-main",
+   "axis": "x",
+   "a": [
+    8.085,
+    0.115
+   ],
+   "b": [
+    8.085,
+    3.485
+   ],
+   "kind": "external",
+   "thickness": 0.23,
+   "provenance": "new",
+   "structural": true,
+   "removable": false
+  },
+  {
+   "id": "ground-x-e-main",
+   "level": "ground",
+   "line": "e-main",
+   "axis": "x",
+   "a": [
+    8.085,
+    3.485
+   ],
+   "b": [
+    8.085,
+    7.605
+   ],
+   "kind": "external",
+   "thickness": 0.23,
+   "provenance": "existing",
+   "structural": true,
+   "removable": false
+  },
+  {
+   "id": "ground-x-w-wing",
+   "level": "ground",
+   "line": "w-wing",
+   "axis": "x",
+   "a": [
+    2.415,
+    0.115
+   ],
+   "b": [
+    2.415,
+    3.485
+   ],
+   "kind": "internal",
+   "thickness": 0.23,
+   "provenance": "existing",
+   "structural": false,
+   "removable": true,
+   "note": "The rear wing's original west wall, now internal: it divides the boot room from the kitchen-diner."
+  },
+  {
+   "id": "ground-x-wc-e",
+   "level": "ground",
+   "line": "wc-e",
+   "axis": "x",
+   "a": [
+    1.395,
+    0.115
+   ],
+   "b": [
+    1.395,
+    1.615
+   ],
+   "kind": "internal",
+   "thickness": 0.13,
+   "provenance": "new",
+   "structural": false,
+   "removable": true
+  },
+  {
+   "id": "ground-x-hall-w",
+   "level": "ground",
+   "line": "hall-w",
+   "axis": "x",
+   "a": [
+    3.555,
+    3.485
+   ],
+   "b": [
+    3.555,
+    7.605
+   ],
+   "kind": "internal",
+   "thickness": 0.13,
+   "provenance": "existing",
+   "structural": false,
+   "removable": true
+  },
+  {
+   "id": "ground-x-hall-e",
+   "level": "ground",
+   "line": "hall-e",
+   "axis": "x",
+   "a": [
+    4.555,
+    3.485
+   ],
+   "b": [
+    4.555,
+    7.605
+   ],
+   "kind": "internal",
+   "thickness": 0.13,
+   "provenance": "existing",
+   "structural": false,
+   "removable": true
+  },
+  {
+   "id": "ground-y-ext-n-w",
+   "level": "ground",
+   "line": "ext-n",
+   "axis": "y",
+   "a": [
+    0.115,
+    0.115
+   ],
+   "b": [
+    2.415,
+    0.115
+   ],
+   "kind": "external",
+   "thickness": 0.23,
+   "provenance": "new",
+   "structural": true,
+   "removable": false
+  },
+  {
+   "id": "ground-y-ext-n",
+   "level": "ground",
+   "line": "ext-n",
+   "axis": "y",
+   "a": [
+    2.415,
+    0.115
+   ],
+   "b": [
+    5.655,
+    0.115
+   ],
+   "kind": "external",
+   "thickness": 0.23,
+   "provenance": "existing",
+   "structural": true,
+   "removable": false,
+   "note": "The rear wing's original north wall, kept."
+  },
+  {
+   "id": "ground-y-ext-n-e",
+   "level": "ground",
+   "line": "ext-n",
+   "axis": "y",
+   "a": [
+    5.655,
+    0.115
+   ],
+   "b": [
+    8.085,
+    0.115
+   ],
+   "kind": "external",
+   "thickness": 0.23,
+   "provenance": "new",
+   "structural": true,
+   "removable": false
+  },
+  {
+   "id": "ground-y-wc-s",
+   "level": "ground",
+   "line": "wc-s",
+   "axis": "y",
+   "a": [
+    0.115,
+    1.615
+   ],
+   "b": [
+    2.415,
+    1.615
+   ],
+   "kind": "internal",
+   "thickness": 0.13,
+   "provenance": "new",
+   "structural": false,
+   "removable": true
+  },
+  {
+   "id": "ground-y-main-n",
+   "level": "ground",
+   "line": "main-n",
+   "axis": "y",
+   "a": [
+    0.115,
+    3.485
+   ],
+   "b": [
+    8.085,
+    3.485
+   ],
+   "kind": "internal",
+   "thickness": 0.23,
+   "provenance": "existing",
+   "structural": false,
+   "removable": true,
+   "note": "Now wholly internal: the kitchen-diner is on its north side along its whole length."
+  },
+  {
+   "id": "ground-y-ext-s",
+   "level": "ground",
+   "line": "ext-s",
+   "axis": "y",
+   "a": [
+    0.115,
+    7.605
+   ],
+   "b": [
+    8.085,
+    7.605
+   ],
+   "kind": "external",
+   "thickness": 0.23,
+   "provenance": "existing",
+   "structural": true,
+   "removable": false
+  },
+  {
+   "id": "first-x-w-main-new",
+   "level": "first",
+   "line": "w-main",
+   "axis": "x",
+   "a": [
+    0.115,
+    0.115
+   ],
+   "b": [
+    0.115,
+    3.485
+   ],
+   "kind": "external",
+   "thickness": 0.23,
+   "provenance": "new",
+   "structural": true,
+   "removable": false
+  },
+  {
+   "id": "first-x-w-main",
+   "level": "first",
+   "line": "w-main",
+   "axis": "x",
+   "a": [
+    0.115,
+    3.485
+   ],
+   "b": [
+    0.115,
+    7.605
+   ],
+   "kind": "external",
+   "thickness": 0.23,
+   "provenance": "existing",
+   "structural": true,
+   "removable": false
+  },
+  {
+   "id": "first-x-e-main-new",
+   "level": "first",
+   "line": "e-main",
+   "axis": "x",
+   "a": [
+    8.085,
+    0.115
+   ],
+   "b": [
+    8.085,
+    3.485
+   ],
+   "kind": "external",
+   "thickness": 0.23,
+   "provenance": "new",
+   "structural": true,
+   "removable": false
+  },
+  {
+   "id": "first-x-e-main",
+   "level": "first",
+   "line": "e-main",
+   "axis": "x",
+   "a": [
+    8.085,
+    3.485
+   ],
+   "b": [
+    8.085,
+    7.605
+   ],
+   "kind": "external",
+   "thickness": 0.23,
+   "provenance": "existing",
+   "structural": true,
+   "removable": false
+  },
+  {
+   "id": "first-x-bed3-e",
+   "level": "first",
+   "line": "bed3-e",
+   "axis": "x",
+   "a": [
+    2.515,
+    0.115
+   ],
+   "b": [
+    2.515,
+    3.485
+   ],
+   "kind": "internal",
+   "thickness": 0.13,
+   "provenance": "new",
+   "structural": false,
+   "removable": true
+  },
+  {
+   "id": "first-x-bed1-e",
+   "level": "first",
+   "line": "bed1-e",
+   "axis": "x",
+   "a": [
+    3.625,
+    3.485
+   ],
+   "b": [
+    3.625,
+    7.605
+   ],
+   "kind": "internal",
+   "thickness": 0.13,
+   "provenance": "existing",
+   "structural": false,
+   "removable": true
+  },
+  {
+   "id": "first-x-land-e",
+   "level": "first",
+   "line": "land-e",
+   "axis": "x",
+   "a": [
+    4.555,
+    0.115
+   ],
+   "b": [
+    4.555,
+    7.605
+   ],
+   "kind": "internal",
+   "thickness": 0.13,
+   "provenance": "new",
+   "structural": false,
+   "removable": true
+  },
+  {
+   "id": "first-x-ens-w",
+   "level": "first",
+   "line": "ens-w",
+   "axis": "x",
+   "a": [
+    6.235,
+    2.95
+   ],
+   "b": [
+    6.235,
+    4.5
+   ],
+   "kind": "internal",
+   "thickness": 0.13,
+   "provenance": "new",
+   "structural": false,
+   "removable": true
+  },
+  {
+   "id": "first-y-ext-n-w",
+   "level": "first",
+   "line": "ext-n",
+   "axis": "y",
+   "a": [
+    0.115,
+    0.115
+   ],
+   "b": [
+    2.415,
+    0.115
+   ],
+   "kind": "external",
+   "thickness": 0.23,
+   "provenance": "new",
+   "structural": true,
+   "removable": false
+  },
+  {
+   "id": "first-y-ext-n",
+   "level": "first",
+   "line": "ext-n",
+   "axis": "y",
+   "a": [
+    2.415,
+    0.115
+   ],
+   "b": [
+    5.655,
+    0.115
+   ],
+   "kind": "external",
+   "thickness": 0.23,
+   "provenance": "existing",
+   "structural": true,
+   "removable": false
+  },
+  {
+   "id": "first-y-ext-n-e",
+   "level": "first",
+   "line": "ext-n",
+   "axis": "y",
+   "a": [
+    5.655,
+    0.115
+   ],
+   "b": [
+    8.085,
+    0.115
+   ],
+   "kind": "external",
+   "thickness": 0.23,
+   "provenance": "new",
+   "structural": true,
+   "removable": false
+  },
+  {
+   "id": "first-y-bath-s",
+   "level": "first",
+   "line": "bath-s",
+   "axis": "y",
+   "a": [
+    2.515,
+    2
+   ],
+   "b": [
+    4.555,
+    2
+   ],
+   "kind": "internal",
+   "thickness": 0.13,
+   "provenance": "new",
+   "structural": false,
+   "removable": true
+  },
+  {
+   "id": "first-y-off-s",
+   "level": "first",
+   "line": "off-s",
+   "axis": "y",
+   "a": [
+    4.555,
+    2.95
+   ],
+   "b": [
+    8.085,
+    2.95
+   ],
+   "kind": "internal",
+   "thickness": 0.13,
+   "provenance": "new",
+   "structural": false,
+   "removable": true
+  },
+  {
+   "id": "first-y-ens-s",
+   "level": "first",
+   "line": "ens-s",
+   "axis": "y",
+   "a": [
+    6.235,
+    4.5
+   ],
+   "b": [
+    8.085,
+    4.5
+   ],
+   "kind": "internal",
+   "thickness": 0.13,
+   "provenance": "new",
+   "structural": false,
+   "removable": true
+  },
+  {
+   "id": "first-y-main-n",
+   "level": "first",
+   "line": "main-n",
+   "axis": "y",
+   "a": [
+    0.115,
+    3.485
+   ],
+   "b": [
+    4.555,
+    3.485
+   ],
+   "kind": "internal",
+   "thickness": 0.23,
+   "provenance": "existing",
+   "structural": false,
+   "removable": true,
+   "note": "Kept west of the landing; removed east of it so the master can reach the en-suite."
+  },
+  {
+   "id": "first-y-ext-s",
+   "level": "first",
+   "line": "ext-s",
+   "axis": "y",
+   "a": [
+    0.115,
+    7.605
+   ],
+   "b": [
+    8.085,
+    7.605
+   ],
+   "kind": "external",
+   "thickness": 0.23,
+   "provenance": "existing",
+   "structural": true,
+   "removable": false
+  }
+ ],
+ "openings": [
+  {
+   "id": "g-win-snug-s",
+   "wall": "ground-y-ext-s",
+   "type": "window",
+   "at": 1.745,
+   "width": 1.35
+  },
+  {
+   "id": "g-door-front",
+   "wall": "ground-y-ext-s",
+   "type": "door",
+   "at": 3.94,
+   "width": 0.9,
+   "leaf": "single",
+   "swing": {
+    "hinge": "a",
+    "toward": "north",
+    "angleDeg": 90
+   }
+  },
+  {
+   "id": "g-win-living-s",
+   "wall": "ground-y-ext-s",
+   "type": "window",
+   "at": 6.18,
+   "width": 1.05
+  },
+  {
+   "id": "g-win-snug-w",
+   "wall": "ground-x-w-main",
+   "type": "window",
+   "at": 3.315,
+   "width": 0.85
+  },
+  {
+   "id": "g-win-living-e",
+   "wall": "ground-x-e-main",
+   "type": "window",
+   "at": 3.315,
+   "width": 0.85
+  },
+  {
+   "id": "g-doors-garden",
+   "wall": "ground-y-ext-n-e",
+   "type": "door",
+   "at": 1.215,
+   "width": 2.1,
+   "leaf": "bifold",
+   "provenance": "new",
+   "note": "Bifold doors from the dining end onto the garden."
+  },
+  {
+   "id": "g-win-kitchen-n",
+   "wall": "ground-y-ext-n",
+   "type": "window",
+   "at": 1.585,
+   "width": 1.2
+  },
+  {
+   "id": "g-win-wc-n",
+   "wall": "ground-y-ext-n-w",
+   "type": "window",
+   "at": 0.665,
+   "width": 0.6,
+   "provenance": "new"
+  },
+  {
+   "id": "g-door-boot-w",
+   "wall": "ground-x-w-main-new",
+   "type": "door",
+   "at": 1.935,
+   "width": 0.85,
+   "leaf": "single",
+   "swing": {
+    "hinge": "a",
+    "toward": "east",
+    "angleDeg": 90
+   },
+   "provenance": "new",
+   "note": "Back door into the boot room. The whole point of a boot room is that it is the door you actually use."
+  },
+  {
+   "id": "g-win-kitchen-e",
+   "wall": "ground-x-e-main-new",
+   "type": "window",
+   "at": 1.485,
+   "width": 1.05,
+   "provenance": "new"
+  },
+  {
+   "id": "g-door-wc",
+   "wall": "ground-y-wc-s",
+   "type": "door",
+   "at": 0.435,
+   "width": 0.7,
+   "leaf": "single",
+   "swing": {
+    "hinge": "a",
+    "toward": "north",
+    "angleDeg": 90
+   },
+   "note": "Opens into the WC. The boot room already has a back door and a door to the kitchen, and three leaves cannot share one corner."
+  },
+  {
+   "id": "g-door-boot",
+   "wall": "ground-x-w-wing",
+   "type": "door",
+   "at": 2.485,
+   "width": 0.8,
+   "leaf": "single",
+   "swing": {
+    "hinge": "a",
+    "toward": "west",
+    "angleDeg": 90
+   }
+  },
+  {
+   "id": "g-open-kitchen-snug",
+   "wall": "ground-y-main-n",
+   "type": "door",
+   "at": 2.885,
+   "width": 0.95,
+   "leaf": "cased",
+   "note": "The snug opens straight through into the kitchen-diner. The hall still cannot be a passage, so this is how you reach the back of the house."
+  },
+  {
+   "id": "g-open-kitchen-living",
+   "wall": "ground-y-main-n",
+   "type": "door",
+   "at": 5.235,
+   "width": 1.4,
+   "leaf": "double",
+   "swing": {
+    "hinge": "a",
+    "toward": "south",
+    "angleDeg": 90
+   },
+   "note": "Double doors between the living room and the dining end. Set toward the hall side, clear of the table, and swinging into the living room where there is floor for them."
+  },
+  {
+   "id": "g-door-snug",
+   "wall": "ground-x-hall-w",
+   "type": "door",
+   "at": 3.215,
+   "width": 0.8,
+   "leaf": "single",
+   "swing": {
+    "hinge": "a",
+    "toward": "west",
+    "angleDeg": 90
+   }
+  },
+  {
+   "id": "g-door-living",
+   "wall": "ground-x-hall-e",
+   "type": "door",
+   "at": 3.215,
+   "width": 0.8,
+   "leaf": "single",
+   "swing": {
+    "hinge": "a",
+    "toward": "east",
+    "angleDeg": 90
+   }
+  },
+  {
+   "id": "f-win-bed1-s",
+   "wall": "first-y-ext-s",
+   "type": "window",
+   "at": 1.745,
+   "width": 1.2
+  },
+  {
+   "id": "f-win-landing-s",
+   "wall": "first-y-ext-s",
+   "type": "window",
+   "at": 3.975,
+   "width": 0.75
+  },
+  {
+   "id": "f-win-master-s",
+   "wall": "first-y-ext-s",
+   "type": "window",
+   "at": 6.18,
+   "width": 1.2
+  },
+  {
+   "id": "f-win-bed1-w",
+   "wall": "first-x-w-main",
+   "type": "window",
+   "at": 3.315,
+   "width": 0.85
+  },
+  {
+   "id": "f-win-master-e",
+   "wall": "first-x-e-main",
+   "type": "window",
+   "at": 3.315,
+   "width": 0.85
+  },
+  {
+   "id": "f-win-bed3-n",
+   "wall": "first-y-ext-n-w",
+   "type": "window",
+   "at": 1.185,
+   "width": 1.05,
+   "provenance": "new"
+  },
+  {
+   "id": "f-win-bathroom-n",
+   "wall": "first-y-ext-n",
+   "type": "window",
+   "at": 1.085,
+   "width": 0.9,
+   "sill": 1.35
+  },
+  {
+   "id": "f-win-office-n",
+   "wall": "first-y-ext-n-e",
+   "type": "window",
+   "at": 0.945,
+   "width": 1.35,
+   "provenance": "new"
+  },
+  {
+   "id": "f-win-bed3-w",
+   "wall": "first-x-w-main-new",
+   "type": "window",
+   "at": 1.685,
+   "width": 0.9,
+   "provenance": "new"
+  },
+  {
+   "id": "f-win-office-e",
+   "wall": "first-x-e-main-new",
+   "type": "window",
+   "at": 1.285,
+   "width": 0.9,
+   "provenance": "new"
+  },
+  {
+   "id": "f-door-bed3",
+   "wall": "first-x-bed3-e",
+   "type": "door",
+   "at": 2.685,
+   "width": 0.75,
+   "leaf": "single",
+   "swing": {
+    "hinge": "a",
+    "toward": "west",
+    "angleDeg": 90
+   }
+  },
+  {
+   "id": "f-door-bathroom",
+   "wall": "first-y-bath-s",
+   "type": "door",
+   "at": 1.385,
+   "width": 0.75,
+   "leaf": "single",
+   "swing": {
+    "hinge": "a",
+    "toward": "north",
+    "angleDeg": 90
+   }
+  },
+  {
+   "id": "f-open-landing",
+   "wall": "first-y-main-n",
+   "type": "door",
+   "at": 3.975,
+   "width": 0.8,
+   "leaf": "cased",
+   "note": "The landing runs through the original rear wall at the head of the stairs."
+  },
+  {
+   "id": "f-door-office",
+   "wall": "first-x-land-e",
+   "type": "door",
+   "at": 2.365,
+   "width": 0.75,
+   "leaf": "single",
+   "swing": {
+    "hinge": "a",
+    "toward": "east",
+    "angleDeg": 90
+   }
+  },
+  {
+   "id": "f-door-master",
+   "wall": "first-x-land-e",
+   "type": "door",
+   "at": 4.485,
+   "width": 0.8,
+   "leaf": "single",
+   "swing": {
+    "hinge": "a",
+    "toward": "east",
+    "angleDeg": 90
+   }
+  },
+  {
+   "id": "f-door-ensuite",
+   "wall": "first-x-ens-w",
+   "type": "door",
+   "at": 0.75,
+   "width": 0.7,
+   "leaf": "single",
+   "swing": {
+    "hinge": "a",
+    "toward": "west",
+    "angleDeg": 90
+   },
+   "note": "Opens into the master. At 1.7 square metres the en-suite has no floor to give a leaf."
+  },
+  {
+   "id": "f-door-bed1",
+   "wall": "first-x-bed1-e",
+   "type": "door",
+   "at": 0.715,
+   "width": 0.75,
+   "leaf": "single",
+   "swing": {
+    "hinge": "a",
+    "toward": "west",
+    "angleDeg": 90
+   }
+  }
+ ],
+ "stairs": [
+  {
+   "id": "main-stair",
+   "level": "ground",
+   "from": "hall",
+   "to": "landing",
+   "footprint": [
+    3.66,
+    3.62,
+    4.42,
+    5.86
+   ],
+   "upperVoid": [
+    3.66,
+    4.5,
+    4.42,
+    5.86
+   ],
+   "direction": "-y",
+   "width": 0.76,
+   "risers": 13,
+   "rise": 0.2077,
+   "going": 0.22,
+   "winders": 4,
+   "handrail": "east",
+   "note": "Unchanged: the stair stays where it is, which is most of why the front door can stay centred."
+  }
+ ],
+ "roofs": [
+  {
+   "id": "roof-hipped",
+   "kind": "hipped",
+   "over": [
+    0,
+    0,
+    8.2,
+    7.72
+   ],
+   "ridgeAxis": "x",
+   "pitchDeg": 35,
+   "eavesHeight": 5,
+   "overhang": 0.3,
+   "covering": "plain tile",
+   "provenance": "new",
+   "note": "One hipped roof over the whole square: four hips, no valleys. The design study is explicit that avoiding valleys is the point of squaring the footprint off.",
+   "spanAcross": 7.72,
+   "ridgeHeight": 7.703
+  }
+ ],
+ "chimneys": [
+  {
+   "id": "chimney-w",
+   "footprint": [
+    0,
+    5.1,
+    0.56,
+    5.9
+   ],
+   "topHeight": 8.5,
+   "pots": 2,
+   "provenance": "existing",
+   "note": "Kept and raised to clear the new ridge, rising through the west slope."
+  },
+  {
+   "id": "chimney-e",
+   "footprint": [
+    7.64,
+    5.1,
+    8.2,
+    5.9
+   ],
+   "topHeight": 8.5,
+   "pots": 2,
+   "provenance": "existing",
+   "note": "Kept and raised. The east gable wall and both fireplaces are untouched."
+  }
+ ],
+ "features": [
+  {
+   "id": "breast-snug",
+   "level": "ground",
+   "room": "snug",
+   "kind": "chimney_breast",
+   "rect": [
+    0.23,
+    5.1,
+    0.56,
+    5.9
+   ],
+   "projection": 0.33,
+   "height": 2.4
+  },
+  {
+   "id": "breast-living",
+   "level": "ground",
+   "room": "living",
+   "kind": "chimney_breast",
+   "rect": [
+    7.64,
+    5.1,
+    7.97,
+    5.9
+   ],
+   "projection": 0.33,
+   "height": 2.4
+  },
+  {
+   "id": "breast-bed1",
+   "level": "first",
+   "room": "bed1",
+   "kind": "chimney_breast",
+   "rect": [
+    0.23,
+    5.1,
+    0.56,
+    5.9
+   ],
+   "projection": 0.33,
+   "height": 2.3
+  },
+  {
+   "id": "breast-master",
+   "level": "first",
+   "room": "master",
+   "kind": "chimney_breast",
+   "rect": [
+    7.64,
+    5.1,
+    7.97,
+    5.9
+   ],
+   "projection": 0.33,
+   "height": 2.3
+  },
+  {
+   "id": "wardrobes-master",
+   "level": "first",
+   "room": "master",
+   "kind": "fitted_wardrobe",
+   "rect": [
+    4.62,
+    3.015,
+    6.17,
+    3.615
+   ],
+   "height": 2.3,
+   "note": "Fitted wardrobes across the master's north end, as the design study draws them."
+  },
+  {
+   "id": "porch",
+   "level": "ground",
+   "room": "hall",
+   "kind": "porch",
+   "rect": [
+    3.58,
+    7.72,
+    4.53,
+    8.62
+   ],
+   "height": 2.3,
+   "roofKind": "gabled"
+  }
+ ],
+ "assumptions": [
+  {
+   "id": "wall-external",
+   "severity": "medium",
+   "note": "External walls modelled at 0.23m solid brick. Not measured. A cavity wall on the new work would be nearer 0.30m, which would take about 70mm off each new room; modelling everything at 0.23 is what reconciles with the design study's own floor-area figure."
+  },
+  {
+   "id": "wall-internal",
+   "severity": "low",
+   "note": "Internal partitions modelled at 0.13m. Not measured."
+  },
+  {
+   "id": "storey-heights",
+   "severity": "medium",
+   "note": "Ceiling heights of 2.40 and 2.30 are inferred from the roof, not measured. They are the weakest numbers in the model and everything vertical rests on them."
+  },
+  {
+   "id": "wing-offset",
+   "severity": "high",
+   "note": "The rear wing's position across the width is derived from the extension's room areas, not read off the agent's plan, which does not dimension it. If the wing is in fact offset, the boot room and the kitchen-diner both change size."
+  },
+  {
+   "id": "openings",
+   "severity": "medium",
+   "note": "Window and door widths and positions are scaled off the drawings and the photograph. None is dimensioned on any source."
+  },
+  {
+   "id": "stairs",
+   "severity": "medium",
+   "note": "A straight flight 0.80m wide, 13 risers at 0.208 with a 0.22 going, run north from the hall. The agent's plan shows the flight and the winder at the top but dimensions neither."
+  },
+  {
+   "id": "chimneys",
+   "severity": "low",
+   "note": "Both stacks are placed on the gable walls at the mid-depth of the front rooms, which is where the agent's plan draws the fireplaces. Stack heights are scaled off the photograph."
+  },
+  {
+   "id": "hall-is-not-a-passage",
+   "severity": "high",
+   "note": "The hall derives to 0.87m wide and a stair needs 0.76 of it, so the hall cannot also be the route to the back of the house. The model puts the flight in the back half and enters the kitchen from the dining room instead, which is ordinary in a cottage of this size but is NOT what either drawing shows. Either the hall is wider than the arithmetic says, the kitchen is entered from the dining room, or there is a step under the flight. Measure it."
+  },
+  {
+   "id": "depth-residual",
+   "severity": "high",
+   "note": "The building is modelled 7.72m deep. The design study states 8.0m. See the derivation: the study's own floor-area figure agrees with 7.72, but until someone measures it this is a 280mm question."
+  },
+  {
+   "id": "beam-over-kitchen",
+   "severity": "medium",
+   "note": "Removing the wing's east wall to make one kitchen-diner needs a beam over a 3.0m span. Assumed, not designed."
+  },
+  {
+   "id": "beam-over-master",
+   "severity": "high",
+   "note": "The master reaches north past the original rear wall, which means removing 3.35m of a load-bearing wall at first-floor level with the new roof over it. Assumed, not designed, and the most consequential structural assumption in this stage."
+  },
+  {
+   "id": "area-residual",
+   "severity": "low",
+   "note": "Room areas land within about 1 sq m of every figure the design study prints, which is what an \"about\" figure on a concept drawing should mean. The residuals are listed in the Survey view rather than tuned away."
+  }
+ ]
+}

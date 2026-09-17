@@ -125,13 +125,14 @@ rooms. Links close (`valid_to`), never delete. A link you write is
 
 ## Testing
 
-`npm test` runs six gates. All must pass.
+`npm test` runs seven gates. All must pass.
 
 | Gate | What it proves |
 |---|---|
-| `npm run test:secrets` | Nothing private is tracked by a public repository: no carried-over extract, no service_role key, no JWT. |
+| `npm run test:secrets` | Nothing private is tracked by a public repository: no carried-over extract, no service_role key, no JWT, no source drawing. |
 | `npm run lint` | No `100vw`, raw `vh`, `max-width` layout query, breakpoint in the 600-800 iPad band, inline style, emoji or hard-coded hex. |
-| `npm run test:unit` | The allocation and priority engines behave as stated. |
+| `npm run test:unit` | The allocation, priority and geometry engines behave as stated. |
+| `npm run test:geometry` | Every stage of every building IS a building - rooms that do not overlap, a shell that closes, a floor with something under it - and agrees with the drawings it was measured from. |
 | `npm run test:sql` | The schema applies to a real Postgres; guards, triggers and RLS isolation all hold. |
 | `npm run test:parity` | The JS engine and the SQL engine agree to the micro-pound. |
 | `npm run test:frontend` | Real Chromium, six viewports, both themes: no horizontal scroll, no overflow, no target under 24px, no console errors, landmarks present. |
@@ -141,6 +142,44 @@ rooms. Links close (`valid_to`), never delete. A link you write is
 
 The SQL gate needs a local Postgres; without one it SKIPS loudly rather
 than passing quietly.
+
+## The building model
+
+**Stages and variants.** A STAGE is a structural state of the house - as
+bought, after the extension - and owns levels, walls, openings, rooms,
+stairs, roof, chimneys and features. A VARIANT is a furniture
+arrangement belonging to one stage and owns nothing structural. Every
+stage has an `empty` variant, so "no furniture" is a real thing you can
+inspect and fork rather than a rendering flag.
+
+**A fork is a copy.** A new stage or variant carries `derivedFrom` and a
+`changes` narrative, but its geometry is its own: there is no delta to
+merge. The narrative is for people; the geometric difference is COMPUTED
+by `stageDiff()`, so if somebody writes "adds a bedroom" and the geometry
+does not, the diff says so.
+
+**The geometry is repo content, the registry is not.** Walls and rooms
+live in `data/buildings/<id>/` because they are drawing data with nothing
+private in them, they must be unit-testable from disk with no auth, and
+git is a better version history than a table. Supabase holds only
+`building_stages` and `building_changes` - the rows a `work_item` can
+point at through a `realises` link, so the roadmap can say which jobs
+turn one model into the other. The quantities on a change are measured by
+`stageDiff()`, never typed, and they are `drafted`: they price nothing.
+
+**Walls are gridlines, rooms are derived.** The spec names a centreline
+and a thickness per wall; a room names the four lines that bound it and
+its rectangle is computed from their inner faces. A room therefore cannot
+drift from its own walls. `tools/build-building.mjs` does that arithmetic
+and writes the JSON the site reads; the geometry gate re-runs it and
+fails if the committed output has drifted.
+
+**Nothing in the model is measured.** Every figure is read off a drawing
+or derived from one, and each carries the document it came from in
+`sources` and `statedDimensions`. The Survey view compares every stated
+figure against what the geometry computes and reports the difference in
+millimetres. A residual is never absorbed: where a drawing and the model
+disagree, both numbers stay on the page.
 
 ## Front end
 

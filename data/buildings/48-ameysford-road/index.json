@@ -1,0 +1,63 @@
+{
+ "id": "48-ameysford-road",
+ "schemaVersion": 2,
+ "name": "48 Ameysford Road",
+ "generatedBy": "tools/build-building.mjs",
+ "defaultStage": "as-bought",
+ "stages": [
+  {
+   "id": "as-bought",
+   "name": "Day one - as bought",
+   "sequence": 10,
+   "status": "existing",
+   "derivedFrom": null,
+   "summary": "The house as the agent's plan draws it: three rooms down, three up, a rear kitchen wing under its own roof, and a gabled main roof with a chimney on each gable.",
+   "file": "stages/as-bought.json",
+   "variants": [
+    {
+     "id": "as-bought--empty",
+     "name": "Empty shell",
+     "derivedFrom": null,
+     "summary": "The house on the day the keys arrive: nothing in it.",
+     "furnitureCount": 0,
+     "file": "variants/as-bought--empty.json"
+    },
+    {
+     "id": "as-bought--moving-in",
+     "name": "Moving in",
+     "derivedFrom": "as-bought--empty",
+     "summary": "Enough to live in the house as it stands, before any building work: two beds, a sofa, a table, and the kitchen it already has.",
+     "furnitureCount": 23,
+     "file": "variants/as-bought--moving-in.json"
+    }
+   ]
+  },
+  {
+   "id": "post-extension",
+   "name": "After the extension",
+   "sequence": 20,
+   "status": "planned",
+   "derivedFrom": "as-bought",
+   "summary": "The design study's layout: the rear wing kept and filled in both sides to a square 8.2 x 7.72m footprint, one hipped roof over the lot, three bedrooms plus an office, and a kitchen-diner across the whole garden side.",
+   "file": "stages/post-extension.json",
+   "variants": [
+    {
+     "id": "post-extension--empty",
+     "name": "Empty shell",
+     "derivedFrom": null,
+     "summary": "The extension finished and nothing moved back in.",
+     "furnitureCount": 0,
+     "file": "variants/post-extension--empty.json"
+    },
+    {
+     "id": "post-extension--family",
+     "name": "Furnished, as the study draws it",
+     "derivedFrom": "post-extension--empty",
+     "summary": "The design study's own arrangement: a 1.6m island with two stools, a bench seat down the east wall of the dining end, fitted wardrobes across the master, and desks in the snug.",
+     "furnitureCount": 50,
+     "file": "variants/post-extension--family.json"
+    }
+   ]
+  }
+ ]
+}

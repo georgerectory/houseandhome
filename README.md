@@ -43,7 +43,7 @@ test rather than assumed.
 
     npm install
     npm run serve      # http://localhost:8000
-    npm test           # all five gates
+    npm test           # all seven gates
 
 Sign in with the username set up in Supabase Auth. The login form maps a
 username to an email behind the scenes, so `homeowner` signs in as

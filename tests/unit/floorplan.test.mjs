@@ -12,8 +12,14 @@ import {
   INFERRED_DROP,
 } from '../../assets/js/engine/floorplan.js';
 import { levelSvg } from '../../assets/js/engine/floorplan-svg.js';
+import { composeBuilding } from '../../assets/js/engine/building.js';
 
-const building = JSON.parse(readFileSync('data/buildings/placeholder.json', 'utf8'));
+// The real model, composed the way the page composes it, so the tests
+// exercise the object the renderers are actually handed.
+const read = (f) => JSON.parse(readFileSync(`data/buildings/48-ameysford-road/${f}`, 'utf8'));
+const building = composeBuilding(
+  read('building.json'), read('stages/as-bought.json'), read('variants/as-bought--empty.json'),
+);
 
 // A tiny hand-made building, so the arithmetic is checkable by eye.
 const toy = {
@@ -128,7 +134,7 @@ test('an opening is positioned by its CENTRE, not its near edge', () => {
 });
 
 test('the real front door lands centred in the hall it opens into', () => {
-  const door = building.openings.find((o) => o.id === 'd-front');
+  const door = building.openings.find((o) => o.id === 'g-door-front');
   const seg = openingSegment(door, building);
   const mid = (seg.a[0] + seg.b[0]) / 2;
   const hall = building.rooms.find((r) => r.id === 'hall');
@@ -147,10 +153,10 @@ test('an opening on a wall that does not exist draws nothing', () => {
   assert.equal(openingSegment({ id: 'x', wall: 'nope', at: 1, width: 1 }, toy), null);
 });
 
-test('bounds cover rooms AND walls, since an external wall sits outside', () => {
+test('bounds cover rooms AND walls at full thickness, since a wall has two faces', () => {
   const b = bounds(toy, 'g', 0);
-  assert.equal(b.x2, 10, 'the wall runs past the rooms');
-  assert.equal(b.y1, 0);
+  assert.equal(b.x2, 10.1, 'the wall runs past the rooms, and half of it past its own centreline');
+  assert.equal(b.y1, -0.1);
 });
 
 test('a level with no geometry has no bounds rather than an empty box', () => {
@@ -261,7 +267,7 @@ test('spreading does not mutate the placements it was given', () => {
 // --- Axis ------------------------------------------------------------
 
 test('the axis labels the same squares the references use', () => {
-  const ax = axis(bounds(toy, 'g', 0), toy);
+  const ax = axis({ x1: 0, y1: 0, x2: 10, y2: 3 }, toy);
   assert.deepEqual(ax.cols.map((c) => c.label), ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']);
   assert.deepEqual(ax.rows.map((r) => r.label), ['1', '2', '3']);
   const a = ax.cols[3];
@@ -274,7 +280,7 @@ test('no bounds means no axis rather than a crash', () => {
 
 // --- The real model --------------------------------------------------
 
-test('the shipped placeholder is a coherent building', () => {
+test('the shipped building is a coherent building', () => {
   assert.ok(levels(building).length >= 2);
   for (const l of levels(building)) {
     assert.ok(l.code, `level ${l.id} needs a code to qualify its references`);
@@ -291,20 +297,22 @@ test('the shipped placeholder is a coherent building', () => {
   }
 });
 
-test('the placeholder says clearly that it is one', () => {
-  assert.equal(building.placeholder, true);
+test('the model says clearly that it is not a survey', () => {
+  assert.equal(building.surveyed, false);
+  assert.equal(building.bought, false);
   assert.ok(building.assumptions.length, 'what is inferred is recorded with a severity');
   assert.ok(building.assumptions.some((a) => a.severity === 'high'));
+  assert.ok(building.sources.length, 'every figure can name the document it came from');
 });
 
 test('a level of the real building draws to SVG in metre space', () => {
-  const ps = placedOn(placeAll([{ id: 'k', name: 'Cooker', room_key: 'kitchen', plan_x_m: 2.2, plan_y_m: 6.8 }], building), 'ground');
+  const ps = placedOn(placeAll([{ id: 'k', name: 'Cooker', room_key: 'kitchen', plan_x_m: 3.0, plan_y_m: 0.6 }], building), 'ground');
   const svg = levelSvg(building, 'ground', ps, { roomNames: { kitchen: 'Kitchen' } });
   assert.match(svg, /viewBox="/);
   assert.match(svg, /preserveAspectRatio="xMidYMid meet"/);
-  assert.match(svg, /class="fp-wall fp-wall--external"/);
+  assert.match(svg, /class="fp-wall/);
   assert.match(svg, /data-asset-id="k"/);
-  assert.match(svg, /Cooker \(C7\)/, 'the pin carries the reference the register shows');
+  assert.match(svg, /Cooker \(D1\)/, 'the pin carries the reference the register shows');
 });
 
 test('the drawing carries no colour of its own', () => {

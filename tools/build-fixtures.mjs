@@ -174,32 +174,36 @@ const bills = [
   basis: category === 'mobile' ? 'current' : 'predicted',
 }));
 
-// The fixed equipment register. Coordinates are metres in the
-// placeholder plan's space (data/buildings/placeholder.json), so each of
-// these resolves to a grid reference on the floor plan and to a marker
+// The fixed equipment register. Coordinates are metres in the plan's own
+// space (data/buildings/48-ameysford-road/, the AS-BOUGHT stage), so each
+// of these resolves to a grid reference on the floor plan and to a marker
 // at the same spot in the 3D model. A null pair means "in that room,
 // position not recorded" - shown at the room's centre and labelled
 // approximate, never as a measured position.
 //
 // Every one of these is DRAFTED, including the coordinates: they are
-// plausible positions in a placeholder house, not a survey of anything.
+// plausible positions in a house nobody has bought, not a survey.
+//
+// A room the as-bought house does not have (an office, a garage) keeps
+// its room and gets NO coordinates, so it appears under "not on the
+// plan" rather than being quietly dropped or invented a position.
 //
 // [name, category, roomKey, planX, planY]
 const assets = [
-  ['Boiler', 'heating', null, 9.0, 4.7],
-  ['Consumer unit', 'electrical', 'hallway', 4.4, 0.6],
-  ['Water stopcock', 'plumbing', 'kitchen', 0.6, 6.7],
-  ['Cooker', 'appliance', 'kitchen', 2.2, 6.8],
-  ['Fridge freezer', 'appliance', 'kitchen', 3.5, 6.8],
-  ['Second freezer', 'appliance', 'garage', 15.4, 5.3],
-  ['Washing machine', 'appliance', 'kitchen', 0.6, 4.4],
-  ['WiFi router', 'network', 'office', 9.2, 0.6],
-  ['Network switch', 'network', 'office', 9.2, 1.2],
-  ['WiFi extender', 'network', 'hallway', 4.4, 3.4],
-  ['Air conditioner (lounge)', 'climate', 'lounge', 9.2, 3.5],
-  ['Air conditioner (main bedroom)', 'climate', 'bedroom', 0.6, 6.8],
-  ['Air purifier', 'climate', 'lounge', 6.3, 0.6],
-  ['Smart television', 'av', 'lounge', 6.3, 3.5],
+  ['Boiler', 'heating', 'kitchen', 5.20, 0.60],
+  ['Consumer unit', 'electrical', 'hallway', 4.10, 7.20],
+  ['Water stopcock', 'plumbing', 'kitchen', 2.80, 3.10],
+  ['Cooker', 'appliance', 'kitchen', 2.90, 1.30],
+  ['Fridge freezer', 'appliance', 'kitchen', 2.90, 2.90],
+  ['Second freezer', 'appliance', 'garage', null, null],
+  ['Washing machine', 'appliance', 'kitchen', 5.20, 1.20],
+  ['WiFi router', 'network', 'office', null, null],
+  ['Network switch', 'network', 'office', null, null],
+  ['WiFi extender', 'network', 'hallway', 4.05, 4.20],
+  ['Air conditioner (lounge)', 'climate', 'lounge', 7.70, 4.00],
+  ['Air conditioner (main bedroom)', 'climate', 'bedroom', 0.60, 4.20],
+  ['Air purifier', 'climate', 'lounge', 5.00, 7.20],
+  ['Smart television', 'av', 'lounge', 7.70, 6.60],
   ['Lawn mower', 'garden_machine', 'shed', null, null],
 ].map(([name, category, roomKey, planX, planY], i) => ({
   id: uid('asset', i), name, category, room_key: roomKey,

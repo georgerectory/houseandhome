@@ -15,6 +15,11 @@ const property = read('building.json');
 const stage = (id) => composeBuilding(property, read(`stages/${id}.json`), read(`variants/${id}--empty.json`));
 const asBought = stage('as-bought');
 const postExt = stage('post-extension');
+// The same stage with the design study's own furniture in it, because
+// some of what the study draws only bites once the fittings are there.
+const postExtDrawn = composeBuilding(
+  property, read('stages/post-extension.json'), read('variants/post-extension--as-drawn.json'),
+);
 
 // A two-room box with one door, so every number below can be checked on
 // the back of an envelope.
@@ -90,13 +95,30 @@ test('an area is judged in square metres and a length in millimetres', () => {
   assert.match(width.deltaLabel, /mm$/);
 });
 
-test('the real building agrees with every drawing it was measured from', () => {
+test('the real building reports every disagreement instead of absorbing it', () => {
   for (const b of [asBought, postExt]) {
-    const s = auditSummary(auditDimensions(b));
-    assert.equal(s.check, 0, `${b.stage.id} disagrees with a source beyond its stated precision`);
-    assert.equal(s.missing, 0);
+    const rows = auditDimensions(b);
+    const s = auditSummary(rows);
+    // Nothing stated may go unchecked: a stated dimension naming
+    // something the model does not have is a broken audit, not a
+    // finding about the house.
+    assert.equal(s.missing, 0, `${b.stage.id} states a dimension the model cannot answer`);
     assert.ok(s.total >= 5, 'and there is enough stated to be worth checking');
+    // A row OUT of tolerance is allowed - the three sources really do
+    // disagree in places, and the whole point of this audit is to say
+    // where. What is not allowed is an unexplained one.
+    for (const row of rows.filter((r) => r.status === 'check')) {
+      assert.ok(row.note, `${b.stage.id}/${row.kind} is out of tolerance and says nothing about why`);
+    }
   }
+});
+
+test('the kitchen-diner is short of its stated area, and the page says so', () => {
+  const row = auditDimensions(postExt).find((r) => r.of === 'room:post-extension/kitchen-diner');
+  assert.equal(row.stated, 18);
+  assert.ok(row.modelled < 17.5, 'the study drew the house deeper than the agent measured it');
+  assert.equal(row.status, 'check');
+  assert.ok(row.note, 'and it says which source gave way');
 });
 
 test('the 280mm the sources disagree by is on the page, not smoothed over', () => {
@@ -207,14 +229,35 @@ test('a stated clearance another thing stands in is a clash too', () => {
   assert.ok(room.clashes.some((c) => c.kind === 'clearance' && /Island/.test(c.message)));
 });
 
-test('every room in the real house can be crossed', () => {
-  for (const b of [asBought, postExt]) {
-    for (const level of b.levels) {
-      for (const room of clearanceReport(b, level.id)) {
-        assert.notEqual(room.status, 'blocked', `${b.stage.id}: ${room.name} cannot be crossed`);
-        assert.deepEqual(room.clashes, [], `${b.stage.id}: ${room.name} has a clash`);
-      }
-    }
+// The two tests below are the whole argument of docs/SOURCE-FIDELITY.md
+// in code. The drawings put a flight in a 0.87m hall and a WC in a
+// square metre. The model draws what the drawings draw, and the
+// clearance check is the thing that says so - it is not a licence to
+// move the flight until the test passes.
+
+test('the rooms the drawings make impassable are reported as impassable', () => {
+  const hall = clearanceReport(asBought, 'ground').find((r) => r.room === 'hall');
+  assert.equal(hall.status, 'blocked', 'the flight fills the hall, and the report has to say so');
+
+  const wc = clearanceReport(postExtDrawn, 'ground').find((r) => r.room === 'wc');
+  assert.equal(wc.status, 'blocked', 'the study draws a WC about a metre square');
+  assert.ok(
+    wc.clashes.some((c) => /g-door-wc/.test(c.message)),
+    'and its door opens straight onto the fittings',
+  );
+});
+
+test('the rooms the drawings leave clear are reported clear', () => {
+  const cases = [
+    [asBought, 'ground', 'dining'], [asBought, 'ground', 'lounge'],
+    [asBought, 'ground', 'kitchen'], [asBought, 'first', 'bed1'],
+    [postExt, 'ground', 'snug'], [postExt, 'ground', 'living'],
+    [postExt, 'first', 'master'], [postExt, 'first', 'bed3'],
+  ];
+  for (const [b, level, id] of cases) {
+    const room = clearanceReport(b, level).find((r) => r.room === id);
+    assert.ok(room, `${b.stage.id}/${level} has no room ${id}`);
+    assert.notEqual(room.status, 'blocked', `${b.stage.id}: ${room.name} should be crossable`);
   }
 });
 

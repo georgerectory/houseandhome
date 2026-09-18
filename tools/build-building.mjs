@@ -125,7 +125,6 @@ function roomsFor(levelId, grid, rooms) {
       ...(r.roomKey ? { roomKey: r.roomKey } : {}),
       ...(r.roomType ? { roomType: r.roomType } : {}),
       ...(r.ceilingHeight ? { ceilingHeight: r.ceilingHeight } : {}),
-      ...(r.label ? { label: r.label } : {}),
       ...(r.note ? { note: r.note } : {}),
     };
     // The clear size a drawing would print: the largest rectangle's own

@@ -23,12 +23,12 @@
      "file": "variants/as-bought--empty.json"
     },
     {
-     "id": "as-bought--moving-in",
-     "name": "Moving in",
+     "id": "as-bought--as-drawn",
+     "name": "The fittings on the plan",
      "derivedFrom": "as-bought--empty",
-     "summary": "Enough to live in the house as it stands, before any building work: two beds, a sofa, a table, and the kitchen it already has.",
-     "furnitureCount": 23,
-     "file": "variants/as-bought--moving-in.json"
+     "summary": "The agent's plan is an unfurnished drawing. The only things on it are the kitchen's sink run and the bathroom's sanitaryware, and those are the only things here.",
+     "furnitureCount": 5,
+     "file": "variants/as-bought--as-drawn.json"
     }
    ]
   },
@@ -50,12 +50,12 @@
      "file": "variants/post-extension--empty.json"
     },
     {
-     "id": "post-extension--family",
+     "id": "post-extension--as-drawn",
      "name": "Furnished, as the study draws it",
      "derivedFrom": "post-extension--empty",
-     "summary": "The design study's own arrangement: a 1.6m island with two stools, a bench seat down the east wall of the dining end, fitted wardrobes across the master, and desks in the snug.",
-     "furnitureCount": 50,
-     "file": "variants/post-extension--family.json"
+     "summary": "Every piece of furniture the design study draws, in the room and the position it draws it, and nothing else. The living room is empty but for its stove, because that is how the study leaves it.",
+     "furnitureCount": 47,
+     "file": "variants/post-extension--as-drawn.json"
     }
    ]
   }

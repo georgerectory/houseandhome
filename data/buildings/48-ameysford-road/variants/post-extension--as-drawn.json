@@ -1,21 +1,122 @@
 {
- "id": "post-extension--family",
+ "id": "post-extension--as-drawn",
  "schemaVersion": 2,
  "building": "48-ameysford-road",
  "stage": "post-extension",
  "name": "Furnished, as the study draws it",
  "derivedFrom": "post-extension--empty",
- "summary": "The design study's own arrangement: a 1.6m island with two stools, a bench seat down the east wall of the dining end, fitted wardrobes across the master, and desks in the snug.",
+ "summary": "Every piece of furniture the design study draws, in the room and the position it draws it, and nothing else. The living room is empty but for its stove, because that is how the study leaves it.",
  "changes": [
-  "Kitchen run along the garden wall with the sink under the window.",
-  "1.6m island with two stools, per the study.",
-  "Dining table at the east end with a bench seat down the wall instead of a fourth chair.",
-  "Boot room takes the washing machine, the dryer and the freezer, so none of them is in the kitchen.",
-  "Desks in the snug rather than the office, because the snug has the light.",
-  "No fourth dining chair and no armchair in the snug: the clearance check says neither leaves a way past.",
-  "The kitchen-diner is reported as tight, and it is. The study lists the shorter island as a trade-off; this is what that trade-off costs."
+  "Kitchen run along the garden wall with the sink under the window; hob and oven down the west side.",
+  "A 1.6m island with two stools on its south side.",
+  "Dining table at the east end: three chairs on its west side and a bench seat down the wall.",
+  "Boot room takes the freezer, a sink and the washer-dryer, with the bench and coats against the wing wall.",
+  "Two desks and three chairs in the snug, an L-shaped sofa in its south-west corner.",
+  "The living room holds nothing but the stove. The study draws no sofa there and neither does this.",
+  "Bedroom 3 holds one single bed. Bedroom 1 holds one double. Neither has a wardrobe or a bedside table on the drawing."
  ],
  "furniture": [
+  {
+   "id": "wc-pan",
+   "level": "ground",
+   "room": "wc",
+   "kind": "wc",
+   "name": "WC",
+   "rect": [
+    0.48,
+    0.23,
+    0.87,
+    0.75
+   ],
+   "confidence": "drafted",
+   "height": 0.78,
+   "fixed": true,
+   "facing": "s"
+  },
+  {
+   "id": "wc-basin",
+   "level": "ground",
+   "room": "wc",
+   "kind": "basin",
+   "name": "Basin",
+   "rect": [
+    1.1,
+    0.47,
+    1.445,
+    0.82
+   ],
+   "confidence": "drafted",
+   "height": 0.85,
+   "fixed": true,
+   "facing": "w"
+  },
+  {
+   "id": "bt-bench",
+   "level": "ground",
+   "room": "boot",
+   "kind": "bench",
+   "name": "Bench and coats",
+   "rect": [
+    1.97,
+    0.26,
+    2.365,
+    2.42
+   ],
+   "confidence": "drafted",
+   "height": 1.9,
+   "fixed": true,
+   "facing": "w"
+  },
+  {
+   "id": "bt-freezer",
+   "level": "ground",
+   "room": "boot",
+   "kind": "fridge",
+   "name": "Freezer",
+   "rect": [
+    0.23,
+    2.8,
+    0.83,
+    3.37
+   ],
+   "confidence": "drafted",
+   "height": 1.7,
+   "facing": "n"
+  },
+  {
+   "id": "bt-sink",
+   "level": "ground",
+   "room": "boot",
+   "kind": "sink",
+   "name": "Sink",
+   "rect": [
+    0.83,
+    2.8,
+    1.73,
+    3.37
+   ],
+   "confidence": "drafted",
+   "height": 0.92,
+   "fixed": true,
+   "facing": "n"
+  },
+  {
+   "id": "bt-washer",
+   "level": "ground",
+   "room": "boot",
+   "kind": "washer",
+   "name": "Washer-dryer",
+   "rect": [
+    1.73,
+    2.8,
+    2.365,
+    3.37
+   ],
+   "confidence": "drafted",
+   "height": 0.85,
+   "fixed": true,
+   "facing": "n"
+  },
   {
    "id": "kd-ff",
    "level": "ground",
@@ -23,10 +124,10 @@
    "kind": "fridge",
    "name": "Fridge-freezer",
    "rect": [
-    2.58,
-    0.28,
-    3.18,
-    0.88
+    2.595,
+    0.23,
+    3.195,
+    0.83
    ],
    "confidence": "drafted",
    "height": 1.85,
@@ -34,16 +135,16 @@
    "facing": "s"
   },
   {
-   "id": "kd-run-w",
+   "id": "kd-run-a",
    "level": "ground",
    "room": "kitchen-diner",
    "kind": "worktop",
    "name": "Worktop",
    "rect": [
-    3.18,
-    0.28,
-    3.68,
-    0.88
+    3.195,
+    0.23,
+    3.395,
+    0.83
    ],
    "confidence": "drafted",
    "height": 0.92,
@@ -57,10 +158,10 @@
    "kind": "sink",
    "name": "Sink",
    "rect": [
-    3.68,
-    0.28,
-    4.28,
-    0.88
+    3.395,
+    0.23,
+    4.295,
+    0.83
    ],
    "confidence": "drafted",
    "height": 0.92,
@@ -74,10 +175,10 @@
    "kind": "dishwasher",
    "name": "Dishwasher",
    "rect": [
-    4.28,
-    0.28,
-    4.88,
-    0.88
+    4.295,
+    0.23,
+    4.895,
+    0.83
    ],
    "confidence": "drafted",
    "height": 0.85,
@@ -85,16 +186,16 @@
    "facing": "s"
   },
   {
-   "id": "kd-run-e",
+   "id": "kd-run-b",
    "level": "ground",
    "room": "kitchen-diner",
    "kind": "worktop",
    "name": "Worktop",
    "rect": [
-    4.88,
-    0.28,
-    5.48,
-    0.88
+    4.895,
+    0.23,
+    5.705,
+    0.83
    ],
    "confidence": "drafted",
    "height": 0.92,
@@ -102,19 +203,19 @@
    "facing": "s"
   },
   {
-   "id": "kd-oven",
+   "id": "kd-run-c",
    "level": "ground",
    "room": "kitchen-diner",
-   "kind": "oven",
-   "name": "Oven",
+   "kind": "worktop",
+   "name": "Worktop",
    "rect": [
-    2.58,
-    0.95,
-    3.18,
-    1.55
+    2.595,
+    0.83,
+    3.195,
+    1.33
    ],
    "confidence": "drafted",
-   "height": 0.9,
+   "height": 0.92,
    "fixed": true,
    "facing": "e"
   },
@@ -125,10 +226,10 @@
    "kind": "hob",
    "name": "Hob",
    "rect": [
-    2.58,
-    1.55,
-    3.18,
-    2.15
+    2.595,
+    1.33,
+    3.195,
+    1.93
    ],
    "confidence": "drafted",
    "height": 0.92,
@@ -139,16 +240,33 @@
    }
   },
   {
+   "id": "kd-oven",
+   "level": "ground",
+   "room": "kitchen-diner",
+   "kind": "oven",
+   "name": "Oven",
+   "rect": [
+    2.595,
+    1.93,
+    3.195,
+    2.56
+   ],
+   "confidence": "drafted",
+   "height": 0.9,
+   "fixed": true,
+   "facing": "e"
+  },
+  {
    "id": "kd-island",
    "level": "ground",
    "room": "kitchen-diner",
    "kind": "island",
    "name": "Island",
    "rect": [
-    3.95,
-    1.78,
-    5.55,
-    2.58
+    4,
+    1.61,
+    5.6,
+    2.41
    ],
    "confidence": "drafted",
    "height": 0.92,
@@ -166,10 +284,10 @@
    "kind": "stool",
    "name": "Stool",
    "rect": [
-    4.3,
+    4.2,
     2.58,
-    4.7,
-    2.9
+    4.56,
+    2.94
    ],
    "confidence": "drafted",
    "height": 0.7,
@@ -182,10 +300,10 @@
    "kind": "stool",
    "name": "Stool",
    "rect": [
-    4.85,
+    4.97,
     2.58,
-    5.25,
-    2.9
+    5.33,
+    2.94
    ],
    "confidence": "drafted",
    "height": 0.7,
@@ -198,10 +316,10 @@
    "kind": "table",
    "name": "Dining table",
    "rect": [
-    6.3,
-    1.45,
-    7.55,
-    2.65
+    6.96,
+    1.09,
+    7.6,
+    2.51
    ],
    "confidence": "drafted",
    "height": 0.75,
@@ -216,10 +334,10 @@
    "kind": "bench",
    "name": "Bench seat",
    "rect": [
-    7.62,
-    1.35,
-    7.92,
-    2.75
+    7.6,
+    1,
+    7.97,
+    2.63
    ],
    "confidence": "drafted",
    "height": 0.45,
@@ -234,10 +352,10 @@
    "kind": "chair",
    "name": "Chair",
    "rect": [
-    6.5,
-    1,
-    6.9,
-    1.4
+    6.58,
+    1.14,
+    6.92,
+    1.51
    ],
    "confidence": "drafted",
    "height": 0.9,
@@ -250,147 +368,94 @@
    "kind": "chair",
    "name": "Chair",
    "rect": [
-    6.5,
-    2.7,
-    6.9,
-    3.1
+    6.58,
+    1.61,
+    6.92,
+    2
    ],
    "confidence": "drafted",
    "height": 0.9,
    "belongsTo": "kd-table"
   },
   {
-   "id": "wc-pan",
+   "id": "kd-chair-3",
    "level": "ground",
-   "room": "wc",
-   "kind": "wc",
-   "name": "WC",
+   "room": "kitchen-diner",
+   "kind": "chair",
+   "name": "Chair",
    "rect": [
-    0.9,
-    0.3,
-    1.3,
-    0.95
+    6.58,
+    2.08,
+    6.92,
+    2.46
    ],
    "confidence": "drafted",
-   "height": 0.78,
-   "fixed": true,
-   "facing": "w"
+   "height": 0.9,
+   "belongsTo": "kd-table"
   },
   {
-   "id": "wc-basin",
-   "level": "ground",
-   "room": "wc",
-   "kind": "basin",
-   "name": "Basin",
-   "rect": [
-    0.3,
-    0.3,
-    0.8,
-    0.72
-   ],
-   "confidence": "drafted",
-   "height": 0.85,
-   "fixed": true,
-   "facing": "s"
-  },
-  {
-   "id": "bt-washer",
-   "level": "ground",
-   "room": "boot",
-   "kind": "washer",
-   "name": "Washing machine",
-   "rect": [
-    0.28,
-    2.6,
-    0.88,
-    3.2
-   ],
-   "confidence": "drafted",
-   "height": 0.85,
-   "fixed": true,
-   "facing": "n"
-  },
-  {
-   "id": "bt-dryer",
-   "level": "ground",
-   "room": "boot",
-   "kind": "dryer",
-   "name": "Tumble dryer",
-   "rect": [
-    0.93,
-    2.6,
-    1.48,
-    3.2
-   ],
-   "confidence": "drafted",
-   "height": 0.85,
-   "fixed": true,
-   "facing": "n"
-  },
-  {
-   "id": "bt-freezer",
-   "level": "ground",
-   "room": "boot",
-   "kind": "fridge",
-   "name": "Freezer",
-   "rect": [
-    1.55,
-    0.3,
-    2.25,
-    0.9
-   ],
-   "confidence": "drafted",
-   "height": 1.7,
-   "facing": "s"
-  },
-  {
-   "id": "bt-bench",
-   "level": "ground",
-   "room": "boot",
-   "kind": "bench",
-   "name": "Bench and coats",
-   "rect": [
-    1.85,
-    1.75,
-    2.25,
-    2.15
-   ],
-   "confidence": "drafted",
-   "height": 0.45,
-   "fixed": true,
-   "facing": "w"
-  },
-  {
-   "id": "sn-sofa",
+   "id": "sn-sideboard",
    "level": "ground",
    "room": "snug",
-   "kind": "sofa",
-   "name": "Sofa",
+   "kind": "shelf",
+   "name": "Sideboard",
    "rect": [
-    0.35,
-    6.5,
-    2.35,
-    7.4
+    0.305,
+    3.6,
+    1.4,
+    4.14
    ],
    "confidence": "drafted",
    "height": 0.85,
-   "facing": "n"
+   "facing": "s"
   },
   {
-   "id": "sn-desk",
+   "id": "sn-store",
+   "level": "ground",
+   "room": "snug",
+   "kind": "shelf",
+   "name": "Store",
+   "rect": [
+    1.43,
+    3.6,
+    1.93,
+    4.04
+   ],
+   "confidence": "drafted",
+   "height": 2,
+   "fixed": true,
+   "facing": "s"
+  },
+  {
+   "id": "sn-chair-3",
+   "level": "ground",
+   "room": "snug",
+   "kind": "chair",
+   "name": "Chair",
+   "rect": [
+    0.64,
+    4.15,
+    1.09,
+    4.6
+   ],
+   "confidence": "drafted",
+   "height": 0.9
+  },
+  {
+   "id": "sn-desk-n",
    "level": "ground",
    "room": "snug",
    "kind": "desk",
-   "name": "Desks",
+   "name": "Desk",
    "rect": [
-    0.8,
-    3.7,
-    2.4,
-    4.3
+    2.84,
+    3.71,
+    3.49,
+    4.73
    ],
    "confidence": "drafted",
    "height": 0.74,
-   "facing": "s",
+   "facing": "w",
    "clearance": {
     "front": 0.6
    }
@@ -402,14 +467,33 @@
    "kind": "chair",
    "name": "Chair",
    "rect": [
-    1,
-    4.4,
-    1.4,
-    4.8
+    2.39,
+    4.02,
+    2.84,
+    4.47
    ],
    "confidence": "drafted",
    "height": 0.9,
-   "belongsTo": "sn-desk"
+   "belongsTo": "sn-desk-n"
+  },
+  {
+   "id": "sn-desk-s",
+   "level": "ground",
+   "room": "snug",
+   "kind": "desk",
+   "name": "Desk",
+   "rect": [
+    2.84,
+    5.44,
+    3.49,
+    6.46
+   ],
+   "confidence": "drafted",
+   "height": 0.74,
+   "facing": "w",
+   "clearance": {
+    "front": 0.6
+   }
   },
   {
    "id": "sn-chair-2",
@@ -418,63 +502,46 @@
    "kind": "chair",
    "name": "Chair",
    "rect": [
-    1.8,
-    4.4,
-    2.2,
-    4.8
+    2.39,
+    5.75,
+    2.84,
+    6.2
    ],
    "confidence": "drafted",
    "height": 0.9,
-   "belongsTo": "sn-desk"
+   "belongsTo": "sn-desk-s"
   },
   {
-   "id": "sn-stove",
+   "id": "sn-sofa-w",
    "level": "ground",
    "room": "snug",
-   "kind": "stove",
-   "name": "Stove",
+   "kind": "sofa",
+   "name": "L-shaped sofa",
    "rect": [
-    0.56,
-    5.3,
-    1.01,
-    5.75
+    0.23,
+    6.3,
+    0.97,
+    6.84
    ],
    "confidence": "drafted",
-   "height": 0.65,
-   "fixed": true,
+   "height": 0.85,
    "facing": "e"
   },
   {
-   "id": "lv-sofa",
+   "id": "sn-sofa-s",
    "level": "ground",
-   "room": "living",
+   "room": "snug",
    "kind": "sofa",
-   "name": "Sofa",
+   "name": "L-shaped sofa",
    "rect": [
-    5.45,
-    6.55,
-    7.55,
-    7.45
+    0.23,
+    6.84,
+    2.57,
+    7.49
    ],
    "confidence": "drafted",
    "height": 0.85,
    "facing": "n"
-  },
-  {
-   "id": "lv-armchair",
-   "level": "ground",
-   "room": "living",
-   "kind": "sofa",
-   "name": "Armchair",
-   "rect": [
-    6.35,
-    4.4,
-    7.05,
-    5.15
-   ],
-   "confidence": "drafted",
-   "height": 0.85,
-   "facing": "s"
   },
   {
    "id": "lv-stove",
@@ -483,45 +550,14 @@
    "kind": "stove",
    "name": "Stove",
    "rect": [
-    7.19,
-    5.3,
-    7.64,
-    5.75
+    7.1,
+    5.32,
+    7.52,
+    5.77
    ],
    "confidence": "drafted",
    "height": 0.65,
    "fixed": true,
-   "facing": "w"
-  },
-  {
-   "id": "lv-coffee",
-   "level": "ground",
-   "room": "living",
-   "kind": "table",
-   "name": "Coffee table",
-   "rect": [
-    5.7,
-    5.55,
-    6.6,
-    6.25
-   ],
-   "confidence": "drafted",
-   "height": 0.42
-  },
-  {
-   "id": "lv-media",
-   "level": "ground",
-   "room": "living",
-   "kind": "shelf",
-   "name": "Media unit",
-   "rect": [
-    7.52,
-    4.4,
-    7.92,
-    5
-   ],
-   "confidence": "drafted",
-   "height": 0.55,
    "facing": "w"
   },
   {
@@ -531,46 +567,14 @@
    "kind": "bed",
    "name": "Single bed",
    "rect": [
-    0.7,
-    0.3,
-    1.6,
-    2.2
+    0.42,
+    0.23,
+    1.32,
+    2.13
    ],
    "confidence": "drafted",
    "height": 0.55,
    "facing": "n"
-  },
-  {
-   "id": "b3-wardrobe",
-   "level": "first",
-   "room": "bed3",
-   "kind": "wardrobe",
-   "name": "Wardrobe",
-   "rect": [
-    0.28,
-    2.55,
-    1.3,
-    3.15
-   ],
-   "confidence": "drafted",
-   "height": 2,
-   "facing": "n"
-  },
-  {
-   "id": "b3-desk",
-   "level": "first",
-   "room": "bed3",
-   "kind": "desk",
-   "name": "Desk",
-   "rect": [
-    1.75,
-    0.3,
-    2.4,
-    1.5
-   ],
-   "confidence": "drafted",
-   "height": 0.74,
-   "facing": "w"
   },
   {
    "id": "ba-bath",
@@ -579,15 +583,16 @@
    "kind": "bath",
    "name": "Bath",
    "rect": [
-    2.63,
-    0.28,
-    4.33,
-    0.98
+    2.645,
+    0.23,
+    4.145,
+    0.93
    ],
    "confidence": "drafted",
    "height": 0.55,
    "fixed": true,
-   "facing": "s"
+   "facing": "s",
+   "note": "A 1.5m bath, because 1.5m is all the room is wide."
   },
   {
    "id": "ba-wc",
@@ -596,10 +601,10 @@
    "kind": "wc",
    "name": "WC",
    "rect": [
-    2.62,
-    1.15,
-    3.02,
-    1.8
+    2.645,
+    1.2,
+    3.045,
+    1.9
    ],
    "confidence": "drafted",
    "height": 0.78,
@@ -613,44 +618,73 @@
    "kind": "basin",
    "name": "Basin",
    "rect": [
-    3.08,
-    1.3,
-    3.53,
-    1.8
+    2.645,
+    2,
+    3.195,
+    2.45
    ],
    "confidence": "drafted",
    "height": 0.85,
    "fixed": true,
-   "facing": "n"
+   "facing": "e"
   },
   {
-   "id": "ld-shelf",
+   "id": "of-daybed",
    "level": "first",
-   "room": "landing",
-   "kind": "shelf",
-   "name": "Bookshelves",
+   "room": "office",
+   "kind": "sofa",
+   "name": "Sofa bed",
    "rect": [
-    2.62,
-    2.12,
-    4.4,
-    2.42
+    5.02,
+    0.23,
+    6.61,
+    1.05
    ],
    "confidence": "drafted",
-   "height": 1.9,
-   "fixed": true,
+   "height": 0.85,
    "facing": "s"
   },
   {
-   "id": "of-desk",
+   "id": "of-table",
+   "level": "first",
+   "room": "office",
+   "kind": "table",
+   "name": "Table",
+   "rect": [
+    5.43,
+    1.19,
+    6.23,
+    1.65
+   ],
+   "confidence": "drafted",
+   "height": 0.74
+  },
+  {
+   "id": "of-chair",
+   "level": "first",
+   "room": "office",
+   "kind": "chair",
+   "name": "Chair",
+   "rect": [
+    6.87,
+    0.85,
+    7.33,
+    1.31
+   ],
+   "confidence": "drafted",
+   "height": 0.9
+  },
+  {
+   "id": "of-pcdesk",
    "level": "first",
    "room": "office",
    "kind": "desk",
    "name": "PC desk",
    "rect": [
-    7.25,
-    0.6,
-    7.9,
-    2
+    7.4,
+    0.23,
+    7.97,
+    1.98
    ],
    "confidence": "drafted",
    "height": 0.74,
@@ -660,37 +694,38 @@
    }
   },
   {
-   "id": "of-chair",
+   "id": "es-wc",
    "level": "first",
-   "room": "office",
-   "kind": "chair",
-   "name": "Chair",
+   "room": "ensuite",
+   "kind": "wc",
+   "name": "WC",
    "rect": [
-    6.65,
-    1.1,
-    7.1,
-    1.55
+    6.1,
+    2.085,
+    6.5,
+    2.785
    ],
    "confidence": "drafted",
-   "height": 0.9,
-   "belongsTo": "of-desk"
-  },
-  {
-   "id": "of-shelf",
-   "level": "first",
-   "room": "office",
-   "kind": "shelf",
-   "name": "Shelves",
-   "rect": [
-    4.7,
-    0.28,
-    6.2,
-    0.58
-   ],
-   "confidence": "drafted",
-   "height": 1.9,
+   "height": 0.78,
    "fixed": true,
    "facing": "s"
+  },
+  {
+   "id": "es-basin",
+   "level": "first",
+   "room": "ensuite",
+   "kind": "basin",
+   "name": "Basin",
+   "rect": [
+    6.72,
+    2.97,
+    7.2,
+    3.42
+   ],
+   "confidence": "drafted",
+   "height": 0.85,
+   "fixed": true,
+   "facing": "n"
   },
   {
    "id": "es-shower",
@@ -699,32 +734,15 @@
    "kind": "shower",
    "name": "Shower",
    "rect": [
-    7.05,
-    3.08,
-    7.9,
-    3.93
+    7.13,
+    2.085,
+    7.97,
+    2.925
    ],
    "confidence": "drafted",
    "height": 2,
    "fixed": true,
    "facing": "w"
-  },
-  {
-   "id": "es-wc",
-   "level": "first",
-   "room": "ensuite",
-   "kind": "wc",
-   "name": "WC",
-   "rect": [
-    6.38,
-    3.08,
-    6.78,
-    3.73
-   ],
-   "confidence": "drafted",
-   "height": 0.78,
-   "fixed": true,
-   "facing": "s"
   },
   {
    "id": "ms-bed",
@@ -733,56 +751,41 @@
    "kind": "bed",
    "name": "King bed",
    "rect": [
-    5.9,
-    4.6,
-    7.5,
-    6.6
+    4.63,
+    4.98,
+    6.63,
+    6.48
    ],
    "confidence": "drafted",
    "height": 0.55,
-   "facing": "n"
+   "facing": "w"
   },
   {
-   "id": "ms-bedside-1",
+   "id": "ms-bench",
    "level": "first",
    "room": "master",
-   "kind": "shelf",
-   "name": "Bedside table",
+   "kind": "bench",
+   "name": "Bench",
    "rect": [
-    5.45,
-    4.6,
-    5.85,
-    5.05
+    6.73,
+    5.12,
+    7.12,
+    6.28
    ],
    "confidence": "drafted",
-   "height": 0.55
+   "height": 0.45
   },
   {
-   "id": "ms-bedside-2",
-   "level": "first",
-   "room": "master",
-   "kind": "shelf",
-   "name": "Bedside table",
-   "rect": [
-    7.55,
-    4.6,
-    7.92,
-    5.05
-   ],
-   "confidence": "drafted",
-   "height": 0.55
-  },
-  {
-   "id": "ms-chair",
+   "id": "ms-armchair",
    "level": "first",
    "room": "master",
    "kind": "sofa",
-   "name": "Chair",
+   "name": "Armchair",
    "rect": [
-    4.75,
-    6.6,
-    5.4,
-    7.25
+    7.05,
+    6.7,
+    7.9,
+    7.45
    ],
    "confidence": "drafted",
    "height": 0.85,
@@ -795,59 +798,13 @@
    "kind": "bed",
    "name": "Double bed",
    "rect": [
-    0.9,
-    3.7,
-    2.3,
-    5.6
+    0.77,
+    3.6,
+    2.12,
+    5.5
    ],
    "confidence": "drafted",
    "height": 0.55,
-   "facing": "n"
-  },
-  {
-   "id": "b1-bedside-1",
-   "level": "first",
-   "room": "bed1",
-   "kind": "shelf",
-   "name": "Bedside table",
-   "rect": [
-    0.3,
-    3.7,
-    0.7,
-    4.1
-   ],
-   "confidence": "drafted",
-   "height": 0.55
-  },
-  {
-   "id": "b1-bedside-2",
-   "level": "first",
-   "room": "bed1",
-   "kind": "shelf",
-   "name": "Bedside table",
-   "rect": [
-    2.4,
-    3.7,
-    2.8,
-    4.1
-   ],
-   "confidence": "drafted",
-   "height": 0.55
-  },
-  {
-   "id": "b1-wardrobe",
-   "level": "first",
-   "room": "bed1",
-   "kind": "wardrobe",
-   "name": "Wardrobe",
-   "rect": [
-    1.5,
-    6.85,
-    2.9,
-    7.45
-   ],
-   "confidence": "drafted",
-   "height": 2,
    "facing": "n"
   }
  ]

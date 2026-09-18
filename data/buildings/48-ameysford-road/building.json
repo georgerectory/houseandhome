@@ -46,7 +46,8 @@
    "supplies": [
     "room clear sizes to the centimetre",
     "room adjacency",
-    "stair and fireplace positions"
+    "window, door and stair positions",
+    "fireplaces and sanitaryware"
    ]
   },
   {
@@ -59,9 +60,10 @@
     "room areas",
     "envelope",
     "roof form and ridge height",
-    "internal floor area"
+    "internal floor area",
+    "every piece of furniture in the furnished variant"
    ],
-   "note": "The study labels itself a concept, not a design. Its figures are approximate by its own admission."
+   "note": "The study labels itself a concept, not a design, and its own legend says the windows are indicative. Its figures are approximate by its own admission."
   },
   {
    "id": "listing-photo",
@@ -135,7 +137,8 @@
    "of": "room:post-extension/kitchen-diner",
    "kind": "areaM2",
    "value": 18,
-   "source": "design-study"
+   "source": "design-study",
+   "note": "The study drew the house 8.0m deep and the agent measured it 7.72. The kitchen-diner runs the full width, so it takes the whole of that 280mm difference: at 8.0m deep it would be 18.4. The depth residual is the reason, not the room."
   },
   {
    "of": "room:post-extension/snug",

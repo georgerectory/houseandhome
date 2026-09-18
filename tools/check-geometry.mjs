@@ -7,12 +7,23 @@
 // a floor with nothing under it, a stair that does not reach the
 // landing, a wardrobe outside its room.
 //
-// It does NOT fail on a disagreement with a drawing. A stated figure and
-// a modelled one differing by 280mm is a fact about the sources, not a
-// bug in the model, and burying it in a red build would teach everyone
-// to make it go away. Those are reported here and shown on the page, and
-// only a difference beyond the source's own stated precision - a "check"
-// row - is treated as a fault.
+// WHAT FAILS AND WHAT IS ONLY REPORTED.
+//
+// This gate fails on geometry that CANNOT BE BUILT: rooms on top of each
+// other, a door off the end of its wall, a floor with nothing under it,
+// a stair that does not reach the landing, a stated dimension naming a
+// room that does not exist, and drift between the committed JSON and its
+// spec.
+//
+// It does not fail on anything that is a JUDGEMENT ABOUT THE DESIGN: a
+// figure the drawings disagree about, a room you cannot cross, a door
+// that opens onto a wardrobe. Those are findings, printed here and shown
+// on the Survey view, and the drawing is left exactly as drawn.
+//
+// That split is the whole lesson of the first build. When the checker was
+// allowed to fail on circulation, the layout got quietly rearranged until
+// the routes came out green - and the result was a floor plan that was no
+// longer the one on the drawing. See docs/SOURCE-FIDELITY.md.
 //
 // It also re-runs the generator and fails if the committed JSON has
 // drifted from the spec, so the two cannot disagree.
@@ -80,21 +91,23 @@ for (const id of buildings) {
       const dims = auditDimensions(b);
       const s = auditSummary(dims);
       for (const row of dims.filter((r) => r.status === 'check' || r.status === 'missing')) {
-        fail(`${label}: ${row.subject} ${row.label} - ${row.source} says `
+        const line = `${label}: ${row.subject} ${row.label} - ${row.source} says `
           + `${JSON.stringify(row.stated)}, the model says ${JSON.stringify(row.modelled)}`
-          + `${row.deltaLabel ? ` (${row.deltaLabel} out)` : ''}`);
+          + `${row.deltaLabel ? ` (${row.deltaLabel} out)` : ''}`;
+        // A figure naming something that is not there is a modelling
+        // mistake. A figure the model simply disagrees with is a fact
+        // about the drawings, and it belongs on the page, not in a red
+        // build that teaches everyone to make it go away.
+        if (row.status === 'missing') fail(line);
+        else console.log(`  find  ${line}`);
       }
       console.log(`  ${pad(label, 46)} dimensions ${s.ok} exact, ${s.tolerable} within tolerance, `
         + `${s.check} out; integrity ${findings.filter((f) => f.severity === 'error').length} errors`);
 
-      // A room you cannot cross is a FAULT when it is the empty shell -
-      // the building itself is wrong - and a FINDING when it is a
-      // furnished variant, because a variant is a proposal and the
-      // answer to "the sofa does not fit" is to move the sofa, which is
-      // the owner's call and not a broken build. Both are reported; only
-      // the first stops the build.
-      const shell = !variant || !variant.furniture?.length;
-      const note = shell ? fail : (m) => console.log(`  find  ${m}`);
+      // Circulation is reported, never failed - including in the empty
+      // shell, where the obstruction is usually the stair and the stair
+      // is exactly where the drawing puts it.
+      const note = (m) => console.log(`  find  ${m}`);
       for (const level of b.levels) {
         for (const room of clearanceReport(b, level.id)) {
           if (room.status === 'blocked') {
@@ -103,12 +116,11 @@ for (const id of buildings) {
           } else if (room.status === 'tight') {
             console.log(`  warn  ${label}: ${room.name} is tight - ${room.routeWidthM}m route`);
           }
-          // A door opening onto something is always a fault: it is not a
-          // matter of taste and no arrangement makes it acceptable.
-          for (const clash of room.clashes) {
-            if (clash.kind === 'swing') fail(`${label}: ${room.name} - ${clash.message}`);
-            else note(`${label}: ${room.name} - ${clash.message}`);
-          }
+          // Including a door that opens onto something. It is worth
+          // knowing and it is worth saying loudly, but the answer is to
+          // decide what to do about it, not to move the door and pretend
+          // the drawing said something else.
+          for (const clash of room.clashes) note(`${label}: ${room.name} - ${clash.message}`);
         }
       }
 

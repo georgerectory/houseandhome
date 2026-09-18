@@ -1,0 +1,102 @@
+{
+ "id": "as-bought--as-drawn",
+ "schemaVersion": 2,
+ "building": "48-ameysford-road",
+ "stage": "as-bought",
+ "name": "The fittings on the plan",
+ "derivedFrom": "as-bought--empty",
+ "summary": "The agent's plan is an unfurnished drawing. The only things on it are the kitchen's sink run and the bathroom's sanitaryware, and those are the only things here.",
+ "changes": [
+  "Sink unit with its drainer down the kitchen's east wall, under the window.",
+  "One worktop unit in the kitchen's north wall, west of the window.",
+  "WC, basin and bath in the bathroom, where the plan draws them.",
+  "No loose furniture at all: the plan shows none, so neither does this."
+ ],
+ "furniture": [
+  {
+   "id": "ab-k-worktop",
+   "level": "ground",
+   "room": "kitchen",
+   "kind": "worktop",
+   "name": "Worktop",
+   "rect": [
+    3.31,
+    0.23,
+    3.79,
+    0.83
+   ],
+   "confidence": "drafted",
+   "height": 0.92,
+   "fixed": true,
+   "facing": "s"
+  },
+  {
+   "id": "ab-k-sink",
+   "level": "ground",
+   "room": "kitchen",
+   "kind": "sink",
+   "name": "Sink",
+   "rect": [
+    5.005,
+    0.72,
+    5.605,
+    2.19
+   ],
+   "confidence": "drafted",
+   "height": 0.92,
+   "fixed": true,
+   "facing": "w"
+  },
+  {
+   "id": "ab-ba-wc",
+   "level": "first",
+   "room": "bathroom",
+   "kind": "wc",
+   "name": "WC",
+   "rect": [
+    2.86,
+    0.23,
+    3.26,
+    0.88
+   ],
+   "confidence": "drafted",
+   "height": 0.78,
+   "fixed": true,
+   "facing": "s"
+  },
+  {
+   "id": "ab-ba-basin",
+   "level": "first",
+   "room": "bathroom",
+   "kind": "basin",
+   "name": "Basin",
+   "rect": [
+    4.16,
+    0.23,
+    4.71,
+    0.68
+   ],
+   "confidence": "drafted",
+   "height": 0.85,
+   "fixed": true,
+   "facing": "s"
+  },
+  {
+   "id": "ab-ba-bath",
+   "level": "first",
+   "room": "bathroom",
+   "kind": "bath",
+   "name": "Bath",
+   "rect": [
+    4.905,
+    0.23,
+    5.605,
+    1.93
+   ],
+   "confidence": "drafted",
+   "height": 0.55,
+   "fixed": true,
+   "facing": "w"
+  }
+ ]
+}

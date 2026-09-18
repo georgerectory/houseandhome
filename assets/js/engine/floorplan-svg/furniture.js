@@ -99,9 +99,17 @@ export function furnitureHtml(building, levelId, opts = {}) {
     const [x1, y1, x2, y2] = f.rect;
     const w = x2 - x1;
     const h = y2 - y1;
-    const size = fitSize(f.name, Math.max(w, h), 0.17);
-    const label = opts.labels !== false && size >= 0.11 && Math.min(w, h) > 0.34
-      ? `<text class="fp-flabel" x="${n((x1 + x2) / 2)}" y="${n((y1 + y2) / 2 + size * 0.34)}"
+    // A name is set along the item, not across it: a bench seat 0.37
+    // wide and 1.6 long carries its name down the bench, the way both
+    // source drawings do it. Sizing to the long side and then writing
+    // across the short one is what produced "ningBench seat".
+    const upright = h > w * 1.4;
+    const cx = (x1 + x2) / 2;
+    const cy = (y1 + y2) / 2;
+    const size = fitSize(f.name, upright ? h : w, 0.17);
+    const label = opts.labels !== false && size >= 0.11 && Math.min(w, h) > 0.24
+      ? `<text class="fp-flabel" x="${n(cx)}" y="${n(cy + (upright ? 0 : size * 0.34))}"
+          ${upright ? `transform="rotate(-90 ${n(cx)} ${n(cy)})" dy="${n(size * 0.34)}"` : ''}
           style="--fp-fs:${n(size)}px">${escape(f.name)}</text>` : '';
     return `<g class="fp-furniture fp-furniture--${escape(f.kind || 'other')}${f.fixed ? ' is-fixed' : ''}"
       data-furniture="${escape(f.id)}">

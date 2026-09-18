@@ -13,8 +13,8 @@
    "question": "How wide is the hall?",
    "working": "0.23 + 3.26 + 0.13 + hall + 0.13 + 3.35 + 0.23 = 8.2",
    "result": "hall = 0.87",
-   "residualMm": 0,
-   "note": "The two front rooms and the envelope are both stated; the hall is what is left. 0.87m is narrow and entirely ordinary for a cottage of this age."
+   "residualMm": 16,
+   "note": "The two front rooms and the envelope are both stated; the hall is what is left. Scaling the agent's plan directly gives 0.886, so the residual is 16mm. 0.87m is narrow and entirely ordinary for a cottage of this age."
   },
   {
    "id": "depth",
@@ -22,7 +22,7 @@
    "working": "0.23 + 3.14 (kitchen) + 0.23 (shared wall) + 3.89 (front rooms) + 0.23 = 7.72",
    "result": "depth = 7.72, against a stated 8.00",
    "residualMm": 280,
-   "note": "The stated 8.0 is a headline rounded to one decimal. The SAME study states an internal floor area of about 112 square metres, and (8.20 - 0.46) x (7.72 - 0.46) x 2 = 112.4. At a depth of 8.00 it would be 116.7. The area figure adjudicates in favour of 7.72, so the model is built at 7.72 and the 280mm is reported rather than absorbed."
+   "note": "The stated 8.0 is a headline rounded to one decimal, and the design study draws its own plans at about 7.98. But the SAME study states an internal floor area of about 112 square metres, and (8.20 - 0.46) x (7.72 - 0.46) x 2 = 112.4. At a depth of 8.00 it would be 116.7. The agent's plan, which is the measured one, gives 7.72 from its own room sizes. The model is built at 7.72 and the 280mm is reported rather than absorbed."
   },
   {
    "id": "eaves",
@@ -35,10 +35,10 @@
   {
    "id": "wing-position",
    "question": "Where does the rear wing sit across the width?",
-   "working": "west infill a + 0.23 + 3.01 (wing) + 0.23 + east infill b = 7.74, with a x 3.14 sized to the stated 5 sq m boot room plus a WC",
-   "result": "a = 2.07, b = 2.20; wing outer faces at x = 2.30 and 5.77",
-   "residualMm": 0,
-   "note": "The agent's plan does not dimension this. It is pinned by the extension instead: the design study's boot room and kitchen-diner areas only work with the wing about here, and it puts the bathroom directly over the landing, which is what the agent's plan shows."
+   "working": "kitchen clear 3.01 + two 0.23 walls = 3.47 outer, centred on 8.20/2 = 4.10, so the centrelines fall at 2.480 and 5.720",
+   "result": "wing centrelines 2.480 and 5.720; outer faces 2.365 and 5.835",
+   "residualMm": 73,
+   "note": "The agent's plan does not dimension this, but scaling it puts the wing's centre at about 4.17 - 73mm east of the house's centre. The design study's ground-floor plan puts the original brickwork between 2.50 and 5.71, which straddles a centred wing. The model centres it, and the 73mm is the residual."
   }
  ],
  "levels": [
@@ -73,7 +73,6 @@
    "areaM2": 12.68,
    "roomKey": "dining",
    "roomType": "dining",
-   "label": "3.26 x 3.89m",
    "clearSize": [
     3.26,
     3.89
@@ -110,7 +109,6 @@
    "areaM2": 13.03,
    "roomKey": "lounge",
    "roomType": "living",
-   "label": "3.35 x 3.89m",
    "clearSize": [
     3.35,
     3.89
@@ -121,15 +119,14 @@
    "level": "ground",
    "name": "Kitchen",
    "rect": [
-    2.53,
+    2.595,
     0.23,
-    5.54,
+    5.605,
     3.37
    ],
    "areaM2": 9.45,
    "roomKey": "kitchen",
    "roomType": "kitchen",
-   "label": "3.01 x 3.14m",
    "clearSize": [
     3.01,
     3.14
@@ -142,13 +139,26 @@
    "rect": [
     0.23,
     3.6,
-    3.56,
+    4.5,
     7.49
    ],
-   "areaM2": 12.95,
+   "rects": [
+    [
+     0.23,
+     3.6,
+     3.56,
+     7.49
+    ],
+    [
+     3.69,
+     6.365,
+     4.5,
+     7.49
+    ]
+   ],
+   "areaM2": 13.87,
    "roomKey": "bedroom",
    "roomType": "bedroom",
-   "label": "3.33 x 3.89m",
    "clearSize": [
     3.33,
     3.89
@@ -161,14 +171,14 @@
    "rect": [
     3.69,
     3.6,
-    4.49,
-    7.49
+    4.5,
+    6.235
    ],
-   "areaM2": 3.11,
+   "areaM2": 2.13,
    "roomType": "landing",
    "clearSize": [
-    0.8,
-    3.89
+    0.81,
+    2.635
    ]
   },
   {
@@ -176,16 +186,16 @@
    "level": "first",
    "name": "Bedroom 2",
    "rect": [
-    4.62,
+    4.63,
     3.6,
     7.97,
     7.49
    ],
-   "areaM2": 13.03,
+   "areaM2": 12.99,
+   "roomKey": "bedroom",
    "roomType": "bedroom",
-   "label": "3.35 x 3.89m",
    "clearSize": [
-    3.35,
+    3.34,
     3.89
    ]
   },
@@ -194,15 +204,14 @@
    "level": "first",
    "name": "Bathroom",
    "rect": [
-    2.53,
+    2.595,
     0.23,
-    5.54,
+    5.605,
     3.37
    ],
    "areaM2": 9.45,
    "roomKey": "bathroom",
    "roomType": "bathroom",
-   "label": "3.01 x 3.14m",
    "clearSize": [
     3.01,
     3.14
@@ -235,11 +244,11 @@
    "line": "w-wing",
    "axis": "x",
    "a": [
-    2.415,
+    2.48,
     0.115
    ],
    "b": [
-    2.415,
+    2.48,
     3.485
    ],
    "kind": "external",
@@ -254,11 +263,11 @@
    "line": "e-wing",
    "axis": "x",
    "a": [
-    5.655,
+    5.72,
     0.115
    ],
    "b": [
-    5.655,
+    5.72,
     3.485
    ],
    "kind": "external",
@@ -330,11 +339,11 @@
    "line": "n-wing",
    "axis": "y",
    "a": [
-    2.415,
+    2.48,
     0.115
    ],
    "b": [
-    5.655,
+    5.72,
     0.115
    ],
    "kind": "external",
@@ -407,11 +416,11 @@
    "line": "w-wing",
    "axis": "x",
    "a": [
-    2.415,
+    2.48,
     0.115
    ],
    "b": [
-    2.415,
+    2.48,
     3.485
    ],
    "kind": "external",
@@ -426,11 +435,11 @@
    "line": "e-wing",
    "axis": "x",
    "a": [
-    5.655,
+    5.72,
     0.115
    ],
    "b": [
-    5.655,
+    5.72,
     3.485
    ],
    "kind": "external",
@@ -469,13 +478,14 @@
    ],
    "b": [
     3.625,
-    7.605
+    6.3
    ],
    "kind": "internal",
    "thickness": 0.13,
    "provenance": "existing",
    "structural": false,
-   "removable": true
+   "removable": true,
+   "note": "Stops at the stairwell's south end: below that line bedroom 1 continues east under the foot of the flight."
   },
   {
    "id": "first-x-land-e",
@@ -483,11 +493,11 @@
    "line": "land-e",
    "axis": "x",
    "a": [
-    4.555,
+    4.565,
     3.485
    ],
    "b": [
-    4.555,
+    4.565,
     7.605
    ],
    "kind": "internal",
@@ -502,11 +512,11 @@
    "line": "n-wing",
    "axis": "y",
    "a": [
-    2.415,
+    2.48,
     0.115
    ],
    "b": [
-    5.655,
+    5.72,
     0.115
    ],
    "kind": "external",
@@ -535,6 +545,25 @@
    "removable": false
   },
   {
+   "id": "first-y-stair-s",
+   "level": "first",
+   "line": "stair-s",
+   "axis": "y",
+   "a": [
+    3.625,
+    6.3
+   ],
+   "b": [
+    4.565,
+    6.3
+   ],
+   "kind": "internal",
+   "thickness": 0.13,
+   "provenance": "existing",
+   "structural": false,
+   "removable": true
+  },
+  {
    "id": "first-y-ext-s",
    "level": "first",
    "line": "ext-s",
@@ -556,215 +585,169 @@
  ],
  "openings": [
   {
+   "id": "g-win-kitchen-n",
+   "wall": "ground-y-n-wing",
+   "type": "window",
+   "at": 1.72,
+   "width": 0.76
+  },
+  {
+   "id": "g-win-kitchen-e",
+   "wall": "ground-x-e-wing",
+   "type": "window",
+   "at": 1.12,
+   "width": 1.07
+  },
+  {
+   "id": "g-door-back",
+   "wall": "ground-x-e-wing",
+   "type": "door",
+   "at": 2.575,
+   "width": 0.7,
+   "leaf": "single",
+   "swing": {
+    "hinge": "b",
+    "toward": "west"
+   },
+   "note": "Back door in the wing's east wall, opening into the kitchen."
+  },
+  {
+   "id": "g-door-kitchen",
+   "wall": "ground-y-main-n",
+   "type": "door",
+   "at": 3.875,
+   "width": 0.78,
+   "leaf": "single",
+   "swing": {
+    "hinge": "a",
+    "toward": "north"
+   },
+   "note": "Off the head of the hall, hinged west and opening into the kitchen."
+  },
+  {
+   "id": "g-open-kitchen-lounge",
+   "wall": "ground-y-main-n",
+   "type": "door",
+   "at": 4.895,
+   "width": 0.755,
+   "leaf": "cased",
+   "note": "A second way into the kitchen, straight out of the lounge's north-west corner. The agent's plan draws the jambs and no leaf."
+  },
+  {
    "id": "g-win-dining-s",
    "wall": "ground-y-ext-s",
    "type": "window",
-   "at": 1.745,
-   "width": 1.35
+   "at": 1.68,
+   "width": 1.09
   },
   {
    "id": "g-door-front",
    "wall": "ground-y-ext-s",
    "type": "door",
-   "at": 3.94,
-   "width": 0.9,
+   "at": 3.9,
+   "width": 0.75,
    "leaf": "single",
    "swing": {
     "hinge": "a",
-    "toward": "north",
-    "angleDeg": 90
+    "toward": "north"
    }
   },
   {
    "id": "g-win-lounge-s",
    "wall": "ground-y-ext-s",
    "type": "window",
-   "at": 6.18,
-   "width": 1.05
-  },
-  {
-   "id": "g-win-dining-n",
-   "wall": "ground-y-main-n",
-   "type": "window",
-   "at": 1.085,
-   "width": 1.05
-  },
-  {
-   "id": "g-door-kitchen",
-   "wall": "ground-y-main-n",
-   "type": "door",
-   "at": 2.885,
-   "width": 0.8,
-   "leaf": "single",
-   "swing": {
-    "hinge": "b",
-    "toward": "north",
-    "angleDeg": 90
-   },
-   "note": "From the dining room. The hall cannot also be a passage: the stair takes 0.76 of its 0.87."
-  },
-  {
-   "id": "g-win-lounge-n",
-   "wall": "ground-y-main-n",
-   "type": "window",
-   "at": 6.685,
-   "width": 1.05
-  },
-  {
-   "id": "g-win-kitchen-n",
-   "wall": "ground-y-n-wing",
-   "type": "window",
-   "at": 1.585,
-   "width": 1.2
-  },
-  {
-   "id": "g-win-kitchen-w",
-   "wall": "ground-x-w-wing",
-   "type": "window",
-   "at": 1.685,
-   "width": 0.9
-  },
-  {
-   "id": "g-door-back",
-   "wall": "ground-x-e-wing",
-   "type": "door",
-   "at": 2.485,
-   "width": 0.85,
-   "leaf": "single",
-   "swing": {
-    "hinge": "a",
-    "toward": "west",
-    "angleDeg": 90
-   }
-  },
-  {
-   "id": "g-win-kitchen-e",
-   "wall": "ground-x-e-wing",
-   "type": "window",
-   "at": 0.985,
-   "width": 0.9
-  },
-  {
-   "id": "g-win-dining-w",
-   "wall": "ground-x-w-main",
-   "type": "window",
-   "at": 3.315,
-   "width": 0.85
-  },
-  {
-   "id": "g-win-lounge-e",
-   "wall": "ground-x-e-main",
-   "type": "window",
-   "at": 3.315,
-   "width": 0.85
+   "at": 6.16,
+   "width": 1.29
   },
   {
    "id": "g-door-dining",
    "wall": "ground-x-hall-w",
    "type": "door",
-   "at": 3.215,
-   "width": 0.8,
+   "at": 3.465,
+   "width": 0.78,
    "leaf": "single",
    "swing": {
     "hinge": "a",
-    "toward": "west",
-    "angleDeg": 90
+    "toward": "west"
    }
   },
   {
    "id": "g-door-lounge",
    "wall": "ground-x-hall-e",
    "type": "door",
-   "at": 3.215,
-   "width": 0.8,
+   "at": 3.495,
+   "width": 0.73,
    "leaf": "single",
    "swing": {
     "hinge": "a",
-    "toward": "east",
-    "angleDeg": 90
+    "toward": "east"
    }
   },
   {
-   "id": "f-win-bed1-s",
-   "wall": "first-y-ext-s",
+   "id": "f-win-bathroom-e",
+   "wall": "first-x-e-wing",
    "type": "window",
-   "at": 1.745,
-   "width": 1.2
-  },
-  {
-   "id": "f-win-landing-s",
-   "wall": "first-y-ext-s",
-   "type": "window",
-   "at": 3.975,
-   "width": 0.75
-  },
-  {
-   "id": "f-win-bed2-s",
-   "wall": "first-y-ext-s",
-   "type": "window",
-   "at": 6.18,
-   "width": 1.2
-  },
-  {
-   "id": "f-win-bed1-n",
-   "wall": "first-y-main-n",
-   "type": "window",
-   "at": 1.085,
-   "width": 1.05
+   "at": 1.705,
+   "width": 0.9,
+   "sill": 1.35
   },
   {
    "id": "f-door-bathroom",
    "wall": "first-y-main-n",
    "type": "door",
-   "at": 3.975,
+   "at": 3.95,
    "width": 0.75,
    "leaf": "single",
    "swing": {
-    "hinge": "a",
-    "toward": "north",
-    "angleDeg": 90
+    "hinge": "b",
+    "toward": "north"
    }
-  },
-  {
-   "id": "f-win-bed2-n",
-   "wall": "first-y-main-n",
-   "type": "window",
-   "at": 6.685,
-   "width": 1.05
-  },
-  {
-   "id": "f-win-bathroom-n",
-   "wall": "first-y-n-wing",
-   "type": "window",
-   "at": 1.585,
-   "width": 0.9,
-   "sill": 1.35
   },
   {
    "id": "f-door-bed1",
    "wall": "first-x-bed1-e",
    "type": "door",
-   "at": 0.715,
-   "width": 0.75,
+   "at": 0.455,
+   "width": 0.78,
    "leaf": "single",
    "swing": {
     "hinge": "a",
-    "toward": "west",
-    "angleDeg": 90
+    "toward": "west"
    }
   },
   {
    "id": "f-door-bed2",
    "wall": "first-x-land-e",
    "type": "door",
-   "at": 0.715,
-   "width": 0.75,
+   "at": 0.475,
+   "width": 0.78,
    "leaf": "single",
    "swing": {
     "hinge": "a",
-    "toward": "east",
-    "angleDeg": 90
+    "toward": "east"
    }
+  },
+  {
+   "id": "f-win-bed1-s",
+   "wall": "first-y-ext-s",
+   "type": "window",
+   "at": 1.735,
+   "width": 0.92
+  },
+  {
+   "id": "f-win-bed1-foot-s",
+   "wall": "first-y-ext-s",
+   "type": "window",
+   "at": 3.995,
+   "width": 0.64,
+   "note": "Lights the part of bedroom 1 that sits over the foot of the stair."
+  },
+  {
+   "id": "f-win-bed2-s",
+   "wall": "first-y-ext-s",
+   "type": "window",
+   "at": 6.215,
+   "width": 0.9
   }
  ],
  "stairs": [
@@ -774,25 +757,25 @@
    "from": "hall",
    "to": "landing",
    "footprint": [
-    3.66,
-    3.62,
-    4.42,
-    5.86
+    3.69,
+    4.28,
+    4.46,
+    6.86
    ],
    "upperVoid": [
-    3.66,
-    4.5,
-    4.42,
-    5.86
+    3.69,
+    4.28,
+    4.46,
+    6.3
    ],
    "direction": "-y",
-   "width": 0.76,
+   "width": 0.77,
    "risers": 13,
    "rise": 0.2077,
-   "going": 0.22,
-   "winders": 4,
+   "going": 0.215,
+   "winders": 0,
    "handrail": "east",
-   "note": "Rises northward through the back half of the hall: 9 straight risers then a four-riser winder onto the landing. 13 risers at 0.2077 make the 2.70m storey height exactly. The front half of the hall is left as the entrance, which is the only way a 0.87m hall can hold both a stair and a front door."
+   "note": "13 risers at 0.2077 make the 2.70m storey height exactly; 12 goings at 0.215 make the 2.58m run. The void stops at 6.30 because that is where the agent's first-floor plan stops it, leaving the foot of the flight under bedroom 1's floor with about 2.08m of headroom."
   }
  ],
  "roofs": [
@@ -818,9 +801,9 @@
    "id": "roof-wing",
    "kind": "gabled",
    "over": [
-    2.3,
+    2.365,
     0,
-    5.77,
+    5.835,
     3.37
    ],
    "ridgeAxis": "y",
@@ -838,9 +821,9 @@
    "id": "chimney-w",
    "footprint": [
     0,
-    5.1,
+    5.16,
     0.56,
-    5.9
+    6.06
    ],
    "topHeight": 7.5,
    "pots": 2,
@@ -851,9 +834,9 @@
    "id": "chimney-e",
    "footprint": [
     7.64,
-    5.1,
+    5.16,
     8.2,
-    5.9
+    6.06
    ],
    "topHeight": 7.5,
    "pots": 2,
@@ -869,11 +852,11 @@
    "kind": "chimney_breast",
    "rect": [
     0.23,
-    5.1,
-    0.56,
-    5.9
+    4.89,
+    0.68,
+    6.33
    ],
-   "projection": 0.33,
+   "projection": 0.45,
    "height": 2.4
   },
   {
@@ -882,12 +865,12 @@
    "room": "lounge",
    "kind": "chimney_breast",
    "rect": [
-    7.64,
-    5.1,
+    7.52,
+    4.89,
     7.97,
-    5.9
+    6.33
    ],
-   "projection": 0.33,
+   "projection": 0.45,
    "height": 2.4
   },
   {
@@ -897,11 +880,11 @@
    "kind": "chimney_breast",
    "rect": [
     0.23,
-    5.1,
-    0.56,
-    5.9
+    4.89,
+    0.68,
+    6.33
    ],
-   "projection": 0.33,
+   "projection": 0.45,
    "height": 2.3
   },
   {
@@ -910,12 +893,12 @@
    "room": "bed2",
    "kind": "chimney_breast",
    "rect": [
-    7.64,
-    5.1,
+    7.52,
+    4.89,
     7.97,
-    5.9
+    6.33
    ],
-   "projection": 0.33,
+   "projection": 0.45,
    "height": 2.3
   },
   {
@@ -924,10 +907,10 @@
    "room": "hall",
    "kind": "porch",
    "rect": [
-    3.58,
+    3.53,
     7.72,
-    4.53,
-    8.62
+    4.5,
+    8.55
    ],
    "height": 2.3,
    "roofKind": "gabled",
@@ -953,32 +936,32 @@
   {
    "id": "wing-offset",
    "severity": "high",
-   "note": "The rear wing's position across the width is derived from the extension's room areas, not read off the agent's plan, which does not dimension it. If the wing is in fact offset, the boot room and the kitchen-diner both change size."
+   "note": "The rear wing's position across the width is derived from the kitchen's stated clear size and centred on the envelope, because neither drawing dimensions it. If the wing is in fact offset, the boot room and the kitchen-diner both change size."
   },
   {
    "id": "openings",
    "severity": "medium",
-   "note": "Window and door widths and positions are scaled off the drawings and the photograph. None is dimensioned on any source."
+   "note": "Window and door widths and positions are scaled off the drawings, not dimensioned on any of them. They are scaled, not invented: every one of them was measured off the source at magnification, and the design study's own legend says its windows are indicative."
   },
   {
    "id": "stairs",
    "severity": "medium",
-   "note": "A straight flight 0.80m wide, 13 risers at 0.208 with a 0.22 going, run north from the hall. The agent's plan shows the flight and the winder at the top but dimensions neither."
+   "note": "A straight flight run north from the hall, 0.77m wide, 13 risers at 0.2077 with a 0.215 going. Both drawings show the flight and neither dimensions it; 0.77 is what fits between the hall walls below and the stairwell walls above, which do not line up."
   },
   {
    "id": "chimneys",
    "severity": "low",
-   "note": "Both stacks are placed on the gable walls at the mid-depth of the front rooms, which is where the agent's plan draws the fireplaces. Stack heights are scaled off the photograph."
+   "note": "Both breasts are 1.44m along the gable and project 0.45m, scaled off the agent's plan, which draws them as solid blocks on the west and east walls of the front rooms. Stack heights are scaled off the photograph."
   },
   {
    "id": "hall-is-not-a-passage",
    "severity": "high",
-   "note": "The hall derives to 0.87m wide and a stair needs 0.76 of it, so the hall cannot also be the route to the back of the house. The model puts the flight in the back half and enters the kitchen from the dining room instead, which is ordinary in a cottage of this size but is NOT what either drawing shows. Either the hall is wider than the arithmetic says, the kitchen is entered from the dining room, or there is a step under the flight. Measure it."
+   "note": "The hall derives to 0.87m wide and the flight needs 0.77 of it, so for 2.58 of the hall's 3.89m there is no way past the stair. The agent's plan draws the kitchen door at the head of the hall anyway, AND a second cased opening straight from the lounge into the kitchen, which is presumably the door anyone actually uses. The clearance check reports the hall as impassable because as drawn it is. Either the hall is wider than the arithmetic says, or there is a step under the flight, or the lounge is the route. Measure it."
   },
   {
    "id": "depth-residual",
    "severity": "high",
-   "note": "The building is modelled 7.72m deep. The design study states 8.0m. See the derivation: the study's own floor-area figure agrees with 7.72, but until someone measures it this is a 280mm question."
+   "note": "The building is modelled 7.72m deep. The design study states 8.0m and draws about 7.98. See the derivation: the study's own floor-area figure and the agent's measured rooms both agree with 7.72, but until someone measures it this is a 280mm question."
   }
  ]
 }

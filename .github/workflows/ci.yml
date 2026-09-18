@@ -30,8 +30,18 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - name: Lint
         run: npm run lint
+      # Runs early and cheaply: if a private extract or a source drawing
+      # is staged, that is the one failure worth seeing before anything
+      # else scrolls past.
+      - name: Secrets
+        run: npm run test:secrets
       - name: Unit tests
         run: npm run test:unit
+      # The guard for the building model: every stage is a building, and
+      # agrees with the drawings it was measured from. Pure Node, no
+      # services, so it cannot fail for an environment reason.
+      - name: Geometry
+        run: npm run test:geometry
       - name: SQL schema and RLS
         env:
           PGHOST: localhost

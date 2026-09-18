@@ -241,23 +241,47 @@ export const roomArea = (room) => roomRects(room)
 // --- Placing things --------------------------------------------------
 
 /**
+ * Is this coordinate anywhere in THIS building?
+ *
+ * The equipment register is household-level and its coordinates were
+ * authored against whatever building was modelled at the time. Change
+ * the building and they do not travel: a freezer at x 15.4 was in a
+ * garage that this house does not have, and 15.4 is seven metres past
+ * its east wall. Drawing it anyway puts a pin in a field and prints a
+ * grid reference for it, which is a measurement that never happened.
+ */
+function insideBuilding(building, x, y) {
+  for (const level of levels(building)) {
+    const b = bounds(building, level.id, 0);
+    if (b && x >= b.x1 && x <= b.x2 && y >= b.y1 && y <= b.y2) return true;
+  }
+  return false;
+}
+
+/**
  * Resolve one thing to a position on the plan.
  *
- * Three outcomes, and the difference between them matters:
- *   placed    it has real coordinates, so it has a grid reference
- *   inferred  it has no coordinates, but its room is on this plan, so it
+ * Four outcomes, and the differences between them all matter:
+ *   placed    real coordinates inside this building, so a grid reference
+ *   inferred  no usable coordinates, but its room IS on this plan, so it
  *             is shown at the room's centre and SAID to be approximate
- *   unplaced  neither, so it appears in the register with no reference
+ *   foreign   coordinates that fall outside this building entirely -
+ *             recorded against a different one - and a room this plan
+ *             does not have either. Never drawn.
+ *   unplaced  nothing recorded at all
  *
- * An inferred position is never presented as a measured one. That is the
- * whole point of separating them.
+ * An inferred position is never presented as a measured one, and a
+ * foreign one is never presented as a position at all. That is the whole
+ * point of separating them.
  */
 export function place(thing, building, { roomKeyOf = (t) => t.room_key } = {}) {
   const key = roomKeyOf(thing);
   const room = key ? roomByKey(building, key) : null;
   const hasXY = thing.plan_x_m != null && thing.plan_y_m != null;
+  const foreign = hasXY
+    && !insideBuilding(building, Number(thing.plan_x_m), Number(thing.plan_y_m));
 
-  if (hasXY) {
+  if (hasXY && !foreign) {
     const x = Number(thing.plan_x_m);
     const y = Number(thing.plan_y_m);
     const at = roomAt(building, room?.level ?? levels(building)[0]?.id, x, y);
@@ -275,11 +299,15 @@ export function place(thing, building, { roomKeyOf = (t) => t.room_key } = {}) {
     return {
       thing, state: 'inferred', level: room.level, x: c.x, y: c.y, ref,
       fullRef: qualifiedRef(ref, room.level, building), room,
+      // The room is right, the coordinates were not: say which, so the
+      // register can explain the pin rather than just softening it.
+      ...(foreign ? { coordsFrom: 'other-building' } : {}),
     };
   }
   return {
-    thing, state: 'unplaced', level: null, x: null, y: null,
+    thing, state: foreign ? 'foreign' : 'unplaced', level: null, x: null, y: null,
     ref: null, fullRef: null, room: null,
+    ...(foreign ? { coordsFrom: 'other-building' } : {}),
   };
 }
 

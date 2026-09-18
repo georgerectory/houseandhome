@@ -324,3 +324,41 @@ test('the drawing carries no colour of its own', () => {
 test('a level with nothing on it says so rather than drawing an empty box', () => {
   assert.match(levelSvg(building, 'nope', [], {}), /no geometry/);
 });
+
+// --- Positions recorded against a different building ------------------
+//
+// The equipment register belongs to the household, not to any one
+// building, and its coordinates were authored against whatever was
+// modelled at the time. Change the building and they do not travel: a
+// freezer at x 15.4 was in a garage this house does not have, and 15.4
+// is seven metres past its east wall. Drawing it anyway puts a pin in a
+// field and prints a grid reference for a measurement that never
+// happened. That shipped, and this is what stops it shipping again.
+
+test('a coordinate outside the building is not a position in it', () => {
+  const b = composeBuilding(read('building.json'), read('stages/post-extension.json'),
+    read('variants/post-extension--empty.json'));
+  const far = place({ id: 'f', name: 'Second freezer', room_key: 'garage', plan_x_m: 15.4, plan_y_m: 5.3 }, b);
+  assert.equal(far.state, 'foreign');
+  assert.equal(far.coordsFrom, 'other-building');
+  assert.equal(far.x, null, 'and it is not drawn');
+  assert.equal(far.fullRef, null, 'and it gets no grid reference');
+});
+
+test('but its room still places it, marked for what it is', () => {
+  const b = composeBuilding(read('building.json'), read('stages/post-extension.json'),
+    read('variants/post-extension--empty.json'));
+  const p = place({ id: 'a', name: 'Air conditioner', room_key: 'lounge', plan_x_m: 9.2, plan_y_m: 3.5 }, b);
+  assert.equal(p.state, 'inferred', 'the room is real even though the coordinates are not');
+  assert.equal(p.coordsFrom, 'other-building');
+  assert.ok(p.x > 0 && p.x < b.envelope.widthM, 'and it sits inside the building');
+});
+
+test('a coordinate inside the building is still a position', () => {
+  const b = composeBuilding(read('building.json'), read('stages/post-extension.json'),
+    read('variants/post-extension--empty.json'));
+  const p = place({ id: 'c', name: 'Cooker', room_key: 'kitchen', plan_x_m: 2.2, plan_y_m: 6.8 }, b);
+  assert.equal(p.state, 'placed');
+  assert.equal(p.coordsFrom, undefined);
+  assert.ok(p.fullRef, 'and it has a reference');
+});

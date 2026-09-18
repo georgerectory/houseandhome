@@ -215,6 +215,10 @@
 
 .hv-stage--plan { padding: var(--space-2); background: var(--paper); }
 
+/* The overlays anchor to the view, not to the stage, so the controls
+   never land on top of the hint line below it. */
+.hv-view { position: relative; }
+
 .hv-canvas {
   display: block;
   width: 100%;
@@ -365,9 +369,6 @@
 /* Somewhere to stand, without walking there first. Bottom-left of the
    walkthrough, clear of the thumb that drives it. */
 .hv-jump {
-  position: absolute;
-  left: var(--space-2);
-  bottom: var(--space-2);
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -382,6 +383,7 @@
 
 .hv-jump__input {
   min-width: 0;
+  max-width: 11rem;
   min-height: var(--tap-min-floor);
   border: 0;
   background: none;
@@ -391,3 +393,28 @@
 }
 
 .hv-jump__input:focus-visible { box-shadow: var(--focus-ring); }
+
+/* The walkthrough's own controls, along the bottom of the view. Kept
+   clear of the left of the canvas, which is where the thumb that drives
+   the walking goes. */
+.hv-walkbar {
+  position: absolute;
+  right: var(--space-2);
+  bottom: var(--space-2);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  max-width: calc(100% - var(--space-4));
+  pointer-events: none;
+}
+
+.hv-walkbar > * { pointer-events: auto; }
+
+.hv-ghost--tight {
+  min-height: var(--tap-min-floor);
+  padding: 0 var(--space-2);
+  font-size: var(--text-xs);
+  background: var(--paper-raised);
+}

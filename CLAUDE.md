@@ -198,12 +198,36 @@ viewpoints), **Walk** (first person, eye height) and **Survey**.
 
 The walkthrough is phone-first. The left two fifths of the view is a
 movement stick that appears under the thumb wherever it lands; anywhere
-else looks. A keyboard gets pointer lock and WASD. Collision is against
+else looks, and DRAG RIGHT LOOKS RIGHT (`invertLook` is offered, not
+assumed). A keyboard gets pointer lock and WASD. Collision is against
 WALLS ONLY - furniture is walked through deliberately, so a sofa can
 never trap someone in a corner - and the stair is a ramp derived from
 the flight the model already carries, so which floor you are on follows
 your feet. The maths is pure and lives in `assets/js/engine/walk.js`; the
 input and the cameras are in `assets/js/core/planner/`.
+
+**The walkthrough shows the WHOLE building, every storey at once.** The
+orbit view shows one floor at a time and the walkthrough must not: a
+level filter that survives the mode switch leaves you climbing the
+stairs into an empty sky. `setMode` re-applies visibility for that
+reason. You can also stand outside on any of the four sides, and in any
+room on any floor, by name - `planner/places.js` is pure and tested.
+
+**A wall reaches the floor above, not its own ceiling.** The ground
+floor's ceiling is 2.40 and the first floor starts at 2.70; a wall built
+to the ceiling leaves a 300mm band of daylight round the whole building
+where the joists are.
+
+**The equipment register belongs to the household, not to a building.**
+Its `plan_x_m` / `plan_y_m` were authored against whatever building was
+modelled at the time, and they do not travel: a freezer at x 15.4 was in
+a garage this house does not have, and 15.4 is seven metres past its
+east wall. `place()` rejects a coordinate outside the building's
+envelope - `state: 'foreign'` - so nothing is drawn for it and no grid
+reference is computed. If its ROOM exists here it falls back to the room
+centre, marked `coordsFrom: 'other-building'`. A reference printed from
+a coordinate belonging to another house is a measurement that never
+happened.
 
 Every layer of the drawing can be switched off from one Display panel -
 room names, sizes, furniture, furniture names, equipment pins, door

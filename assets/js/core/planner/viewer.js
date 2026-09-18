@@ -22,6 +22,7 @@ import {
   EYE_HEIGHT, WALK_SPEED, RUN_MULTIPLIER,
 } from '../../engine/walk.js';
 import { palette } from './palette.js';
+import { destinations, resolvePlace, spawnPlace } from './places.js';
 import { WalkInput } from './input.js';
 
 /** Where the named viewpoints stand, as a compass bearing and a height
@@ -180,58 +181,38 @@ export class Planner {
     this.mode = mode;
     this.controls.enabled = mode === 'orbit';
     if (mode === 'walk') {
-      const at = this.spawnPoint();
-      this.walkLevel = at.level;
-      this.walkElevation = at.elevation;
-      this.setWalkPlan(at.x, at.y);
-      this.yaw = at.yaw;
-      this.pitch = 0;
+      this.stand(spawnPlace(this.building));
     } else {
       this.input.release();
     }
+    // THIS IS NOT OPTIONAL. The orbit view shows one storey at a time;
+    // the walkthrough must show the whole building, or you climb the
+    // stairs into an empty sky. Without this line the level filter set
+    // for the orbit view survives into the walk and you see one floor.
+    this.applyVisibility();
     this.resize();
     this.onMode?.(mode);
   }
 
-  /** Just inside the front door, facing into the house. Falls back to
-   *  the middle of the first room on the lowest floor. */
-  spawnPoint() {
-    const b = this.building ?? {};
-    const level = (b.levels ?? [])[0] ?? { id: null, elevation: 0 };
-    const front = (b.openings ?? []).find((o) => /front/.test(o.id) && o.type === 'door');
-    const wall = front && (b.walls ?? []).find((w) => w.id === front.wall);
-    if (wall) {
-      const len = Math.hypot(wall.b[0] - wall.a[0], wall.b[1] - wall.a[1]) || 1;
-      const ux = (wall.b[0] - wall.a[0]) / len;
-      const uy = (wall.b[1] - wall.a[1]) / len;
-      const x = wall.a[0] + ux * front.at;
-      const y = wall.a[1] + uy * front.at;
-      // Step 0.9m to the north of the threshold, which is inwards for a
-      // south-facing front door, and look the way you came in.
-      return { x, y: y - 0.9, level: level.id, elevation: level.elevation, yaw: 0 };
-    }
-    const room = (b.rooms ?? []).find((r) => r.level === level.id);
-    const rect = room?.rect ?? [0, 0, 4, 4];
-    return {
-      x: (rect[0] + rect[2]) / 2,
-      y: (rect[1] + rect[3]) / 2,
-      level: level.id,
-      elevation: level.elevation,
-      yaw: 0,
-    };
+  /** Everywhere the walkthrough can put you, for the picker. */
+  walkDestinations() { return destinations(this.building); }
+
+  /** Stand somewhere named. False for an id it does not know, so a
+   *  stale option cannot silently teleport you nowhere. */
+  goTo(id) {
+    const at = resolvePlace(this.building, id);
+    if (!at) return false;
+    this.stand(at);
+    return true;
   }
 
-  /** Put the walker somewhere by name, so a room can be walked to from
-   *  a list rather than found by wandering. */
-  goToRoom(roomId) {
-    const room = (this.building?.rooms ?? []).find((r) => r.id === roomId);
-    if (!room) return false;
-    const level = (this.building.levels ?? []).find((l) => l.id === room.level);
-    const [x1, y1, x2, y2] = room.rect;
-    this.walkLevel = room.level;
-    this.walkElevation = level?.elevation ?? 0;
-    this.setWalkPlan((x1 + x2) / 2, (y1 + y2) / 2);
-    return true;
+  /** Apply a resolved place to the walk camera. */
+  stand(at) {
+    this.walkLevel = at.level;
+    this.walkElevation = at.elevation;
+    this.setWalkPlan(at.x, at.y);
+    this.yaw = at.yaw;
+    this.pitch = at.pitch ?? 0;
   }
 
   walkPlan() {
@@ -244,9 +225,19 @@ export class Planner {
     this.walkCam.position.y = this.walkElevation + EYE_HEIGHT;
   }
 
+  /**
+   * Turn the head.
+   *
+   * Drag right, look right. That is the way a first-person view works
+   * everywhere else and it is what a hand expects; the opposite - drag
+   * right, the world comes with you - is the map convention, and using
+   * it here made the controls feel broken. `invertLook` is offered
+   * because the other camp is real, but it is not the default.
+   */
   _look(dx, dy, gain) {
-    this.yaw -= dx * gain;
-    this.pitch = Math.max(-1.3, Math.min(1.3, this.pitch - dy * gain));
+    const sign = this.invertLook ? -1 : 1;
+    this.yaw += dx * gain * sign;
+    this.pitch = Math.max(-1.35, Math.min(1.35, this.pitch - dy * gain * sign));
   }
 
   _stepWalk(dt) {

@@ -51,35 +51,62 @@ const stick = () => `<div class="hv-stick" data-stick aria-hidden="true">
 
 const HINTS = {
   model: 'Drag to turn the house around, pinch or scroll to zoom.',
-  walkTouch: 'Drag on the left to walk, anywhere else to look. Walk at the stairs to go up.',
-  walkKeys: 'Click the view to look around, then W A S D or the arrows to walk, Shift to hurry. Walk at the stairs to go up. Escape releases the cursor.',
+  walkTouch: 'Drag on the left to walk, anywhere else to look. Walk at the stairs to go up, and out of a door to see the house from outside.',
+  walkKeys: 'Click the view to look around, then W A S D or the arrows to walk, Shift to hurry. Walk at the stairs to go up, and out of a door to see the house from outside. Escape releases the cursor.',
 };
 
-/** Somewhere to stand. Walking from the front door to the master
- *  bedroom by thumb is a long way to go to check a wardrobe fits, so a
- *  room can be stepped into directly - and the walk out of it is still
- *  there when the question is whether you can get there at all. */
-export function roomJump(building) {
-  const rooms = (building.rooms ?? []).filter((r) => r.rect);
-  if (!rooms.length) return '';
-  return `<label class="hv-jump">
-    <span class="hv-jump__label">Stand in</span>
-    <select class="hv-jump__input" data-goto>
-      <option value="">Choose a room</option>
-      ${rooms.map((r) => `<option value="${escape(r.id)}">${escape(r.name)}</option>`).join('')}
-    </select>
-  </label>`;
+/**
+ * The walkthrough's own controls, over the bottom of the view.
+ *
+ * One picker for where to stand - outside the house on any side, or any
+ * room on either floor - because walking by thumb from the front door to
+ * the master bedroom to check a wardrobe fits is a long way to go, and
+ * standing back to look at the roof should not require finding the door
+ * first. The walk out of a room is still there when the question is
+ * whether you can get there at all.
+ *
+ * And one switch for which way looking works, because the two camps on
+ * that are both real and neither is going to be talked out of it.
+ */
+export function walkControls(destinations, invertLook) {
+  const groups = [];
+  for (const d of destinations) {
+    const last = groups[groups.length - 1];
+    if (last && last.name === d.group) last.items.push(d);
+    else groups.push({ name: d.group, items: [d] });
+  }
+  return `<div class="hv-walkbar">
+    <label class="hv-jump">
+      <span class="hv-jump__label">Go to</span>
+      <select class="hv-jump__input" data-goto>
+        <option value="">Choose a place</option>
+        ${groups.map((g) => `<optgroup label="${escape(g.name)}">${
+  g.items.map((d) => `<option value="${escape(d.id)}">${escape(d.name)}</option>`).join('')
+}</optgroup>`).join('')}
+      </select>
+    </label>
+    <button type="button" class="hv-ghost hv-ghost--tight${invertLook ? ' is-on' : ''}"
+      data-invert-look="1" aria-pressed="${!!invertLook}"
+      title="Swap which way dragging turns the view">Invert look</button>
+  </div>`;
 }
 
 /** The canvas the 3D model and the walkthrough share, with the overlays
  *  each mode needs. */
-export function canvasStage(building, { view, viewpoints, viewpointId, coarse }) {
+export function canvasStage(building, {
+  view, viewpoints, viewpointId, coarse, destinations = [], invertLook = false,
+}) {
   const walking = view === 'walk';
+  // The overlays are positioned against the VIEW, not against the stage:
+  // anchoring them to the stage put the controls on top of the hint text
+  // underneath it.
   return `<div class="hv-stage${walking ? ' hv-stage--walk' : ''}" data-stage>
-    <canvas class="hv-canvas" id="fp-canvas" tabindex="0"
-      aria-label="${walking ? 'Walkthrough of' : '3D model of'} ${escape(building.name)}"></canvas>
-    ${compass()}
-    ${walking ? stick() + roomJump(building) : viewpointBar(viewpoints, viewpointId)}
+    <div class="hv-view">
+      <canvas class="hv-canvas" id="fp-canvas" tabindex="0"
+        aria-label="${walking ? 'Walkthrough of' : '3D model of'} ${escape(building.name)}"></canvas>
+      ${compass()}
+      ${walking ? stick() + walkControls(destinations, invertLook) : viewpointBar(viewpoints, viewpointId)}
+    </div>
     <p class="hv-hint" id="fp-note">${escape(
     walking ? (coarse ? HINTS.walkTouch : HINTS.walkKeys) : HINTS.model,
   )}</p>

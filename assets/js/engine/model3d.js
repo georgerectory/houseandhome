@@ -43,9 +43,22 @@ export function buildModel(building, placements = [], palette, opts = {}) {
   const colliders = [];
   const climbs = [];
 
+  // A wall has to reach the floor above it, not its own ceiling. The
+  // ground floor's ceiling is 2.40 and the first floor starts at 2.70,
+  // so a wall built to the ceiling leaves a 300mm band of daylight
+  // round the whole building where the joists are. Structurally the
+  // external wall runs storey to storey; only the plaster stops at the
+  // ceiling, and the plaster is not what is being drawn.
+  const ordered = [...(building.levels ?? [])].sort((a, b) => a.elevation - b.elevation);
+  const storeyHeight = (level) => {
+    const above = ordered.find((l) => l.elevation > level.elevation);
+    return above ? above.elevation - level.elevation : level.ceilingHeight;
+  };
+
   for (const level of building.levels ?? []) {
     const g = new THREE.Group();
     g.name = `level-${level.id}`;
+    const shell = { ...level, ceilingHeight: storeyHeight(level) };
     for (const room of (building.rooms ?? []).filter((r) => r.level === level.id)) {
       // A compound room gets a slab per rectangle, so an L-shaped
       // landing does not get a floor over the stairwell it wraps.
@@ -55,7 +68,7 @@ export function buildModel(building, placements = [], palette, opts = {}) {
       }
     }
     for (const wall of (building.walls ?? []).filter((w) => w.level === level.id)) {
-      const built = buildWall(wall, building.openings ?? [], level, defaults, palette, opts);
+      const built = buildWall(wall, building.openings ?? [], shell, defaults, palette, opts);
       for (const m of built) g.add(m);
       if (built.collider) colliders.push(built.collider);
     }

@@ -315,6 +315,79 @@ for (const theme of THEMES) {
         if (!walk.canvas) failures.push(`${label}: the walkthrough rendered no canvas`);
         if (!walk.compass) failures.push(`${label}: the walkthrough has no compass`);
         if (!walk.stick) failures.push(`${label}: the walkthrough has no touch stick`);
+
+        // EVERY STOREY. The orbit view shows one floor at a time; the
+        // walkthrough must show the building. This shipped showing one
+        // floor, so it is checked rather than assumed.
+        if (!walk.hidden) {
+          const shape = await page.evaluate(() => {
+            const p = window.__hhPlanner;
+            if (!p?.model) return null;
+            return {
+              levels: Object.values(p.model.levelGroups).map((g) => g.visible),
+              roof: p.model.roofGroup.visible,
+              places: p.walkDestinations().map((d) => d.group),
+            };
+          });
+          if (!shape) failures.push(`${label}: the walkthrough exposed no model`);
+          else {
+            if (shape.levels.some((v) => !v)) {
+              failures.push(`${label}: the walkthrough hid a storey (${shape.levels.join(', ')})`);
+            }
+            if (!shape.roof) failures.push(`${label}: no roof in the walkthrough`);
+            if (!shape.places.includes('Outside')) {
+              failures.push(`${label}: the walkthrough cannot get outside`);
+            }
+            const storeys = new Set(shape.places.filter((g) => g !== 'Outside'));
+            if (storeys.size < 2) {
+              failures.push(`${label}: only ${storeys.size} storey reachable by name`);
+            }
+          }
+
+          // LOOK DIRECTION. Drag right, turn right. Driven as real touch
+          // in the RIGHT of the canvas, because the left is the stick.
+          const swipe = (dx, dy) => page.evaluate(([ddx, ddy]) => {
+            const c = document.getElementById('fp-canvas');
+            const r = c.getBoundingClientRect();
+            const x0 = r.left + r.width * 0.75;
+            const y0 = r.top + r.height * 0.5;
+            const ev = (type, x, y) => c.dispatchEvent(new PointerEvent(type, {
+              pointerId: 7, pointerType: 'touch', isPrimary: true, bubbles: true, clientX: x, clientY: y,
+            }));
+            ev('pointerdown', x0, y0);
+            for (let i = 1; i <= 8; i += 1) ev('pointermove', x0 + (ddx * i) / 8, y0 + (ddy * i) / 8);
+            ev('pointerup', x0 + ddx, y0 + ddy);
+          }, [dx, dy]);
+          const yaw0 = await page.evaluate(() => window.__hhPlanner.yaw);
+          await swipe(80, 0);
+          const yaw1 = await page.evaluate(() => window.__hhPlanner.yaw);
+          if (!(yaw1 > yaw0)) failures.push(`${label}: dragging right turns the view left`);
+          const pitch0 = await page.evaluate(() => window.__hhPlanner.pitch);
+          await swipe(0, -60);
+          const pitch1 = await page.evaluate(() => window.__hhPlanner.pitch);
+          if (!(pitch1 > pitch0)) failures.push(`${label}: dragging up looks down`);
+
+          // OUTSIDE, AND UPSTAIRS. Both by name, and both must land.
+          const trip = await page.evaluate(() => {
+            const p = window.__hhPlanner;
+            const places = p.walkDestinations();
+            const upstairs = places.find((d) => d.group !== 'Outside'
+              && p.building.levels.some((l) => l.name === d.group && l.elevation > 0));
+            const out = {};
+            out.outside = p.goTo('outside:front') ? p.walkPlan() : null;
+            out.upstairs = upstairs && p.goTo(upstairs.id)
+              ? { at: p.walkPlan(), eye: p.walkCam.position.y, level: p.walkLevel } : null;
+            return out;
+          });
+          if (!trip.outside) failures.push(`${label}: could not stand outside`);
+          else if (trip.outside[1] < 9) {
+            failures.push(`${label}: "outside" is only ${trip.outside[1].toFixed(1)}m out`);
+          }
+          if (!trip.upstairs) failures.push(`${label}: could not stand upstairs`);
+          else if (trip.upstairs.eye < 3) {
+            failures.push(`${label}: upstairs put the eye at ${trip.upstairs.eye.toFixed(2)}m`);
+          }
+        }
         if (!/^Facing /.test(walk.word)) {
           failures.push(`${label}: the compass says "${walk.word}" rather than a bearing`);
         }

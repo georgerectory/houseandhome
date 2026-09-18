@@ -24,7 +24,7 @@ import { loadComposed, loadStageOnly } from '../core/building-data.js';
 import { surveyHtml } from './house/survey-view.js';
 import { loadDisplay, saveDisplay, layersFor } from './house/display.js';
 import { viewTabs, pickers, levelRow, displayPanel } from './house/toolbar.js';
-import { canvasStage, planStage } from './house/stage.js';
+import { canvasStage, planStage, walkControls } from './house/stage.js';
 
 const user = await requireAuth();
 if (!user) throw new Error('redirecting to login');
@@ -38,6 +38,8 @@ const store = {
 };
 const KEY = { level: 'hh-house-level', view: 'hh-house-view', stage: 'hh-house-stage', variant: 'hh-house-variant' };
 const display = loadDisplay();
+let invertLook = store.get('hh-house-invert') === '1';
+let destinations = [];
 
 let model = await loadComposed(store.get(KEY.stage), store.get(KEY.variant));
 let parentStage = model?.entry.derivedFrom ? await loadStageOnly(model.entry.derivedFrom) : null;
@@ -63,7 +65,7 @@ const pinnable = [
 
 let building = model?.composed ?? null;
 let placements = building ? spreadInferred(placeAll(pinnable, building)) : [];
-let unplaced = placements.filter((p) => p.state === 'unplaced');
+let unplaced = placements.filter((p) => p.state === 'unplaced' || p.state === 'foreign');
 let missingRooms = building
   ? roomsNotOnPlan([...new Set(pinnable.map((t) => t.room_key).filter(Boolean))], building) : [];
 
@@ -78,7 +80,7 @@ let view = ['model', 'walk', 'survey'].includes(store.get(KEY.view)) ? store.get
 function rebind() {
   building = model?.composed ?? null;
   placements = building ? spreadInferred(placeAll(pinnable, building)) : [];
-  unplaced = placements.filter((p) => p.state === 'unplaced');
+  unplaced = placements.filter((p) => p.state === 'unplaced' || p.state === 'foreign');
   missingRooms = building
     ? roomsNotOnPlan([...new Set(pinnable.map((t) => t.room_key).filter(Boolean))], building) : [];
   if (!levels(building).some((l) => l.id === levelId)) levelId = levels(building)[0]?.id ?? null;
@@ -117,9 +119,11 @@ function registerHtml(onLevel) {
         <td class="num">${escape(p.fullRef ?? '—')}</td>
         <td>${escape(roomLabel(p.room, roomNames) ?? '—')}</td>
         <td>${escape(titleCase(t.category ?? t.kind ?? t._sort))}</td>
-        <td>${p.state === 'inferred'
-          ? '<span class="prov prov--unconfirmed">Approximate: room centre</span>'
-          : `<span class="${prov.cls}">${escape(prov.label)}</span>`}</td>
+        <td>${p.coordsFrom === 'other-building'
+          ? '<span class="prov prov--unconfirmed">Room only: the recorded position is in another building</span>'
+          : p.state === 'inferred'
+            ? '<span class="prov prov--unconfirmed">Approximate: room centre</span>'
+            : `<span class="${prov.cls}">${escape(prov.label)}</span>`}</td>
       </tr>`;
     }).join('')}</tbody>
   </table></div>`;
@@ -138,7 +142,7 @@ function drawingHtml() {
       ghost: compare ? { ...parentStage, defaults: building.defaults } : null,
     })
     : canvasStage(building, {
-      view, viewpoints, viewpointId, coarse,
+      view, viewpoints, viewpointId, coarse, destinations, invertLook,
     });
   return `${stage}
     ${walking ? '' : legendHtml(level)}
@@ -212,15 +216,21 @@ function moreHtml() {
 
   if (unplaced.length) {
     sections.push(['Not on the plan', unplaced.length, `
-      <p class="lede">These have no position, either because none was recorded or because
-        the room they are in does not exist in this version of the building.</p>
+      <p class="lede">The equipment register belongs to the household, not to this
+        building, and its coordinates were recorded against whichever building was
+        modelled at the time. Where they fall outside this one they are not positions
+        here, so nothing is drawn for them and no grid reference is computed.</p>
       <div class="table-wrap"><table class="table">
         <thead><tr><th>Item</th><th>Room</th><th>Why</th></tr></thead>
         <tbody>${unplaced.map((p) => `<tr>
           <td>${escape(p.thing.name)}</td>
           <td>${escape(roomNames[p.thing.room_key] ?? '\u2014')}</td>
-          <td>${missingRooms.includes(p.thing.room_key)
-    ? 'That room has no footprint in this version' : 'No room recorded'}</td>
+          <td>${p.state === 'foreign'
+    ? `Recorded at ${Number(p.thing.plan_x_m).toFixed(1)}, ${
+      Number(p.thing.plan_y_m).toFixed(1)}m, which is outside this building`
+    : missingRooms.includes(p.thing.room_key)
+      ? 'That room has no footprint in this version'
+      : 'No room recorded'}</td>
         </tr>`).join('')}</tbody>
       </table></div>`]);
   }
@@ -350,12 +360,20 @@ async function mountModel() {
     // room, so the walkthrough never shows them - the plan and the 3D
     // view both carry them, and that is where they are legible.
     planner.showMarkers(display.markers && view !== 'walk');
+    planner.invertLook = invertLook;
     planner.setMode(view === 'walk' ? 'walk' : 'orbit');
+    if (view === 'walk') {
+      destinations = planner.walkDestinations();
+      paintWalkControls();
+    }
     // Where the walker is, in plan metres. The front-end gate holds a
     // key down and checks this moved: a walkthrough that renders but
     // does not walk looks exactly like a still picture, and only a
     // position read back from the running viewer can tell them apart.
     window.__hhWalkProbe = () => (planner ? planner.walkPlan() : null);
+    // The whole viewer, for the front-end gate and for driving it from a
+    // console. Read-only as far as the page is concerned.
+    window.__hhPlanner = planner;
     if (view === 'model' && !cameraState) planner.viewpoint(viewpointId);
     planner.start();
     // The viewpoint chips are rendered before the module loads, so they
@@ -370,6 +388,14 @@ async function mountModel() {
     }
     canvas.hidden = true;
   }
+}
+
+/** The walk picker is rendered before the module that knows the places
+ *  has loaded, so it is filled in once it has. */
+function paintWalkControls() {
+  const host = document.querySelector('.hv-walkbar');
+  if (!host || !destinations.length) return;
+  host.outerHTML = walkControls(destinations, invertLook);
 }
 
 function paintViewpoints() {
@@ -415,7 +441,7 @@ document.addEventListener('change', (e) => {
   // walkthrough does not put you back at the front door.
   const jump = e.target.closest('[data-goto]');
   if (jump) {
-    if (jump.value && planner?.goToRoom(jump.value)) jump.blur();
+    if (jump.value && planner?.goTo(jump.value)) jump.blur();
     jump.value = '';
     return;
   }
@@ -511,6 +537,15 @@ document.addEventListener('click', (e) => {
       updateDisplayCount();
     } else paint();
     if (view === 'plan') paint();
+    return;
+  }
+  const inv = e.target.closest('[data-invert-look]');
+  if (inv) {
+    invertLook = !invertLook;
+    store.set('hh-house-invert', invertLook ? '1' : '0');
+    if (planner) planner.invertLook = invertLook;
+    inv.classList.toggle('is-on', invertLook);
+    inv.setAttribute('aria-pressed', String(invertLook));
     return;
   }
   const vp = e.target.closest('[data-viewpoint]');

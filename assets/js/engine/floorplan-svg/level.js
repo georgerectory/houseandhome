@@ -38,11 +38,19 @@ export const GUTTER = 0.8;
  * Options, all off-by-default where they add ink:
  *   roomNames   the household's word for each room, keyed by roomKey
  *   grid        the metre grid and its letters (default on)
+ *   rooms       the room names (default on)
  *   sizes       room dimensions under the names (default on)
  *   furniture   the variant's furniture (default on when there is any)
+ *   labels      names on the furniture (default on)
+ *   swings      the leaf and arc on each door (default on)
  *   clearance   the circulation overlay
  *   dimensions  overall dimension lines
  *   ghost       another stage's walls drawn faint underneath
+ *
+ * An opening is always CUT, whatever is switched off: a door you have
+ * hidden the swing of is still a hole you can walk through, and drawing
+ * it as solid wall would be a lie about the building rather than a
+ * quieter picture of it.
  */
 export function levelSvg(building, levelId, placements = [], opts = {}) {
   const b = bounds(building, levelId);
@@ -64,9 +72,9 @@ export function levelSvg(building, levelId, placements = [], opts = {}) {
     ${featuresHtml(building, levelId)}
     ${stairsHtml(building, levelId)}
     ${wallsHtml(building, levelId)}
-    ${openingsHtml(building, levelId)}
+    ${openingsHtml(building, levelId, opts)}
     ${opts.furniture === false ? '' : furnitureHtml(building, levelId, opts)}
-    ${roomLabelsHtml(building, levelId, opts.roomNames, opts)}
+    ${opts.rooms === false ? '' : roomLabelsHtml(building, levelId, opts.roomNames, opts)}
     ${opts.clearance ? clearanceHtml(building, levelId) : ''}
     ${opts.dimensions ? dimensionsHtml(b, building) : ''}
     ${compassHtml(building, b)}

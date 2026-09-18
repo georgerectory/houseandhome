@@ -31,7 +31,8 @@ function swingSign(f, toward) {
 // same way as one drawn left-to-right.
 const acrossSign = (f) => (f.horizontal ? Math.sign(f.m[1]) || 1 : Math.sign(f.m[0]) || 1);
 
-function leafHtml(o, f) {
+function leafHtml(o, f, opts = {}) {
+  if (opts.swings === false) return '';
   if (NO_LEAF.has(o.leaf)) return '';
   const dir = swingSign(f, o.swing?.toward);
   if (!dir) return '';
@@ -68,7 +69,7 @@ function bifoldHtml(o, f) {
   }).join('');
 }
 
-export function openingsHtml(building, levelId) {
+export function openingsHtml(building, levelId, opts = {}) {
   return openingsOn(building, levelId).map((o) => {
     const f = openingFrame(o, building);
     if (!f) return '';
@@ -82,7 +83,7 @@ export function openingsHtml(building, levelId) {
     return `<g class="fp-opening fp-opening--${escape(o.type || 'window')}"
       data-opening="${escape(o.id)}">
       <polygon class="fp-hole" points="${hole}"></polygon>
-      ${glazing}${leafHtml(o, f)}${bifoldHtml(o, f)}
+      ${glazing}${leafHtml(o, f, opts)}${bifoldHtml(o, f)}
       <title>${label}</title>
     </g>`;
   }).join('');

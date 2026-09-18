@@ -20,9 +20,11 @@ import { money, provenance, titleCase, escape } from '../core/format.js';
 import {
   levels, levelById, placeAll, placedOn, roomLabel, roomsNotOnPlan, spreadInferred,
 } from '../engine/floorplan.js';
-import { levelSvg } from '../engine/floorplan-svg.js';
 import { loadComposed, loadStageOnly } from '../core/building-data.js';
 import { surveyHtml } from './house/survey-view.js';
+import { loadDisplay, saveDisplay, layersFor } from './house/display.js';
+import { viewTabs, pickers, levelRow, displayPanel } from './house/toolbar.js';
+import { canvasStage, planStage } from './house/stage.js';
 
 const user = await requireAuth();
 if (!user) throw new Error('redirecting to login');
@@ -35,6 +37,7 @@ const store = {
   set: (k, v) => { try { localStorage.setItem(k, v); } catch { /* private mode */ } },
 };
 const KEY = { level: 'hh-house-level', view: 'hh-house-view', stage: 'hh-house-stage', variant: 'hh-house-variant' };
+const display = loadDisplay();
 
 let model = await loadComposed(store.get(KEY.stage), store.get(KEY.variant));
 let parentStage = model?.entry.derivedFrom ? await loadStageOnly(model.entry.derivedFrom) : null;
@@ -67,7 +70,7 @@ let missingRooms = building
 const storedLevel = store.get(KEY.level);
 let levelId = levels(building).some((l) => l.id === storedLevel)
   ? storedLevel : levels(building)[0]?.id ?? null;
-let view = ['model', 'survey'].includes(store.get(KEY.view)) ? store.get(KEY.view) : 'plan';
+let view = ['model', 'walk', 'survey'].includes(store.get(KEY.view)) ? store.get(KEY.view) : 'plan';
 
 /** Re-place everything against whichever stage is on screen. A fixture's
  *  coordinates do not move, but which room contains them can: the
@@ -82,36 +85,21 @@ function rebind() {
 }
 rebind();
 
-const seg = (items, attr, current) => items.map(([k, label]) =>
-  `<button type="button" class="seg${k === current ? ' is-on' : ''}"
-    ${attr}="${escape(k)}" aria-pressed="${k === current}">${escape(label)}</button>`).join('');
-
-function selector(id, label, options, current) {
-  return `<label class="field">
-    <span class="field__label">${escape(label)}</span>
-    <select class="field__input" id="${id}" data-select="${id}">
-      ${options.map((o) => `<option value="${escape(o.id)}"${o.id === current ? ' selected' : ''}>
-        ${escape(o.name)}</option>`).join('')}
-    </select>
-  </label>`;
-}
-
+/** The control bar: what you are looking at, which version of the
+ *  house, and one button for everything else. It is sticky, because
+ *  scrolling down a long drawing and losing the way back to the level
+ *  tabs is what made the old one tiring to use. */
 function toolbar() {
-  const stages = model?.manifest.stages ?? [];
-  const variants = model?.entry.variants ?? [];
-  return `
-    <div class="toolbar__row" role="group" aria-label="View">
-      ${seg([['plan', 'Floor plan'], ['model', '3D model'], ['survey', 'Survey']], 'data-view', view)}
-    </div>
-    <div class="fp-picker">
-      ${selector('stage', 'Version', stages, model?.entry.id)}
-      ${selector('variant', 'Furniture', variants, model?.variantEntry?.id)}
-    </div>
-    ${view === 'survey' ? '' : `<div class="toolbar__row" role="group" aria-label="Level">
-      ${seg(levels(building).map((l) => [l.id, l.name]), 'data-level-id', levelId)}
-      ${parentStage ? `<button type="button" class="seg${compare ? ' is-on' : ''}"
-        data-compare="1" aria-pressed="${compare}">Compare with ${escape(model.entry.derivedFrom)}</button>` : ''}
-    </div>`}`;
+  return `<div class="hv-bar">
+    <p class="hv-who"><span class="hv-who__name">${escape(building.name)}</span>
+      <span class="hv-who__stage">${escape(building.stage.name)}</span></p>
+    ${viewTabs(view)}
+    ${pickers(model)}
+    ${levelRow(building, levelId, view, {
+    parentStage, compare, display, levels: levels(building),
+  })}
+  </div>
+  ${displayPanel(view, display)}`;
 }
 
 /** The register for the level on screen, numbered to match the pins. */
@@ -140,34 +128,43 @@ function registerHtml(onLevel) {
 function drawingHtml() {
   const onLevel = placedOn(placements, levelId);
   const level = levelById(building, levelId);
-  return `
-    ${view === 'model' ? `<div class="fp-stage">
-      <canvas id="fp-canvas" aria-label="3D model of ${escape(building.name)}"></canvas>
-      <p class="fp-stage__note" id="fp-note">Drag to orbit, scroll to zoom. Markers sit at the
-        same coordinates as the pins on the floor plan.</p>
-    </div>
-    <div class="toolbar__row" role="group" aria-label="Show">
-      <button type="button" class="seg is-on" data-toggle="roof" aria-pressed="true">Roof</button>
-      <button type="button" class="seg is-on" data-toggle="furniture" aria-pressed="true">Furniture</button>
-    </div>`
-    : levelSvg(building, levelId, onLevel, {
+  const walking = view === 'walk';
+  const coarse = window.matchMedia?.('(pointer: coarse)').matches ?? false;
+  const stage = view === 'plan'
+    ? planStage(building, levelId, onLevel, {
+      display,
       roomNames,
       title: `${level?.name ?? 'Plan'}: ${building.stage.name}`,
-      dimensions: true,
       ghost: compare ? { ...parentStage, defaults: building.defaults } : null,
-    })}
-    <ul class="fp-legend">
-      <li><span class="fp-swatch fp-swatch--existing" aria-hidden="true"></span> Wall that is there today</li>
-      <li><span class="fp-swatch fp-swatch--new" aria-hidden="true"></span> Wall that has to be built</li>
-      <li><span class="fp-swatch" aria-hidden="true"></span> Recorded position${
-  view === 'model' ? ' (solid marker)' : ''}</li>
-      <li><span class="fp-swatch fp-swatch--inferred" aria-hidden="true"></span> Room known,
-        position not recorded${view === 'model' ? ' (floating marker)' : ''}</li>
-      <li>Grid squares are 1 metre. A reference is written
-        <span class="num">${escape(level?.code ?? 'G')}-A1</span>: level, then column, then row.</li>
-    </ul>
-    <h3>What is on this level</h3>
-    ${registerHtml(onLevel)}`;
+    })
+    : canvasStage(building, {
+      view, viewpoints, viewpointId, coarse,
+    });
+  return `${stage}
+    ${walking ? '' : legendHtml(level)}
+    ${walking ? '' : `<details class="hv-more__item"${onLevel.length ? '' : ''}>
+      <summary>What is on this level<span class="hv-more__count num">${onLevel.length}</span></summary>
+      <div class="hv-more__body">${registerHtml(onLevel)}</div>
+    </details>`}`;
+}
+
+/** The key to the drawing. Only the parts that mean something in the
+ *  view on screen, and only when the layer they describe is on. */
+function legendHtml(level) {
+  const items = [
+    '<li><span class="fp-swatch fp-swatch--existing" aria-hidden="true"></span> Wall that is there today</li>',
+    '<li><span class="fp-swatch fp-swatch--new" aria-hidden="true"></span> Wall that has to be built</li>',
+  ];
+  if (display.markers) {
+    items.push('<li><span class="fp-swatch" aria-hidden="true"></span> Recorded position</li>');
+    items.push(`<li><span class="fp-swatch fp-swatch--inferred" aria-hidden="true"></span> Room known,
+      position not recorded</li>`);
+  }
+  if (view === 'plan' && display.grid) {
+    items.push(`<li>Grid squares are 1 metre. A reference is written
+      <span class="num">${escape(level?.code ?? 'G')}-A1</span>: level, then column, then row.</li>`);
+  }
+  return `<ul class="fp-legend">${items.join('')}</ul>`;
 }
 
 function body() {
@@ -176,131 +173,119 @@ function body() {
       The building lives at <code>data/buildings/48-ameysford-road/</code>.</p>`;
   }
   return `
-  ${confidenceBanner(confidenceSummary(d))}
-
-  <div class="notice notice--warn" role="status">
-    <span class="notice__title">A candidate, not your house</span>
-    No offer has been accepted and no survey has been done. Every dimension below is
-    read off the agent's floor plan, a design study or the listing photograph, or
-    derived from them — so none of it is confirmed, and nothing measured here should
-    size a real job or order a real material. The Survey view shows exactly where the
-    model and those documents disagree.
-  </div>
-
-  <section class="section">
-    <div class="section__head"><h2>${escape(building.name)}</h2>
-      <span class="chip chip--accent">${escape(building.stage.name)}</span></div>
-    <p class="lede">${escape(building.stage.summary)}</p>
+  <section class="section section--flush">
     ${toolbar()}
     ${view === 'survey' ? surveyHtml(building, { parentStage }) : drawingHtml()}
   </section>
+  ${view === 'survey' ? '' : moreHtml()}`;
+}
 
-  ${view === 'survey' ? '' : `
-  ${building.variant?.changes?.length ? `<section class="section">
-    <div class="section__head"><h2>What this arrangement changes</h2></div>
-    <p class="lede">A variant is a copy with things moved, and what moved is written
-      down rather than remembered.</p>
-    <ul class="fp-list">${building.variant.changes.map((c) => `<li>${escape(c)}</li>`).join('')}</ul>
-  </section>` : ''}
+/** Everything that is not the drawing, folded away.
+ *
+ *  It is all still here and all still one tap from the drawing it
+ *  describes - but a phone screen showed roughly one section of it at a
+ *  time, so leaving eight of them open stacked five thousand pixels of
+ *  table under a picture nobody had finished looking at. */
+function moreHtml() {
+  const sections = [];
 
-  ${unplaced.length ? `<section class="section">
-    <div class="section__head"><h2>Not on the plan</h2><span class="band__count num">${unplaced.length}</span></div>
-    <p class="lede">These have no position, either because none was recorded or because
-      the room they are in does not exist in this version of the building.</p>
-    <div class="table-wrap"><table class="table">
-      <thead><tr><th>Item</th><th>Room</th><th>Why</th></tr></thead>
-      <tbody>${unplaced.map((p) => `<tr>
-        <td>${escape(p.thing.name)}</td>
-        <td>${escape(roomNames[p.thing.room_key] ?? '—')}</td>
-        <td>${missingRooms.includes(p.thing.room_key)
-          ? 'That room has no footprint in this version'
-          : 'No room recorded'}</td>
-      </tr>`).join('')}</tbody>
-    </table></div>
-  </section>` : ''}
-
-  <section class="section">
-    <div class="section__head"><h2>Rooms</h2><span class="band__count num">${rooms.length}</span></div>
-    <p class="lede">Room weight is how much a room matters right now, on a scale of
-      1 to 5. It is one of the three inputs to every item's priority, so changing it
-      re-sorts the whole roadmap. A room marked "not in this version" is a template
-      room this stage of the building does not have.</p>
-    <div class="card-grid">
-      ${rooms.map((r) => {
-        const items = byRoom.get(r.name) ?? [];
-        const cost = items.reduce((s, i) => s + (i.cost_expected ?? 0), 0);
-        const onPlan = (building.rooms ?? []).some((pr) => pr.roomKey === r.key);
-        return `<article class="card">
-          <div class="card__head">
-            <h3 class="card__title">${escape(r.name)}</h3>
-            <span class="chip chip--accent">weight ${r.room_weight}/5</span>
-          </div>
-          <div class="card__meta">
-            <span class="chip">${escape(titleCase(r.room_type))}</span>
-            <span class="chip">${items.length} open item${items.length === 1 ? '' : 's'}</span>
-            ${onPlan ? '' : '<span class="chip">Not in this version</span>'}
-          </div>
-          <p class="card__body">Estimated spend in this room:
-            <span class="num value--provisional">${escape(money(cost))}</span></p>
-        </article>`;
-      }).join('')}
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="section__head"><h2>Storage</h2></div>
-    <p class="lede">Locations are points in the same metric plan space the rooms use,
-      so "where is it" resolves against the floor plan rather than a separate grid
-      that has to be kept in step.</p>
-    ${d.storage?.length ? `<div class="table-wrap"><table class="table">
-      <thead><tr><th>Location</th><th>Kind</th><th>Room</th><th>Label</th><th>Contents</th></tr></thead>
-      <tbody>${d.storage.map((s) => {
-        const contents = (d.inventory ?? []).filter((v) => v.storage === s.name);
-        return `<tr>
-          <td>${escape(s.name)}</td>
-          <td>${escape(titleCase(s.kind))}</td>
-          <td>${escape(roomNames[s.room_key] ?? '—')}</td>
-          <td class="num">${escape(s.label_code ?? '—')}</td>
-          <td>${contents.length ? contents.map((c) => escape(c.name)).join(', ') : '—'}</td>
-        </tr>`;
-      }).join('')}</tbody>
-    </table></div>` : emptyState('No storage locations recorded.')}
-  </section>
-
-  <section class="section">
-    <div class="section__head"><h2>Equipment</h2></div>
-    <p class="lede">Anything that can break and need fixing. Once a make and model
-      are recorded, faults accumulate against the device, so the third time it does
-      the same thing the fix is already written down.</p>
-    ${d.assets?.length ? `<div class="table-wrap"><table class="table">
-      <thead><tr><th>Item</th><th>Category</th><th>Room</th><th class="num">Grid</th><th>Status</th><th>Record</th></tr></thead>
-      <tbody>${d.assets.map((a) => {
-        const p = provenance(a.confidence);
-        const at = placements.find((q) => q.thing.id === a.id);
-        return `<tr>
-          <td>${escape(a.name)}</td>
-          <td>${escape(titleCase(a.category))}</td>
-          <td>${escape(roomLabel(at?.room, roomNames) ?? a.room_name ?? '—')}</td>
-          <td class="num">${escape(at?.fullRef ?? '—')}</td>
-          <td>${escape(titleCase(a.status))}</td>
-          <td><span class="${p.cls}">${escape(p.label)}</span></td>
-        </tr>`;
-      }).join('')}</tbody>
-    </table></div>` : emptyState('No equipment recorded.')}
-  </section>
-
-  <section class="section">
-    <div class="section__head"><h2>What is assumed rather than measured</h2></div>
-    <p class="lede">Recorded with a severity rather than left implicit, so a guess
-      never reads as a survey.</p>
-    <div class="table-wrap"><table class="table">
+  sections.push(['About this model', null, `
+    ${confidenceBanner(confidenceSummary(d))}
+    <p class="lede">No offer has been accepted and no survey has been done. Every dimension
+      here is read off the agent's floor plan, a design study or the listing photograph, or
+      derived from them, so none of it is confirmed and nothing measured here should size a
+      real job or order a real material. The Survey view shows exactly where the model and
+      those documents disagree.</p>
+    ${building.assumptions?.length ? `<div class="table-wrap"><table class="table">
       <thead><tr><th>Severity</th><th>Assumption</th></tr></thead>
-      <tbody>${(building.assumptions ?? []).map((a) => `<tr>
+      <tbody>${building.assumptions.map((a) => `<tr>
         <td>${escape(titleCase(a.severity))}</td><td>${escape(a.note)}</td>
       </tr>`).join('')}</tbody>
-    </table></div>
-  </section>`}
-`;
+    </table></div>` : ''}`]);
+
+  if (building.variant?.changes?.length) {
+    sections.push(['What this arrangement changes', building.variant.changes.length, `
+      <p class="lede">A variant is a copy with things moved, and what moved is written
+        down rather than remembered.</p>
+      <ul class="fp-list">${building.variant.changes.map((c) => `<li>${escape(c)}</li>`).join('')}</ul>`]);
+  }
+
+  if (unplaced.length) {
+    sections.push(['Not on the plan', unplaced.length, `
+      <p class="lede">These have no position, either because none was recorded or because
+        the room they are in does not exist in this version of the building.</p>
+      <div class="table-wrap"><table class="table">
+        <thead><tr><th>Item</th><th>Room</th><th>Why</th></tr></thead>
+        <tbody>${unplaced.map((p) => `<tr>
+          <td>${escape(p.thing.name)}</td>
+          <td>${escape(roomNames[p.thing.room_key] ?? '\u2014')}</td>
+          <td>${missingRooms.includes(p.thing.room_key)
+    ? 'That room has no footprint in this version' : 'No room recorded'}</td>
+        </tr>`).join('')}</tbody>
+      </table></div>`]);
+  }
+
+  sections.push(['Rooms', rooms.length, `
+    <p class="lede">Room weight is how much a room matters right now, on a scale of 1 to 5.
+      It is one of the three inputs to every item's priority, so changing it re-sorts the
+      whole roadmap.</p>
+    <div class="card-grid">${rooms.map((r) => {
+    const items = byRoom.get(r.name) ?? [];
+    const cost = items.reduce((sum, i) => sum + (i.cost_expected ?? 0), 0);
+    const onPlan = (building.rooms ?? []).some((pr) => pr.roomKey === r.key);
+    return `<article class="card">
+        <div class="card__head">
+          <h3 class="card__title">${escape(r.name)}</h3>
+          <span class="chip chip--accent">weight ${r.room_weight}/5</span>
+        </div>
+        <div class="card__meta">
+          <span class="chip">${escape(titleCase(r.room_type))}</span>
+          <span class="chip">${items.length} open item${items.length === 1 ? '' : 's'}</span>
+          ${onPlan ? '' : '<span class="chip">Not in this version</span>'}
+        </div>
+        <p class="card__body">Estimated spend in this room:
+          <span class="num value--provisional">${escape(money(cost))}</span></p>
+      </article>`;
+  }).join('')}</div>`]);
+
+  sections.push(['Storage', d.storage?.length ?? 0, d.storage?.length
+    ? `<div class="table-wrap"><table class="table">
+      <thead><tr><th>Location</th><th>Kind</th><th>Room</th><th>Label</th><th>Contents</th></tr></thead>
+      <tbody>${d.storage.map((st) => {
+    const contents = (d.inventory ?? []).filter((v) => v.storage === st.name);
+    return `<tr>
+          <td>${escape(st.name)}</td>
+          <td>${escape(titleCase(st.kind))}</td>
+          <td>${escape(roomNames[st.room_key] ?? '\u2014')}</td>
+          <td class="num">${escape(st.label_code ?? '\u2014')}</td>
+          <td>${contents.length ? contents.map((c) => escape(c.name)).join(', ') : '\u2014'}</td>
+        </tr>`;
+  }).join('')}</tbody>
+    </table></div>` : emptyState('No storage locations recorded.')]);
+
+  sections.push(['Equipment', d.assets?.length ?? 0, d.assets?.length
+    ? `<div class="table-wrap"><table class="table">
+      <thead><tr><th>Item</th><th>Category</th><th>Room</th><th class="num">Grid</th>
+        <th>Status</th><th>Record</th></tr></thead>
+      <tbody>${d.assets.map((a) => {
+    const prov = provenance(a.confidence);
+    const at = placements.find((q) => q.thing.id === a.id);
+    return `<tr>
+          <td>${escape(a.name)}</td>
+          <td>${escape(titleCase(a.category))}</td>
+          <td>${escape(roomLabel(at?.room, roomNames) ?? a.room_name ?? '\u2014')}</td>
+          <td class="num">${escape(at?.fullRef ?? '\u2014')}</td>
+          <td>${escape(titleCase(a.status))}</td>
+          <td><span class="${prov.cls}">${escape(prov.label)}</span></td>
+        </tr>`;
+  }).join('')}</tbody>
+    </table></div>` : emptyState('No equipment recorded.')]);
+
+  return `<div class="hv-more">${sections.map(([name, count, html]) => `
+    <details class="hv-more__item">
+      <summary>${escape(name)}${count == null ? '' : `<span class="hv-more__count num">${count}</span>`}</summary>
+      <div class="hv-more__body">${html}</div>
+    </details>`).join('')}</div>`;
 }
 
 // The 3D viewer is torn down and rebuilt with the page rather than
@@ -310,37 +295,89 @@ let planner = null;
 // Survives a repaint so switching floors does not also snap the camera
 // back to its opening angle.
 let cameraState = null;
-const shown = { roof: true, furniture: true };
+let viewpoints = [];
+let viewpointId = 'front';
+
+/** Turn the compass needle and say the bearing in words. Written
+ *  straight to the DOM rather than through a repaint: it changes on
+ *  every animation frame. */
+function showHeading({ yaw, name }) {
+  const needle = document.querySelector('[data-compass-needle]');
+  const word = document.querySelector('[data-compass-word]');
+  if (needle) needle.setAttribute('transform', `rotate(${(-yaw * 180) / Math.PI})`);
+  if (word) word.textContent = `Facing ${name}`;
+}
+
+/** The touch stick follows the thumb, positioned entirely through custom
+ *  properties so the stylesheet keeps every measurement. */
+function showStick({ active, x, y, dx = 0, dy = 0 }) {
+  const el = document.querySelector('[data-stick]');
+  if (!el) return;
+  el.classList.toggle('is-active', !!active);
+  if (x !== undefined) {
+    el.style.setProperty('--stick-x', `${x}px`);
+    el.style.setProperty('--stick-y', `${y}px`);
+  }
+  el.style.setProperty('--knob-x', `${dx}px`);
+  el.style.setProperty('--knob-y', `${dy}px`);
+}
 
 /**
- * Bring up the 3D view.
+ * Bring up the 3D view, in whichever mode was asked for.
  *
  * three.js is 670KB, so it is imported only when the reader actually
- * asks for the model - a visitor who only wants the floor plan never
- * downloads it. Any failure (no WebGL, a blocked module) degrades to a
- * message and leaves the floor plan, which is the view that matters,
- * completely unaffected.
+ * asks for it - a visitor who only wants the floor plan never downloads
+ * it. Any failure degrades to a message and leaves the floor plan, which
+ * is the view that matters, completely unaffected.
  */
 async function mountModel() {
   const canvas = document.getElementById('fp-canvas');
   if (!canvas || !building) return;
   try {
-    const { Planner } = await import('../core/planner.js');
-    planner = new Planner(canvas);
-    planner.setModel(building, placements, cameraState);
+    const mod = await import('../core/planner.js');
+    viewpoints = mod.VIEWPOINTS;
+    planner = new mod.Planner(canvas);
+    planner.onHeading = showHeading;
+    planner.onStick = showStick;
+    planner.setModel(building, display.markers ? placements : [], cameraState, {
+      glazing: display.glazing,
+    });
     planner.showLevel(levelId);
-    planner.showRoof(shown.roof);
-    planner.showFurniture(shown.furniture);
+    planner.showRoof(display.roof);
+    planner.showFurniture(display.furniture);
+    // The equipment pins are billboard labels sized to be read from
+    // outside the house. At eye height in a 3.3m room they cover the
+    // room, so the walkthrough never shows them - the plan and the 3D
+    // view both carry them, and that is where they are legible.
+    planner.showMarkers(display.markers && view !== 'walk');
+    planner.setMode(view === 'walk' ? 'walk' : 'orbit');
+    // Where the walker is, in plan metres. The front-end gate holds a
+    // key down and checks this moved: a walkthrough that renders but
+    // does not walk looks exactly like a still picture, and only a
+    // position read back from the running viewer can tell them apart.
+    window.__hhWalkProbe = () => (planner ? planner.walkPlan() : null);
+    if (view === 'model' && !cameraState) planner.viewpoint(viewpointId);
     planner.start();
+    // The viewpoint chips are rendered before the module loads, so they
+    // are filled in once it has.
+    if (view === 'model') paintViewpoints();
   } catch {
     planner = null;
     const note = document.getElementById('fp-note');
     if (note) {
       note.textContent = 'The 3D view could not start in this browser, '
-        + 'so the floor plan above carries the same positions.';
+        + 'so the floor plan carries the same positions.';
     }
     canvas.hidden = true;
   }
+}
+
+function paintViewpoints() {
+  const host = document.querySelector('.hv-views');
+  if (!host || !viewpoints.length) return;
+  host.innerHTML = viewpoints.map((v) => `<button type="button"
+    class="hv-view${v.id === viewpointId ? ' is-on' : ''}"
+    data-viewpoint="${escape(v.id)}" aria-pressed="${v.id === viewpointId}">${escape(v.name)}</button>`).join('');
 }
 
 function paint() {
@@ -350,7 +387,7 @@ function paint() {
     planner = null;
   }
   render('[data-page-root]', body());
-  if (view === 'model') mountModel();
+  if (view === 'model' || view === 'walk') mountModel();
 }
 paint();
 
@@ -368,13 +405,85 @@ async function reselect(stageId, variantId) {
 
 document.addEventListener('change', (e) => {
   const sel = e.target.closest('[data-select]');
-  if (!sel) return;
-  if (sel.dataset.select === 'stage') reselect(sel.value, null);
-  else reselect(model?.entry.id, sel.value);
+  if (sel) {
+    if (sel.dataset.select === 'stage') reselect(sel.value, null);
+    else reselect(model?.entry.id, sel.value);
+    return;
+  }
+  // A layer switch changes the drawing without rebuilding the page,
+  // where the viewer can do it live - so toggling the roof in the
+  // walkthrough does not put you back at the front door.
+  const jump = e.target.closest('[data-goto]');
+  if (jump) {
+    if (jump.value && planner?.goToRoom(jump.value)) jump.blur();
+    jump.value = '';
+    return;
+  }
+  const layer = e.target.closest('[data-layer]');
+  if (!layer) return;
+  const id = layer.dataset.layer;
+  display[id] = layer.checked;
+  saveDisplay(display);
+  applyLayer(id);
 });
 
-// Delegated from the document: paint() replaces the element the level
-// tabs live in, so a listener bound to it would survive one repaint.
+/**
+ * Apply one layer, without repainting the page.
+ *
+ * A full repaint would close the panel you are standing in, lose the
+ * camera and, in the walkthrough, put you back at the front door - so
+ * switching the roof off to see into a room would walk you out of it.
+ * The 3D view changes most layers in place; the plan is a string, so
+ * only the drawing is redrawn.
+ */
+function applyLayer(id) {
+  const liveIn3d = { roof: 'showRoof', furniture: 'showFurniture', markers: 'showMarkers' };
+  if (planner && liveIn3d[id]) {
+    planner[liveIn3d[id]](display[id] && !(id === 'markers' && view === 'walk'));
+  } else if (planner && id === 'glazing') {
+    // Glass is built into the wall meshes, so this one needs the model
+    // rebuilding - but the camera is handed back in, so the view holds.
+    const at = planner.cameraState();
+    planner.setModel(building, display.markers ? placements : [], at, { glazing: display.glazing });
+    planner.showLevel(levelId);
+    planner.showRoof(display.roof);
+    planner.showFurniture(display.furniture);
+    planner.showMarkers(display.markers);
+  } else if (view === 'plan') {
+    redrawPlan();
+  } else {
+    paint();
+    return;
+  }
+  updateDisplayCount();
+}
+
+/** Redraw the floor plan in place, leaving the toolbar and the panel
+ *  exactly where they are. */
+function redrawPlan() {
+  const host = document.querySelector('.hv-stage--plan');
+  if (!host) { paint(); return; }
+  const level = levelById(building, levelId);
+  host.outerHTML = planStage(building, levelId, placedOn(placements, levelId), {
+    display,
+    roomNames,
+    title: `${level?.name ?? 'Plan'}: ${building.stage.name}`,
+    ghost: compare ? { ...parentStage, defaults: building.defaults } : null,
+  });
+  const legend = document.querySelector('.fp-legend');
+  if (legend) legend.outerHTML = legendHtml(level);
+}
+
+/** Keep the count on the Display button honest without a repaint. */
+function updateDisplayCount() {
+  const btn = document.querySelector('[data-display-open]');
+  if (!btn) return;
+  const hidden = layersFor(view).filter((l) => !display[l.id]).length;
+  btn.innerHTML = `Display${hidden ? `<span class="hv-ghost__count num">${hidden}</span>` : ''}`;
+}
+
+// Delegated from the document: paint() replaces the elements these live
+// in, so a listener bound to one would survive exactly one repaint.
 document.addEventListener('click', (e) => {
   const vw = e.target.closest('[data-view]');
   if (vw) {
@@ -383,7 +492,10 @@ document.addEventListener('click', (e) => {
     store.set(KEY.view, view);
     // Leaving the model forgets the angle: coming back later should
     // frame the house, not resume a view the reader has forgotten.
-    if (was === 'model' && view !== 'model') cameraState = null;
+    if ((was === 'model' || was === 'walk') && view !== 'model' && view !== 'walk') cameraState = null;
+    // Walking and orbiting do not share a camera, so neither inherits
+    // the other's.
+    if (was !== view && (was === 'walk' || view === 'walk')) cameraState = null;
     paint();
     return;
   }
@@ -391,21 +503,44 @@ document.addEventListener('click', (e) => {
   if (lv) {
     levelId = lv.dataset.levelId;
     store.set(KEY.level, levelId);
+    if (planner) {
+      planner.showLevel(levelId);
+      // Reframe: with one floor showing, the box worth filling the view
+      // with is that floor, not the whole house.
+      if (view === 'model') planner.viewpoint(viewpointId);
+      updateDisplayCount();
+    } else paint();
+    if (view === 'plan') paint();
+    return;
+  }
+  const vp = e.target.closest('[data-viewpoint]');
+  if (vp) {
+    viewpointId = vp.dataset.viewpoint;
+    planner?.viewpoint(viewpointId);
+    paintViewpoints();
+    return;
+  }
+  const open = e.target.closest('[data-display-open]');
+  if (open) {
+    const panel = document.getElementById('hv-display');
+    if (!panel) return;
+    panel.hidden = !panel.hidden;
+    open.setAttribute('aria-expanded', String(!panel.hidden));
+    return;
+  }
+  const all = e.target.closest('[data-layer-all]');
+  if (all) {
+    const on = all.dataset.layerAll === 'on';
+    for (const l of layersFor(view)) display[l.id] = on;
+    saveDisplay(display);
     paint();
+    const panel = document.getElementById('hv-display');
+    if (panel) panel.hidden = false;
+    document.querySelector('[data-display-open]')?.setAttribute('aria-expanded', 'true');
     return;
   }
   const cmp = e.target.closest('[data-compare]');
   if (cmp) { compare = !compare; paint(); return; }
-  const tog = e.target.closest('[data-toggle]');
-  if (tog) {
-    const which = tog.dataset.toggle;
-    shown[which] = !shown[which];
-    tog.classList.toggle('is-on', shown[which]);
-    tog.setAttribute('aria-pressed', String(shown[which]));
-    if (which === 'roof') planner?.showRoof(shown.roof);
-    else planner?.showFurniture(shown.furniture);
-    return;
-  }
   // A pin and its register row light up together, so a number on the
   // drawing can be read off the table without counting.
   const hit = e.target.closest('[data-asset-id]');

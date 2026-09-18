@@ -296,6 +296,70 @@ for (const theme of THEMES) {
           }
         }
 
+        // THE WALKTHROUGH. A walkthrough that renders but does not move
+        // is indistinguishable from a still picture, so the sweep walks:
+        // it holds a key down and checks the camera ended up somewhere
+        // else. And it checks the compass, because a 3D view with no
+        // heading is how a MIRRORED model went unnoticed for a week.
+        await page.click('[data-view="walk"]');
+        await page.waitForTimeout(2400);
+        const walk = await page.evaluate(() => ({
+          canvas: !!document.getElementById('fp-canvas'),
+          hidden: !!document.getElementById('fp-canvas')?.hidden,
+          compass: !!document.querySelector('[data-compass-needle]'),
+          word: (document.querySelector('[data-compass-word]')?.textContent || '').trim(),
+          stick: !!document.querySelector('[data-stick]'),
+          scrollW: document.documentElement.scrollWidth,
+          clientW: document.documentElement.clientWidth,
+        }));
+        if (!walk.canvas) failures.push(`${label}: the walkthrough rendered no canvas`);
+        if (!walk.compass) failures.push(`${label}: the walkthrough has no compass`);
+        if (!walk.stick) failures.push(`${label}: the walkthrough has no touch stick`);
+        if (!/^Facing /.test(walk.word)) {
+          failures.push(`${label}: the compass says "${walk.word}" rather than a bearing`);
+        }
+        if (walk.scrollW > walk.clientW + 1) failures.push(`${label}: page scroll in the walkthrough`);
+        if (!walk.hidden) {
+          await page.focus('#fp-canvas');
+          const startedAt = await page.evaluate(() => window.__hhWalkProbe?.() ?? null);
+          await page.keyboard.down('w');
+          await page.waitForTimeout(700);
+          await page.keyboard.up('w');
+          const endedAt = await page.evaluate(() => window.__hhWalkProbe?.() ?? null);
+          if (startedAt && endedAt) {
+            const moved = Math.hypot(endedAt[0] - startedAt[0], endedAt[1] - startedAt[1]);
+            if (moved < 0.2) failures.push(`${label}: holding W moved the walker ${moved.toFixed(2)}m`);
+          } else {
+            failures.push(`${label}: the walkthrough exposed no position to check`);
+          }
+        }
+
+        // THE DISPLAY PANEL. Every switch has to change the drawing.
+        await page.click('[data-view="plan"]');
+        await page.waitForTimeout(200);
+        await page.click('[data-display-open]');
+        await page.waitForTimeout(120);
+        const hasSwitch = await page.$('[data-layer="furniture"]') !== null;
+        if (!hasSwitch) failures.push(`${label}: the display panel has no furniture switch`);
+        else {
+          // Selected fresh each time: toggling a layer redraws the
+          // drawing, and a handle held across that is a stale node.
+          const count = () => page.$$eval('.fp-furniture', (n) => n.length);
+          const on = await count();
+          await page.click('[data-layer="furniture"]');
+          await page.waitForTimeout(250);
+          const off = await count();
+          if (on > 0 && off !== 0) failures.push(`${label}: hiding furniture left ${off} pieces drawn`);
+          // And the panel is still open, because hiding a layer must not
+          // repaint the page out from under the person doing it.
+          const stillOpen = await page.$eval('#hv-display', (el) => !el.hidden).catch(() => false);
+          if (!stillOpen) failures.push(`${label}: toggling a layer closed the display panel`);
+          await page.click('[data-layer="furniture"]');
+          await page.waitForTimeout(250);
+          const back = await count();
+          if (back !== on) failures.push(`${label}: furniture did not come back (${back} of ${on})`);
+        }
+
         // The Survey view is the one that makes the rest trustworthy, so
         // it has to actually draw: the audit table AND the elevations.
         await page.click('[data-view="survey"]');

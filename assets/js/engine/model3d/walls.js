@@ -12,6 +12,14 @@
 import { wallThickness } from '../floorplan.js';
 import { segmentBox, lerp, rectBox } from './geom.js';
 
+/**
+ * One wall's meshes, plus the COLLIDER the walkthrough stops against.
+ *
+ * The collider is plan-space and axis-aligned, which is all a house of
+ * rectangles needs, and it carries its own doorways so the walker can
+ * step through a door rather than having to be let through by a
+ * separate list that could fall out of step with the geometry.
+ */
 export function buildWall(wall, openings, level, defaults, palette, opts = {}) {
   const meshes = [];
   const thickness = wallThickness(wall, { defaults });
@@ -56,7 +64,25 @@ export function buildWall(wall, openings, level, defaults, palette, opts = {}) {
   if (cursor < 1) {
     meshes.push(segmentBox(lerp(wall.a, wall.b, cursor), wall.b, thickness, base, top, color));
   }
-  return meshes.filter(Boolean);
+  const solids = meshes.filter(Boolean);
+  solids.collider = {
+    id: wall.id,
+    level: wall.level,
+    minX: Math.min(wall.a[0], wall.b[0]) - thickness / 2,
+    maxX: Math.max(wall.a[0], wall.b[0]) + thickness / 2,
+    minY: Math.min(wall.a[1], wall.b[1]) - thickness / 2,
+    maxY: Math.max(wall.a[1], wall.b[1]) + thickness / 2,
+    // Distance along the wall is measured from its own start point, not
+    // from the min corner: a wall drawn south-to-north has its start at
+    // the high y, and measuring from the wrong end puts every doorway
+    // in this wall at the opposite end of it.
+    origin: wall.a,
+    // A window is not a way through. Everything else is.
+    doorways: (openings ?? [])
+      .filter((o) => o.wall === wall.id && o.type !== 'window')
+      .map((o) => ({ start: o.at - o.width / 2, end: o.at + o.width / 2 })),
+  };
+  return solids;
 }
 
 /** A room's floor slab, sitting just under the level it belongs to. A

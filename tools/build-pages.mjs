@@ -59,6 +59,7 @@ const tpl = (file, title, lede) => `<!doctype html>
 <link rel="stylesheet" href="assets/css/components.css">
 <link rel="stylesheet" href="assets/css/roadmap.css">
 <link rel="stylesheet" href="assets/css/floorplan.css">
+<link rel="stylesheet" href="assets/css/house.css">
 <script>
 /* Apply the stored theme before first paint: doing it in the module
    would flash the wrong theme while the module loads. */

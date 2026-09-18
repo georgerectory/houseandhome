@@ -1,0 +1,361 @@
+// planner/viewer.js - the 3D view. Owns a canvas, two cameras and the
+// mode switch between them, and nothing else.
+//
+// ORBIT is the dollhouse: turn the model around and look into it.
+// WALK is eye height inside it, which is the only view that answers
+// "can I actually get past that" honestly.
+//
+// Both cameras look at the same model, so switching modes never rebuilds
+// anything - and the walk camera starts wherever the orbit camera was
+// pointing, so you step into the room you were already looking at.
+//
+// PLAN SPACE IS THE FRAME OF RECORD. The model maps plan (x, y) to world
+// (x, h, y) - see engine/model3d/geom.js, where the sign of that last
+// term is load-bearing. Everything below works in plan metres and
+// converts at the edge, so a position here means the same thing it means
+// on the floor plan.
+
+import { buildModel, THREE } from '../../engine/model3d.js';
+import { OrbitControls } from '../../../vendor/OrbitControls.js';
+import {
+  resolveCollision, climbAt, stepFrom, headingName,
+  EYE_HEIGHT, WALK_SPEED, RUN_MULTIPLIER,
+} from '../../engine/walk.js';
+import { palette } from './palette.js';
+import { WalkInput } from './input.js';
+
+/** Where the named viewpoints stand, as a compass bearing and a height
+ *  above the horizon. Front is the road, because that is the view a
+ *  person has of a house before they ever go in, and it is the one the
+ *  floor plan is drawn to match. */
+export const VIEWPOINTS = [
+  { id: 'front', name: 'Front', bearing: 180, tilt: 0.34 },
+  { id: 'back', name: 'Garden', bearing: 0, tilt: 0.34 },
+  { id: 'west', name: 'West', bearing: 270, tilt: 0.34 },
+  { id: 'east', name: 'East', bearing: 90, tilt: 0.34 },
+  { id: 'above', name: 'Above', bearing: 180, tilt: 1.30 },
+];
+
+export class Planner {
+  constructor(canvas) {
+    this.canvas = canvas;
+    this.pal = palette();
+    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+    this.scene = new THREE.Scene();
+    this.scene.background = this.pal.sky;
+
+    this.orbitCam = new THREE.PerspectiveCamera(50, 1, 0.1, 500);
+    // A wider lens indoors: 50 degrees in a 3.3m room feels like looking
+    // down a tube, and you cannot see a doorway beside you.
+    this.walkCam = new THREE.PerspectiveCamera(74, 1, 0.05, 200);
+
+    this.controls = new OrbitControls(this.orbitCam, canvas);
+    this.controls.enableDamping = true;
+    // Stop the camera going under the ground: a house seen from below is
+    // disorienting and tells you nothing.
+    this.controls.maxPolarAngle = Math.PI / 2.05;
+
+    this.scene.add(new THREE.HemisphereLight(0xffffff, 0x9a8f80, 1.6));
+    const sun = new THREE.DirectionalLight(0xfff4e0, 1.5);
+    sun.position.set(-22, 30, 18);
+    this.scene.add(sun);
+
+    const ground = new THREE.Mesh(
+      new THREE.PlaneGeometry(160, 160),
+      new THREE.MeshLambertMaterial({ color: this.pal.ground }),
+    );
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.y = -0.5;
+    this.scene.add(ground);
+
+    this.mode = 'orbit';
+    this.yaw = Math.PI;
+    this.pitch = 0;
+    this.walkLevel = null;
+    this.walkElevation = 0;
+    this.origin = { x: 0, y: 0 };
+    this._clock = new THREE.Clock();
+    this._running = false;
+
+    this.input = new WalkInput(canvas, {
+      isWalking: () => this.mode === 'walk',
+      onLook: (dx, dy, gain) => this._look(dx, dy, gain),
+      onStick: (s) => this.onStick?.(s),
+    });
+
+    this._onResize = () => this.resize();
+    window.addEventListener('resize', this._onResize);
+  }
+
+  /** Where the camera is now, so a rebuild can put it back. Switching
+   *  floors tears the model down and builds it again; snapping the view
+   *  back to the default angle every time would make the two levels
+   *  impossible to compare. */
+  cameraState() {
+    return {
+      position: this.orbitCam.position.toArray(),
+      target: this.controls.target.toArray(),
+      mode: this.mode,
+      walk: { yaw: this.yaw, pitch: this.pitch, level: this.walkLevel, pos: this.walkPlan() },
+    };
+  }
+
+  setModel(building, placements, restore, opts = {}) {
+    if (this.model) this.scene.remove(this.model.root);
+    this.building = building;
+    this.model = buildModel(building, placements, this.pal, opts);
+    this.scene.add(this.model.root);
+    // The model is centred on the origin, so plan metres and world
+    // metres differ by this offset and by nothing else.
+    this.origin = { x: -this.model.root.position.x, y: -this.model.root.position.z };
+    this.showRoof(this.roofOn ?? true);
+    this.showFurniture(this.furnitureOn ?? true);
+    this.showMarkers(this.markersOn ?? true);
+
+    if (restore?.position && restore?.target) {
+      this.orbitCam.position.fromArray(restore.position);
+      this.controls.target.fromArray(restore.target);
+      this.controls.update();
+      this.resize();
+      return;
+    }
+    this.viewpoint('front');
+  }
+
+  /**
+   * Stand the orbit camera at a named compass bearing.
+   *
+   * Framed from what is ACTUALLY ON SCREEN, not from the whole building:
+   * with the roof hidden and one floor showing, framing to the full box
+   * - which includes a 7.7m ridge - aims the camera at empty sky and
+   * leaves the house in the bottom of the frame.
+   */
+  viewpoint(id) {
+    const v = VIEWPOINTS.find((p) => p.id === id) ?? VIEWPOINTS[0];
+    const box = this.visibleBox();
+    const sphere = box.getBoundingSphere(new THREE.Sphere());
+    const at = sphere.center;
+    // Fit to the bounding sphere against the NARROWER of the two field
+    // of view angles. A phone held upright gives a tall thin canvas
+    // whose horizontal angle is much smaller than the vertical one, and
+    // sizing to the vertical angle alone cuts the width of the house
+    // off the sides of the frame.
+    const vfov = (this.orbitCam.fov * Math.PI) / 180;
+    const aspect = Math.max(0.2, (this.canvas.clientWidth || 1) / (this.canvas.clientHeight || 1));
+    const hfov = 2 * Math.atan(Math.tan(vfov / 2) * aspect);
+    const dist = (Math.max(sphere.radius, 2) / Math.sin(Math.min(vfov, hfov) / 2)) * 0.98;
+    const rad = (v.bearing * Math.PI) / 180;
+    const mid = at.y;
+    // Bearing is where the camera STANDS, as a compass direction from
+    // the house: 180 is due south, which is the road.
+    this.orbitCam.position.set(
+      at.x + Math.sin(rad) * dist * Math.cos(v.tilt),
+      mid + dist * Math.sin(v.tilt),
+      at.z - Math.cos(rad) * dist * Math.cos(v.tilt),
+    );
+    this.controls.target.set(at.x, mid, at.z);
+    this.controls.update();
+    this.viewpointId = v.id;
+    this.resize();
+  }
+
+  /** The box round everything currently visible, so the framing follows
+   *  what has been switched off rather than what exists. */
+  visibleBox() {
+    const box = new THREE.Box3();
+    if (!this.model) return box.setFromCenterAndSize(new THREE.Vector3(), new THREE.Vector3(10, 8, 10));
+    for (const key of ['levelGroups', 'furnitureGroups']) {
+      for (const g of Object.values(this.model[key])) if (g.visible) box.expandByObject(g);
+    }
+    if (this.model.roofGroup.visible) box.expandByObject(this.model.roofGroup);
+    if (box.isEmpty()) box.expandByObject(this.model.root);
+    return box;
+  }
+
+  /** ORBIT or WALK. Entering the walkthrough drops the walker at the
+   *  front door if there is one, because that is where a person starts. */
+  setMode(mode) {
+    this.mode = mode;
+    this.controls.enabled = mode === 'orbit';
+    if (mode === 'walk') {
+      const at = this.spawnPoint();
+      this.walkLevel = at.level;
+      this.walkElevation = at.elevation;
+      this.setWalkPlan(at.x, at.y);
+      this.yaw = at.yaw;
+      this.pitch = 0;
+    } else {
+      this.input.release();
+    }
+    this.resize();
+    this.onMode?.(mode);
+  }
+
+  /** Just inside the front door, facing into the house. Falls back to
+   *  the middle of the first room on the lowest floor. */
+  spawnPoint() {
+    const b = this.building ?? {};
+    const level = (b.levels ?? [])[0] ?? { id: null, elevation: 0 };
+    const front = (b.openings ?? []).find((o) => /front/.test(o.id) && o.type === 'door');
+    const wall = front && (b.walls ?? []).find((w) => w.id === front.wall);
+    if (wall) {
+      const len = Math.hypot(wall.b[0] - wall.a[0], wall.b[1] - wall.a[1]) || 1;
+      const ux = (wall.b[0] - wall.a[0]) / len;
+      const uy = (wall.b[1] - wall.a[1]) / len;
+      const x = wall.a[0] + ux * front.at;
+      const y = wall.a[1] + uy * front.at;
+      // Step 0.9m to the north of the threshold, which is inwards for a
+      // south-facing front door, and look the way you came in.
+      return { x, y: y - 0.9, level: level.id, elevation: level.elevation, yaw: 0 };
+    }
+    const room = (b.rooms ?? []).find((r) => r.level === level.id);
+    const rect = room?.rect ?? [0, 0, 4, 4];
+    return {
+      x: (rect[0] + rect[2]) / 2,
+      y: (rect[1] + rect[3]) / 2,
+      level: level.id,
+      elevation: level.elevation,
+      yaw: 0,
+    };
+  }
+
+  /** Put the walker somewhere by name, so a room can be walked to from
+   *  a list rather than found by wandering. */
+  goToRoom(roomId) {
+    const room = (this.building?.rooms ?? []).find((r) => r.id === roomId);
+    if (!room) return false;
+    const level = (this.building.levels ?? []).find((l) => l.id === room.level);
+    const [x1, y1, x2, y2] = room.rect;
+    this.walkLevel = room.level;
+    this.walkElevation = level?.elevation ?? 0;
+    this.setWalkPlan((x1 + x2) / 2, (y1 + y2) / 2);
+    return true;
+  }
+
+  walkPlan() {
+    return [this.walkCam.position.x + this.origin.x, this.walkCam.position.z + this.origin.y];
+  }
+
+  setWalkPlan(px, py) {
+    this.walkCam.position.x = px - this.origin.x;
+    this.walkCam.position.z = py - this.origin.y;
+    this.walkCam.position.y = this.walkElevation + EYE_HEIGHT;
+  }
+
+  _look(dx, dy, gain) {
+    this.yaw -= dx * gain;
+    this.pitch = Math.max(-1.3, Math.min(1.3, this.pitch - dy * gain));
+  }
+
+  _stepWalk(dt) {
+    const { forward, strafe, hurrying } = this.input.axes();
+    this.walkCam.rotation.set(0, 0, 0);
+    this.walkCam.rotateY(-this.yaw);
+    this.walkCam.rotateX(this.pitch);
+
+    const distance = WALK_SPEED * (hurrying ? RUN_MULTIPLIER : 1) * dt;
+    const [dx, dy] = stepFrom(this.yaw, forward, strafe, distance);
+    let [px, py] = this.walkPlan();
+    if (dx || dy) {
+      [px, py] = resolveCollision(this.model?.colliders, this.walkLevel, px + dx, py + dy);
+    }
+
+    // The stair is a ramp, and which floor's walls you bump into follows
+    // your height rather than a button you had to remember to press.
+    const stair = climbAt(this.model?.climbs, px, py);
+    if (stair) {
+      this.walkLevel = stair.level;
+      this.walkElevation = stair.elevation;
+      this.setWalkPlan(px, py);
+      this.walkCam.position.y = stair.height + EYE_HEIGHT;
+    } else {
+      this.setWalkPlan(px, py);
+    }
+    this.onHeading?.({ yaw: this.yaw, name: headingName(this.yaw), level: this.walkLevel });
+  }
+
+  get camera() { return this.mode === 'walk' ? this.walkCam : this.orbitCam; }
+
+  /** Show one level, or all of them. Hiding the upper floor is how you
+   *  look into the ground floor without a cutaway. In the walkthrough
+   *  every level stays up, because you are inside the building and a
+   *  missing floor above you is a hole in the ceiling. */
+  showLevel(levelId) {
+    this.levelId = levelId;
+    this.applyVisibility();
+  }
+
+  showRoof(on) { this.roofOn = on; this.applyVisibility(); }
+  showFurniture(on) { this.furnitureOn = on; this.applyVisibility(); }
+  showMarkers(on) { this.markersOn = on; this.applyVisibility(); }
+
+  applyVisibility() {
+    if (!this.model) return;
+    const walking = this.mode === 'walk';
+    const only = walking ? null : this.levelId;
+    for (const [id, g] of Object.entries(this.model.levelGroups)) {
+      g.visible = !only || id === only;
+    }
+    for (const [id, g] of Object.entries(this.model.furnitureGroups)) {
+      g.visible = !!this.furnitureOn && (!only || id === only);
+    }
+    for (const [id, g] of Object.entries(this.model.markerGroups)) {
+      g.visible = !!this.markersOn && (!only || id === only);
+    }
+    // The roof comes off when you are looking at a lower floor from
+    // outside, because a roof hovering over nothing reads as a bug. It
+    // stays on in the walkthrough, where it is the ceiling.
+    const onTop = !only || only === this.model.topLevelId;
+    this.model.roofGroup.visible = !!this.roofOn && (walking || onTop);
+  }
+
+  resize() {
+    const w = this.canvas.clientWidth || 1;
+    const h = this.canvas.clientHeight || 1;
+    this.renderer.setSize(w, h, false);
+    for (const cam of [this.orbitCam, this.walkCam]) {
+      cam.aspect = w / h;
+      cam.updateProjectionMatrix();
+    }
+  }
+
+  start() {
+    if (this._running) return;
+    this._running = true;
+    const tick = () => {
+      if (!this._running) return;
+      this._frame = requestAnimationFrame(tick);
+      const dt = Math.min(this._clock.getDelta(), 0.1);
+      if (this.mode === 'walk') this._stepWalk(dt);
+      else {
+        this.controls.update();
+        this.onHeading?.({ yaw: this.orbitYaw(), name: headingName(this.orbitYaw()) });
+      }
+      this.renderer.render(this.scene, this.camera);
+    };
+    tick();
+  }
+
+  /** Which way the orbit camera is looking, as a plan-space bearing, so
+   *  the compass reads the same in both modes. */
+  orbitYaw() {
+    const dx = this.controls.target.x - this.orbitCam.position.x;
+    const dz = this.controls.target.z - this.orbitCam.position.z;
+    return Math.atan2(dx, -dz);
+  }
+
+  stop() {
+    this._running = false;
+    if (this._frame) cancelAnimationFrame(this._frame);
+  }
+
+  dispose() {
+    this.stop();
+    window.removeEventListener('resize', this._onResize);
+    this.input.dispose();
+    this.controls.dispose();
+    this.renderer.dispose();
+  }
+}

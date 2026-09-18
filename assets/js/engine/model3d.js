@@ -37,6 +37,11 @@ export function buildModel(building, placements = [], palette, opts = {}) {
   const furnitureGroups = {};
   const roofGroup = new THREE.Group();
   roofGroup.name = 'roof';
+  // What the walkthrough stops against, and what carries it upstairs.
+  // Both are derived from the same geometry the model draws, so a wall
+  // you can see is a wall you bump into.
+  const colliders = [];
+  const climbs = [];
 
   for (const level of building.levels ?? []) {
     const g = new THREE.Group();
@@ -50,9 +55,9 @@ export function buildModel(building, placements = [], palette, opts = {}) {
       }
     }
     for (const wall of (building.walls ?? []).filter((w) => w.level === level.id)) {
-      for (const m of buildWall(wall, building.openings ?? [], level, defaults, palette, opts)) {
-        g.add(m);
-      }
+      const built = buildWall(wall, building.openings ?? [], level, defaults, palette, opts);
+      for (const m of built) g.add(m);
+      if (built.collider) colliders.push(built.collider);
     }
     for (const feature of (building.features ?? []).filter((f) => f.level === level.id)) {
       const m = buildFeature(feature, level, palette);
@@ -62,6 +67,8 @@ export function buildModel(building, placements = [], palette, opts = {}) {
       const from = (building.rooms ?? []).find((r) => r.id === stair.from);
       if (from?.level !== level.id) continue;
       g.add(buildStair(stair, level, null, palette));
+      const climb = climbFrom(stair, level, building);
+      if (climb) climbs.push(climb);
     }
     levelGroups[level.id] = g;
     root.add(g);
@@ -119,6 +126,38 @@ export function buildModel(building, placements = [], palette, opts = {}) {
     size: bbox.getSize(new THREE.Vector3()),
     fullSize: full.getSize(new THREE.Vector3()),
     centre: bbox.getCenter(new THREE.Vector3()),
+    colliders,
+    climbs,
+  };
+}
+
+/**
+ * A stair as a RAMP the walker rides, derived from the flight the model
+ * already carries rather than authored a second time.
+ *
+ * Walking into the footprint lifts you along it and steps you onto the
+ * floor above. The footprint is used as drawn, with no padding: a
+ * generous pad here would swallow the doorway beside the flight and
+ * send you upstairs on the way to the kitchen.
+ */
+function climbFrom(stair, level, building) {
+  const [x0, y0, x1, y1] = stair.footprint ?? [];
+  if (x0 == null) return null;
+  const to = (building.rooms ?? []).find((r) => r.id === stair.to);
+  const upper = (building.levels ?? []).find((l) => l.id === to?.level);
+  if (!upper) return null;
+  // `direction` names the way UP in plan space, so '-y' climbs toward
+  // the north end of the footprint and '+y' toward the south.
+  const dir = stair.direction ?? '-y';
+  return {
+    x0, y0, x1, y1,
+    axis: dir.includes('y') ? 'y' : 'x',
+    // The end of the footprint you arrive at the TOP of.
+    topAtLow: dir.startsWith('-'),
+    bottom: level.elevation,
+    top: upper.elevation,
+    fromLevel: level.id,
+    toLevel: upper.id,
   };
 }
 

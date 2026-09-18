@@ -1,16 +1,28 @@
 // model3d/geom.js - the one place plan space and world space meet.
 //
-// Plan space is metres with y running north to south, and the drawing
-// uses the same numbers. World space is three.js's, where y is UP, so
-// plan (x, y) maps to world (x, height, -y). That single mapping lives
-// in v() below and nowhere else, because two of them would eventually
-// disagree and the model would be a mirror image of the plan.
+// Plan space is metres with x running west to east and y running NORTH
+// TO SOUTH, and the drawing uses the same numbers. World space is
+// three.js's: right-handed, with y UP.
+//
+// THE MAPPING IS plan (x, y) -> world (x, height, y), AND THE SIGN OF
+// THAT LAST TERM IS LOAD-BEARING. three.js is right-handed, so with
+// +Y up the axes must satisfy X cross Y = Z. Taking +X as east, east
+// cross up = SOUTH, so +Z must be south - which is plan y, unnegated.
+//
+// This was wrong once. Negating it makes +Z north, which is a
+// LEFT-handed frame, and a left-handed frame does not fail loudly: it
+// renders a perfect mirror image of the house. Every room ends up
+// reflected east to west, and from the garden side the mirror and the
+// viewpoint cancel out so it still looks right. Seen from the road,
+// with the front door at the bottom the way a plan draws it, the
+// west-side rooms appear on the east. `tests/unit/model3d.test.mjs`
+// pins the handedness for that reason.
 
 import * as THREE from '../../../vendor/three.module.min.js';
 
 export { THREE };
 
-export const v = (x, h, y) => new THREE.Vector3(x, h, -y);
+export const v = (x, h, y) => new THREE.Vector3(x, h, y);
 export const lerp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
 
 export function box(w, h, d, color, opts = {}) {
@@ -45,7 +57,10 @@ export function segmentBox(a, b, thickness, base, height, color, opts) {
   if (len <= 0.001 || height <= 0.001) return null;
   const mesh = box(len, height, thickness, color, opts);
   mesh.position.copy(v((a[0] + b[0]) / 2, base + height / 2, (a[1] + b[1]) / 2));
-  mesh.rotation.y = Math.atan2(dy, dx);
+  // A box's long axis is +X, and a positive rotation about +Y swings +X
+  // toward -Z. The wall runs toward world (dx, 0, dy), so the angle is
+  // negated in y. This pairs with v(): change one and this is wrong.
+  mesh.rotation.y = Math.atan2(-dy, dx);
   return mesh;
 }
 

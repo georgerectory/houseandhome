@@ -174,12 +174,43 @@ drift from its own walls. `tools/build-building.mjs` does that arithmetic
 and writes the JSON the site reads; the geometry gate re-runs it and
 fails if the committed output has drifted.
 
+**The 3D frame is right-handed, and that is not cosmetic.** Plan space
+runs x east and y NORTH TO SOUTH; the model maps plan `(x, y)` to world
+`(x, h, y)` in `model3d/geom.js`. Negating that last term makes `+Z`
+north, which is LEFT-handed, and a left-handed frame does not fail
+loudly - it renders a perfect mirror of the house, and from the garden
+side the mirror and the viewpoint cancel out so it still looks right.
+That shipped once. `tests/unit/model3d.test.mjs` pins it in arithmetic,
+and the 3D view carries a compass for the same reason.
+
 **Nothing in the model is measured.** Every figure is read off a drawing
 or derived from one, and each carries the document it came from in
 `sources` and `statedDimensions`. The Survey view compares every stated
 figure against what the geometry computes and reports the difference in
 millimetres. A residual is never absorbed: where a drawing and the model
 disagree, both numbers stay on the page.
+
+## The House page
+
+Three views over one model, and a fourth over the figures behind it:
+**Plan** (SVG, drawn to scale), **3D** (orbit the house from named
+viewpoints), **Walk** (first person, eye height) and **Survey**.
+
+The walkthrough is phone-first. The left two fifths of the view is a
+movement stick that appears under the thumb wherever it lands; anywhere
+else looks. A keyboard gets pointer lock and WASD. Collision is against
+WALLS ONLY - furniture is walked through deliberately, so a sofa can
+never trap someone in a corner - and the stair is a ramp derived from
+the flight the model already carries, so which floor you are on follows
+your feet. The maths is pure and lives in `assets/js/engine/walk.js`; the
+input and the cameras are in `assets/js/core/planner/`.
+
+Every layer of the drawing can be switched off from one Display panel -
+room names, sizes, furniture, furniture names, equipment pins, door
+swings, dimensions, grid, the circulation overlay, roof, glazing - and
+the choice is remembered. A toggle NEVER repaints the page: it would
+close the panel, lose the camera and, in the walkthrough, put you back at
+the front door.
 
 ## Front end
 

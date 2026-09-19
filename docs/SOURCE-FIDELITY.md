@@ -333,13 +333,29 @@ figures in words.
       garden and not in the 5m front.
 - [x] Front faces SOUTH onto Ameysford Road. Pine Close WEST, No. 46
       EAST, garages and then Pine Close homes NORTH. Corner plot.
-- [ ] NOT modelled, deliberately: hedge, rough grass, overgrown shrubs,
+- [x] THE HEDGE, added at the owner's later request. 0.78m deep,
+      measured: the site plan's laurel band scans 0.76 to 0.80m thick
+      down both sides and along the front, and the same figure falls out
+      of the handbook's two setback statements - 2.70m to the west
+      boundary against a stated "about 2 m to the Pine Close hedge", and
+      6.61m east against a stated 5.8m to the hedge. Three independent
+      readings agreeing.
+- [x] 1.83m high - six feet. THE OWNER'S FIGURE, not a measurement and
+      not on any source. Recorded as theirs. It stands 210mm above eye
+      height, so you cannot see over it from the garden, which is the
+      thing modelling it answers.
+- [ ] The source draws the hedge on the WEST, EAST and SOUTH only. The
+      north end carries the rear hardstanding and the gate onto Pine
+      Close, with a shrub mass rather than a run of laurel. It is
+      modelled on all four sides because the owner asked for a
+      surrounding hedge, so the NORTH run is intent, not record.
+- [ ] STILL not modelled, deliberately: rough grass, overgrown shrubs,
       planting bed, hardstanding, shrub border, sheds, vehicles, open
       ground, the rear gate. Every one is traced off an aerial to plus
       or minus one to two metres by the source's own admission. The
-      owner asked for the boundary and not the surfaces, and the reason
-      holds independently: drawing them beside walls measured off a
-      floor plan would dress an estimate as a survey.
+      hedge is the exception because it is 1.83m of solid green rather
+      than a surface; drawing the rest beside walls measured off a floor
+      plan would dress an estimate as a survey.
 - [ ] The boundary is a RECTANGLE because page 8 draws it as one and
       labels it "Boundary (approx.)". The aerial on page 27 shows the
       real boundary is not quite square. A title plan settles it.

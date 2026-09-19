@@ -50,6 +50,25 @@
    "east": "No. 46",
    "north": "Garage and outbuilding range, then Pine Close homes",
    "south": "Ameysford Road"
+  },
+  "hedge": {
+   "heightM": 1.83,
+   "depthM": 0.78,
+   "heightConfidence": "confirmed",
+   "depthConfidence": "researched",
+   "sides": [
+    "west",
+    "east",
+    "south",
+    "north"
+   ],
+   "drawnOn": [
+    "west",
+    "east",
+    "south"
+   ],
+   "species": "Laurel",
+   "note": "Six feet is the owner's figure, not a measurement. The depth is scaled off the site plan's laurel band and agrees with the handbook's own two setback statements. Nothing here is surveyed."
   }
  },
  "sources": [

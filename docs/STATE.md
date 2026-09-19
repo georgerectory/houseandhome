@@ -21,8 +21,11 @@ ceiling. New walls read as plaster inside rather than as the near-black
 the plan uses for new work.
 
 **The plot is modelled** - 17.60 x 40.00m off the handbook's site plan,
-switchable in all three views, off by default. Boundary only: no
-hardstanding, no hedge, no shed.
+switchable in all three views, off by default. Boundary and the hedge
+standing on it (1.83m high, 0.78m deep) and nothing else: no
+hardstanding, no shrubs, no shed. Six feet is the owner's figure; the
+depth is scaled, and the clear gaps it leaves - 1.9m west, 5.9m east -
+land on the handbook's own stated 2m and 5.8m.
 
 **A doorway bug is fixed.** The walker's distance along a wall was
 measured radially from the wall's start, which folded their standoff

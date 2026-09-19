@@ -70,3 +70,42 @@ test('the plot belongs to the property, not to a stage', () => {
     assert.equal(read(file).plot, undefined, `${file} must not carry its own plot`);
   }
 });
+
+test('the hedge stands on the boundary, inside it', () => {
+  const h = plot.hedge;
+  assert.ok(h, 'no hedge on the plot');
+  // Six feet. The owner's figure, so it is theirs to change, but it has
+  // to BE six feet: a hedge modelled at 1.2 would let you see over it
+  // from the garden, which is the one thing this is here to answer.
+  assert.ok(Math.abs(h.heightM - 1.83) < 0.005, `hedge is ${h.heightM}m, not 1.83`);
+  assert.equal(h.heightConfidence, 'confirmed', 'the height is the owner\'s word, not an observation');
+  assert.equal(h.depthConfidence, 'researched', 'the depth is scaled off a drawing, not measured');
+  // It must fit inside its own plot twice over, or the two sides meet in
+  // the middle and there is no garden left.
+  assert.ok(h.depthM > 0 && h.depthM * 2 < plot.widthM, `hedge depth ${h.depthM} does not fit the plot`);
+  assert.ok(h.sides.length === 4, 'the owner asked for a surrounding hedge');
+});
+
+test('the hedge does not reach the house on any side', () => {
+  // If it did, the setbacks would be lying: "2m to the hedge" has to
+  // leave 2m of something you can walk on.
+  const { widthM, depthM } = property.envelope;
+  const h = plot.hedge.depthM;
+  const gaps = {
+    west: -plot.originX - h,
+    east: (plot.originX + plot.widthM) - widthM - h,
+    north: -plot.originY - h,
+    south: (plot.originY + plot.depthM) - depthM - h,
+  };
+  for (const [side, gap] of Object.entries(gaps)) {
+    assert.ok(gap > 0.5, `${side}: only ${gap.toFixed(2)}m between the hedge and the house`);
+  }
+  // And the west gap is the tight one the handbook calls about 2m.
+  assert.ok(gaps.west > 1.7 && gaps.west < 2.3, `west path is ${gaps.west.toFixed(2)}m`);
+});
+
+test('the hedge is taller than the walker', () => {
+  // 1.62m eye height. A hedge you can see over answers a different
+  // question from the one the owner asked.
+  assert.ok(plot.hedge.heightM > 1.62, 'you can see over the hedge');
+});

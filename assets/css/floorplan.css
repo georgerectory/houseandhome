@@ -102,15 +102,17 @@
   stroke-width: 0.12;
   stroke-dasharray: 0.6 0.35;
 }
+.fp-plot-hedge { fill: var(--plan-hedge); opacity: 0.55; }
 .fp-plot-dim, .fp-plot-tick { stroke: var(--plan-boundary); stroke-width: 0.05; }
 .fp-plot-figure, .fp-plot-name {
   fill: var(--plan-boundary);
-  font-size: 0.42px;
   font-weight: 600;
   paint-order: stroke;
   stroke: var(--paper);
   stroke-width: 0.14;
 }
+/* The figure carries its own font-size, fitted to its dimension line. */
+.fp-plot-name { font-size: 0.52px; }
 .fp-plot-figure { text-anchor: middle; dominant-baseline: middle; }
 /* The swing is the most useful mark on a floor plan: it is what tells
  * you the chest of drawers cannot go there. Drawn from the same numbers
@@ -346,6 +348,7 @@
   --plan-leaf-rail: oklch(79% 0.045 65);
   --plan-ironmongery: oklch(62% 0.012 250);
   --plan-boundary: oklch(58% 0.11 145);
+  --plan-hedge:    oklch(52% 0.09 140);
   /* New work SEEN AS A SURFACE rather than as a drawing. On the plan,
    * new walls are near-black against the existing orange, which is the
    * right weight for a construction drawing. Inside the model that same
@@ -375,6 +378,7 @@
   --plan-leaf-rail: oklch(60% 0.042 65);
   --plan-ironmongery: oklch(72% 0.012 250);
   --plan-boundary: oklch(72% 0.10 145);
+  --plan-hedge:    oklch(46% 0.08 140);
   --plan-wall-new-face: oklch(42% 0.022 250);
 }
 @media (prefers-color-scheme: dark) {
@@ -399,6 +403,7 @@
   --plan-leaf-rail: oklch(60% 0.042 65);
   --plan-ironmongery: oklch(72% 0.012 250);
   --plan-boundary: oklch(72% 0.10 145);
+  --plan-hedge:    oklch(46% 0.08 140);
   --plan-wall-new-face: oklch(42% 0.022 250);
   }
 }

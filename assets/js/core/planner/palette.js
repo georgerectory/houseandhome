@@ -56,5 +56,6 @@ export function palette() {
     leafRail: t('--plan-leaf-rail', 0xd7bb92),
     ironmongery: t('--plan-ironmongery', 0x8b8f96),
     boundary: t('--plan-boundary', 0x4f8a5e),
+    hedge: t('--plan-hedge', 0x5f7f4a),
   };
 }

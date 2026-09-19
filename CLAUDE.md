@@ -245,11 +245,27 @@ handbook's site plan, with the house anchored by its west and south
 faces - the two a setting-out would work from - so the depth residual
 falls in the 27m rear garden rather than the 5m front. It is a
 switchable layer in all three views and OFF by default, because the plan
-has to zoom out to a fifth of its scale to fit it. Nothing inside the
-boundary is modelled: the source colours in hedge, grass, shrubs,
-hardstanding and sheds, every one traced off an aerial to plus or minus
-a metre or two, and drawing those beside walls measured off a floor plan
-would dress an estimate as a survey.
+has to zoom out to a fifth of its scale to fit it.
+
+**The HEDGE is on the boundary and is the only planting modelled**, at
+1.83m high and 0.78m deep. It earns its place because it is not a
+surface: it is six feet of solid green, so it decides what you can see
+from the garden and whether the west side is a path or a passage. Its
+depth is scaled off the site plan and agrees with the handbook's own two
+setback statements; its HEIGHT is the owner's figure and nothing else,
+recorded as `heightConfidence: 'confirmed'` rather than as an
+observation. The plan therefore dimensions each setback twice - to the
+line and clear of the hedge - because "2.7m to the boundary" and "1.9m
+you can walk down" are different answers to different questions.
+
+Nothing else inside the boundary is modelled: the source also colours in
+grass, shrubs, hardstanding and sheds, every one traced off an aerial to
+plus or minus a metre or two, and drawing those beside walls measured
+off a floor plan would dress an estimate as a survey. The hedge is NOT a
+collider either - the walkthrough stops against walls only, and the
+viewpoint that stands you in front of the house is further out than the
+front boundary, so a solid hedge would put you outside your own plot
+with a wall in the way.
 
 **The equipment register belongs to the household, not to a building.**
 Its `plan_x_m` / `plan_y_m` were authored against whatever building was

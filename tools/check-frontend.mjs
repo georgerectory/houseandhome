@@ -449,6 +449,28 @@ for (const theme of THEMES) {
           });
           if (!site.on) failures.push(`${label}: the plot boundary draws nothing`);
           if (!site.inside) failures.push(`${label}: the house is not inside its plot`);
+
+          // THE HEDGE. Six feet of it, standing on the boundary. Checked
+          // by the height of what is actually in the scene, because a
+          // hedge that builds at the wrong height looks like a hedge.
+          const hedge = await page.evaluate(() => {
+            const p = window.__hhPlanner;
+            const spec = p.building.plot?.hedge;
+            if (!spec) return { spec: false };
+            p.showPlot(true);
+            let tallest = 0;
+            p.model.plotGroup.traverse((m) => {
+              if (!m.isMesh) return;
+              const h = m.geometry?.parameters?.height ?? 0;
+              if (h > tallest) tallest = h;
+            });
+            p.showPlot(false);
+            return { spec: true, want: spec.heightM, tallest };
+          });
+          if (!hedge.spec) failures.push(`${label}: the plot carries no hedge`);
+          else if (Math.abs(hedge.tallest - hedge.want) > 0.01) {
+            failures.push(`${label}: the hedge builds ${hedge.tallest.toFixed(2)}m tall, not ${hedge.want}`);
+          }
         }
         if (!/^Facing /.test(walk.word)) {
           failures.push(`${label}: the compass says "${walk.word}" rather than a bearing`);

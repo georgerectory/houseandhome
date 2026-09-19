@@ -153,6 +153,41 @@ export const building = {
       north: 'Garage and outbuilding range, then Pine Close homes',
       south: 'Ameysford Road',
     },
+    // THE HEDGE, which is the boundary as you actually meet it. The line
+    // is a survey abstraction; the hedge is the thing that stops the
+    // view, casts the shade and decides whether the west side is a path
+    // or a passage.
+    //
+    // Its DEPTH is measured: the site plan draws a laurel band just
+    // inside the boundary and it scans 0.76 to 0.80m thick down both
+    // sides and along the front. That reconciles with the stated
+    // setbacks from two directions at once - the handbook says about 2m
+    // from the house to the Pine Close hedge against a boundary measured
+    // at 2.70, and 5.8m to the east hedge against a boundary at 6.61 -
+    // so 0.78 is taken from three independent readings that agree.
+    //
+    // Its HEIGHT is the owner's: six feet, 1.83m. No source states it
+    // and nobody has measured it. It is recorded as the owner's figure
+    // rather than as an observation, and at 1.83 it stands 210mm above
+    // eye height, so you cannot see over it from the garden. That is the
+    // point of modelling it.
+    //
+    // The source draws the hedge on the WEST, EAST and SOUTH only: the
+    // north end carries the rear hardstanding and the gate onto Pine
+    // Close, with a shrub mass rather than a run of laurel. It is
+    // modelled on all four sides because the owner asked for a
+    // surrounding hedge, and the north run is therefore the owner's
+    // intent, not the drawing's record.
+    hedge: {
+      heightM: 1.83,
+      depthM: 0.78,
+      heightConfidence: 'confirmed',
+      depthConfidence: 'researched',
+      sides: ['west', 'east', 'south', 'north'],
+      drawnOn: ['west', 'east', 'south'],
+      species: 'Laurel',
+      note: 'Six feet is the owner\'s figure, not a measurement. The depth is scaled off the site plan\'s laurel band and agrees with the handbook\'s own two setback statements. Nothing here is surveyed.',
+    },
   },
 
   sources: [

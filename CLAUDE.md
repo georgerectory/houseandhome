@@ -19,6 +19,25 @@ the result. There is no form on it and no button that changes anything.
 **The repository is public; the data is not.** Everything real lives in
 Supabase behind row-level security.
 
+**The standing scope is a FULL RESTORATION.** Every internal face comes
+back to the brick, the house is replumbed and rewired, and it is made
+watertight before anything goes back on. Not a redecoration with the
+worst bits fixed. This is the assumption behind every quantity, total
+and sequence in this system, and it is recorded as a `decision` row so
+it can be argued with rather than inherited silently.
+
+Two things follow from it, and neither is optional:
+
+- **Sequence beats keenness.** Paint, carpet, grout and draught-proofing
+  applied before a room is stripped is work that gets demolished. Where
+  an existing row conflicts with the strip, SAY SO on the row - a `risk`
+  note tagged `review:scope-conflict` - and let the owner decide. Do not
+  quietly drop somebody else's job, and do not quietly do both.
+- **The internal wall face is a quantity, not an impression.** 241 m2 of
+  wall and 77 m2 of ceiling on this house: four skips out and 10.6
+  tonnes of lime plaster back. `npm run takeoff` derives it from the
+  geometry. Nothing about it is typed.
+
 ## Non-negotiable rules
 
 1. **Never commit a credential.** The Supabase anon key in
@@ -36,6 +55,34 @@ Supabase behind row-level security.
    leaving it means two mechanisms for one job.
 4. **Unconfirmed data never drives a decision.** See below.
 5. **`npm test` is green before every commit.**
+
+## Acting without asking
+
+**The owner has given standing permission for SQL.** Every query,
+migration and advisor check through the Supabase connector is
+pre-approved. Run it. Do not stop to ask whether a read is allowed, do
+not narrate a statement and wait, and do not batch work up into a
+request for approval. The instruction was given once and lives here so
+it never has to be given again.
+
+That permission is about INTERRUPTION, not about care. Everything else
+in this file still binds, and three things in particular:
+
+- **Nothing is deleted.** Rows close with a status and a resolution.
+  Standing permission to run SQL is not permission to retire a row the
+  owner wrote; it is permission to run the statement that closes it
+  once they have said so.
+- **Verify by re-reading.** A write that was not read back did not
+  happen. This matters more under standing permission, not less,
+  because nobody is reading the statement before it runs.
+- **Drafted stays drafted.** Writing a row does not confirm it. Only
+  the owner's explicit word moves `confidence` to `confirmed`.
+
+The same standing permission covers reading the repository, `npm test`
+and `npm run takeoff`. Something genuinely irreversible - dropping a
+table, resetting a password, closing a row the owner authored - is a
+decision to put to them, and a decision is not the same thing as a
+permission.
 
 ## Confirmed and unconfirmed: the rule that matters most
 
@@ -117,11 +164,118 @@ inside the horizon is hatched and labelled rather than hidden. Because it
 is computed from cost estimates, it is a projection whenever those are
 unconfirmed, and the page says so.
 
+**A thing is on the shopping list because a live job needs it.** Not
+because somebody thought of it. A renovation list written in one sitting
+contains a mini digger on the day the keys are collected, and the total
+at the bottom is therefore wrong by thousands in the direction that
+makes the whole plan look unaffordable. So the list is DERIVED: a
+`requires_material` link runs from the job to the purchase, and
+`shopping_list.demand_state` computes what that means right now -
+
+| State | Means |
+|---|---|
+| `live` | A job that requires it is ready, in progress, or planned in the `now`/`next` horizon. It costs money this round. |
+| `dormant` | It is required, but only by work nobody has started. Cost excluded from the total and reported separately, never hidden. |
+| `standalone` | Nothing requires it; it is its own reason. A bed. A fridge. |
+| `closed` | Done or dropped. |
+
+Move the foundations job from `idea` to `planned`/`next` and the digger,
+the muck away, the breaker and the compactor all appear together. Drop
+it and they all go. **That is the whole mechanism for "the list adapts
+when the plans change", and it only works because nothing is stored.**
+So when a plan moves, move the JOB and let the list follow; never
+hand-edit a total. `shopping_totals` splits buy from hire (hire is never
+owned), reports `dormant_cost` so parked money is visible, and reports
+`unconfirmed_cost` so a total made of drafted estimates says so on its
+own face.
+
+**Quantities come from `npm run takeoff`, never from a cell.** The
+geometry is the authority; a number in `stock_targets.quantity_needed`
+is only its shadow, and a shadow goes stale the moment a wall moves. So
+whenever the extension, the garden or the room plan changes: re-run the
+takeoff, diff it against the stored targets, and reconcile the
+difference DELIBERATELY - with the basis rewritten to match. Every
+takeoff line carries its own working in words and is `drafted` however
+precise the geometry underneath it, because the rates are trade
+convention and nobody measured them at this house.
+
+**A stockpile is a spec, a count and a reason - in that order.**
+`stock_targets` exists because four thousand reclaimed bricks is not a
+purchase: it is a quantity you count toward over two years, acquired
+many times at different prices, and the running total is the sum of
+`stock_acquisitions` and is NEVER stored on the target. Four rules:
+
+- **A spec you cannot hold a listing up against is not a spec.**
+  "Reclaimed brick" fails. "Imperial 9 x 4 3/8 x 2 5/8in, soft red,
+  sand-struck, circa 1880" passes. `reject_if` does the other half of
+  the job. Without both, a stockpile becomes a pile of things that
+  nearly match, and you cannot build a wall out of nearly.
+- **Breakage is a negative haul, not a deletion.** "Twelve turned out to
+  be wirecut" is a fact worth keeping.
+- **Collecting against an unidentified spec is the expensive mistake.**
+  A target whose material has not been seen in the flesh stays `idea`,
+  not `collecting`, however confident the quantity is.
+- **Some things get worse by being bought early.** A sanitaryware set
+  bought before the bathroom is designed is a set that may not fit.
+  Where that is true, say so in `notes` and leave the status at `idea`.
+
 **Relationships are rows in `knowledge_links`, never a new column.**
 Thirteen typed kinds. `requires_material` is what turns a job into a
 shopping list; `matches_style` is what keeps fittings consistent across
 rooms. Links close (`valid_to`), never delete. A link you write is
 `proposed` until the owner confirms it.
+
+## Review sessions
+
+The owner opens a chat and says **"I wish to review this"** - the
+roadmap, the shopping list, the stockpile, the monthly budget. That is
+a defined session shape, not a conversation.
+
+**Ground first, then ask.** `house_context()`, then the relevant view -
+`shopping_list`, `shopping_totals`, `stock_plan`, the roadmap. Open by
+saying what is in front of you in two or three lines: how many rows,
+what they total, how much of that total is unconfirmed, and what is
+dormant. Never open with a question.
+
+**Then walk the list, one row at a time, as CLICKABLE QUESTIONS.** Use
+the question tool with two to four concrete options - not free text, and
+not a wall of them. One row per question, the row named, its cost and
+its current values in the question so the answer can be given without
+scrolling back. Batch at most a handful of questions before writing what
+has been decided; a review that collects thirty answers and writes at
+the end is a review that loses them all when the session ends.
+
+What each answer changes, and it is always a COLUMN, never a score:
+
+| Asked | Writes |
+|---|---|
+| Needed at all? | `status` - or `dropped` WITH a resolution. |
+| When in the project? | `phase`, and `horizon` if it moved. |
+| How much reward? | `benefit_type`, and the room's `room_weight` if the room itself is wrong. |
+| How much effort? | `effort`, `duration_min_minutes` / `duration_max_minutes`. |
+| Manual labour? | `physical_demand`, `two_person_job`. |
+| Easy or hard? | `skill_level`, `performed_by`. |
+| Expensive or not? | `cost_best` / `cost_expected` / `cost_worst`, and `cost_confidence`. |
+
+**Priority is never one of them.** It is computed from room weight,
+theme weight and benefit weight, so a review changes the AXES and then
+runs `recompute_priorities(household_id)`. Anybody typing a priority has
+misunderstood the system.
+
+**Confirming is the point.** The single most valuable thing a review
+produces is `confidence` moving from `drafted` to `confirmed` on figures
+the owner has actually checked, because that is what lets a figure drive
+an allocation. Ask for it explicitly. Never infer it from enthusiasm.
+
+**Values fluctuate with the project, and the review is where that is
+caught.** A digger is high effort and high cost when there is digging
+and absent when there is not; a hedge is low cost and high reward in
+November and neither in June. If a row's values no longer match what the
+project is, the answer is to change them, not to note the discrepancy.
+
+**End by writing, re-reading and saying what changed** - counts, the new
+totals, and what is still unconfirmed. Then `docs/STATE.md` and `npm
+test` as usual.
 
 ## Testing
 

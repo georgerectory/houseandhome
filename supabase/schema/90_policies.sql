@@ -31,6 +31,7 @@ begin
     'price_references','carried_finance','allocation_settings','accounts',
     'assets','asset_parts','asset_faults','inventory_items','consumables',
     'recipes','recipe_ingredients',
+    'stock_targets','stock_acquisitions',
     'house_facts','decisions','palettes','contractors','invoices','scheduled_events',
     'estimate_outcomes','learned_factors','learning_runs','insight_messages'
   ] loop
@@ -98,6 +99,7 @@ begin
     'price_references','carried_finance','allocation_settings','accounts',
     'assets','asset_parts','asset_faults','inventory_items','consumables',
     'recipes','recipe_ingredients',
+    'stock_targets','stock_acquisitions',
     'house_facts','decisions','palettes','contractors','invoices','scheduled_events',
     'estimate_outcomes','learned_factors','learning_runs','insight_messages'
   ] loop

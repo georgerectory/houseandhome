@@ -115,6 +115,46 @@ export const building = {
   },
   envelope: { widthM: W_ENV, depthM: D_ENV },
 
+  // THE PLOT. Where the house sits in its boundary, and nothing else:
+  // no hardstanding, no hedge, no shed, no planting. Those are surface
+  // areas, they are traced off aerial photographs to plus or minus a
+  // metre or two, and drawing them would dress an estimate up as a
+  // survey. The boundary alone answers the question worth asking -
+  // which side has room, and how much.
+  //
+  // Measured off the handbook's site plan (page 8), which is drawn to
+  // scale and carries its own bar: the boundary rectangle is 904 x 2056
+  // pixels at 51.4 px/m, which is 17.59 x 40.00m against a stated
+  // 17.6 x 40. The house's outer faces on the same drawing sit 2.70m
+  // from the west boundary, 6.61 from the east, 26.92 from the north
+  // and 4.91 from the south - and those four plus the footprint sum to
+  // the stated plot in both directions, so the drawing is consistent
+  // with itself.
+  //
+  // The house is anchored by its WEST and SOUTH faces, because those
+  // are the two a setting-out would work from: the Pine Close hedge and
+  // the road frontage. The depth residual (see the `depth` derivation)
+  // therefore lands in the rear garden, which is 27m long and where
+  // 280mm is nothing, rather than in the 5m front garden, where it is
+  // not.
+  plot: {
+    widthM: 17.60,
+    depthM: 40.00,
+    // The plot's north-west corner in plan space, where the house's own
+    // outer north-west corner is the origin.
+    originX: -2.70,
+    originY: -27.37,
+    confidence: 'drafted',
+    source: 'design-study',
+    note: 'Boundary approximate. The handbook marks it "Boundary (approx.)" and says garden outlines are traced from aerial photographs to plus or minus one to two metres, to be refined against the title plan and a tape. It is a rectangle here because that is how the source draws it; the aerial on page 27 shows the real boundary is not quite square.',
+    neighbours: {
+      west: 'Pine Close',
+      east: 'No. 46',
+      north: 'Garage and outbuilding range, then Pine Close homes',
+      south: 'Ameysford Road',
+    },
+  },
+
   sources: [
     {
       id: 'agent-plan',
@@ -163,7 +203,7 @@ export const building = {
     { of: 'room:post-extension/bathroom', kind: 'areaM2', value: 4, source: 'design-study' },
 
     { of: 'stage:post-extension', kind: 'envelopeWidthM', value: 8.2, source: 'design-study' },
-    { of: 'stage:post-extension', kind: 'envelopeDepthM', value: 8.0, source: 'design-study', tolerance: 0.3, note: 'Stated to one decimal place in a headline. The same study\'s floor-area figure agrees with 7.72, not 8.00.' },
+    { of: 'stage:post-extension', kind: 'envelopeDepthM', value: 8.0, source: 'design-study', tolerance: 0.3, note: 'Stated in a headline AND drawn: scaling the study\'s first-floor plan against its own 8.20m width gives 8.00 exactly. The model builds 7.72 from the agent\'s measured rooms. See the depth derivation - this is a 280mm question that only a tape settles.' },
     { of: 'stage:post-extension', kind: 'internalAreaM2', value: 112, source: 'design-study' },
     { of: 'stage:post-extension', kind: 'ridgeHeightM', value: 7.8, source: 'design-study', tolerance: 0.12 },
     { of: 'stage:post-extension', kind: 'newExternalWallM', value: 12, source: 'design-study', tolerance: 1.5 },
@@ -188,7 +228,7 @@ const DERIVATION = [
     working: `${T_EXT} + 3.14 (kitchen) + ${T_EXT} (shared wall) + 3.89 (front rooms) + ${T_EXT} = 7.72`,
     result: 'depth = 7.72, against a stated 8.00',
     residualMm: 280,
-    note: 'The stated 8.0 is a headline rounded to one decimal, and the design study draws its own plans at about 7.98. But the SAME study states an internal floor area of about 112 square metres, and (8.20 - 0.46) x (7.72 - 0.46) x 2 = 112.4. At a depth of 8.00 it would be 116.7. The agent\'s plan, which is the measured one, gives 7.72 from its own room sizes. The model is built at 7.72 and the 280mm is reported rather than absorbed.',
+    note: 'The model is built at 7.72 because the agent\'s plan is the only MEASURED source and 7.72 is what its own room sizes add up to. The design study states 8.0 and draws 8.00 exactly - scaling its first-floor plan against its own stated 8.20 width gives 8.00 to the millimetre - but it is a concept whose legend calls its own windows indicative. CORRECTION: an earlier version of this derivation claimed the study\'s 112 square metre floor area corroborated 7.72, on the reading that the area deducted 0.46 for the walls. The handbook states the study\'s actual formula - (width - 0.6) x (depth - 0.6) x 2 - and on that formula 112 follows from 8.00, not from 7.72. So the floor area is not independent evidence at all: it is computed from the depth, and it agrees with the study, not with the agent. The case for 7.72 now rests on the agent\'s measurements alone, where it is still the stronger one: the study\'s stated snug width of 3.25 matches the agent\'s measured 3.26 to a centimetre, while its stated depth of 4.10 exceeds the agent\'s measured 3.89 by 210mm - the same residual, in the same direction, in a single room. The 280mm is reported, not absorbed.',
   },
   {
     id: 'eaves',
@@ -225,7 +265,9 @@ const SHARED_ASSUMPTIONS = [
   { id: 'stairs', severity: 'medium', note: 'A straight flight run north from the hall, 0.77m wide, 13 risers at 0.2077 with a 0.215 going. Both drawings show the flight and neither dimensions it; 0.77 is what fits between the hall walls below and the stairwell walls above, which do not line up.' },
   { id: 'chimneys', severity: 'low', note: 'Both breasts are 1.44m along the gable and project 0.45m, scaled off the agent\'s plan, which draws them as solid blocks on the west and east walls of the front rooms. Stack heights are scaled off the photograph.' },
   { id: 'hall-is-not-a-passage', severity: 'high', note: 'The hall derives to 0.87m wide and the flight needs 0.77 of it, so for 2.58 of the hall\'s 3.89m there is no way past the stair. The agent\'s plan draws the kitchen door at the head of the hall anyway, AND a second cased opening straight from the lounge into the kitchen, which is presumably the door anyone actually uses. The clearance check reports the hall as impassable because as drawn it is. Either the hall is wider than the arithmetic says, or there is a step under the flight, or the lounge is the route. Measure it.' },
-  { id: 'depth-residual', severity: 'high', note: 'The building is modelled 7.72m deep. The design study states 8.0m and draws about 7.98. See the derivation: the study\'s own floor-area figure and the agent\'s measured rooms both agree with 7.72, but until someone measures it this is a 280mm question.' },
+  { id: 'depth-residual', severity: 'high', note: 'The building is modelled 7.72m deep, from the agent\'s measured rooms. The design study states 8.0 and draws 8.00. Its floor-area figure is computed from its own depth and so corroborates nothing. Every room\'s north-south dimension carries this 280mm: at 8.00 the snug would be 4.04 deep against the agent\'s measured 3.89. Until someone measures it, this is the single biggest open question in the model.' },
+  { id: 'landing-is-narrow', severity: 'high', note: 'The landing\'s west arm - the run past the bathroom and office doors to bedroom 3 - is 0.575m clear, because it is set out between a 0.13 partition and the old rear wall at 0.23. The study draws it at about 0.72, but it draws every wall thinner than this model builds them. Bedroom 3\'s door is the whole of that end, so it is 0.575 wide too, which is not a buildable door. Either the partition moves north or bedroom 3 loses some depth. Reported, not corrected.' },
+  { id: 'plot-boundary', severity: 'medium', note: 'The plot is modelled as a 17.60 x 40.00m rectangle, scaled off the handbook\'s site plan, which labels it "Boundary (approx.)" and warns that outlines are traced from aerial photographs to plus or minus one to two metres. The setbacks it gives - 2.70 west, 6.61 east, 26.92 north, 4.91 south - sum to the stated plot in both directions, so the drawing is at least self-consistent. The house is anchored by its west and south faces, so the depth residual falls in the rear garden. No surface inside the boundary is modelled.' },
 ];
 
 // --- Stage one: the house as it stands -------------------------------
@@ -535,13 +577,13 @@ const postExtension = {
     { id: 'f-win-master-s', level: 'first', axis: 'y', line: 'ext-s', x: 6.015, width: 1.15, type: 'window' },
     // FIRST, internal. The bathroom and the office both open off the
     // landing's north side; the en-suite opens off its east end.
-    { id: 'f-door-bed3', level: 'first', axis: 'y', line: 'main-n', x: 2.145, width: 0.72, type: 'door', leaf: 'single', swing: { hinge: 'b', toward: 'north' }, provenance: 'new' },
+    { id: 'f-door-bed3', level: 'first', axis: 'x', line: 'bed3-e', y: 3.0825, width: 0.575, type: 'door', leaf: 'single', swing: { hinge: 'b', toward: 'west' }, provenance: 'new', note: 'In bedroom 3\'s EAST wall, off the landing\'s west end - not in the old rear wall, which would open it into bedroom 1. The study draws the leaf hung on the south jamb, where the partition meets the old rear wall, swinging back into the bedroom. The opening is the whole of the landing\'s west end, so it is as wide as that end is deep: 0.575 here against 0.697 scaled off the study, which draws every wall thinner than this model builds them. See the landing-is-narrow assumption.' },
     { id: 'f-door-bathroom', level: 'first', axis: 'y', line: 'land-n', x: 3.935, width: 0.57, type: 'door', leaf: 'single', swing: { hinge: 'a', toward: 'north' }, provenance: 'new' },
-    { id: 'f-door-office', level: 'first', axis: 'y', line: 'land-n', x: 5.195, width: 0.73, type: 'door', leaf: 'single', swing: { hinge: 'b', toward: 'north' }, provenance: 'new' },
-    { id: 'f-door-ensuite', level: 'first', axis: 'x', line: 'ens-w', y: 3.155, width: 0.63, type: 'door', leaf: 'single', swing: { hinge: 'b', toward: 'east' }, provenance: 'new', note: 'Off the LANDING, not off the master: the study puts the en-suite door in the landing\'s east end.' },
+    { id: 'f-door-office', level: 'first', axis: 'y', line: 'land-n', x: 5.089, width: 0.76, type: 'door', leaf: 'single', swing: { hinge: 'b', toward: 'north' }, provenance: 'new' },
+    { id: 'f-door-ensuite', level: 'first', axis: 'y', line: 'main-n', x: 6.125, width: 0.68, type: 'door', leaf: 'single', swing: { hinge: 'a', toward: 'north' }, provenance: 'new', note: 'Off the MASTER BEDROOM, which is what makes it an en-suite. The study draws ens-w solid its whole height and puts the leaf in the en-suite\'s south wall, hung on the west jamb and opening north into the shower room. Measured at x 5.75 to 6.43 and moved 35mm east so its west jamb lands on the face of the en-suite partition rather than 35mm behind it, which is where it would actually be built.' },
     { id: 'f-door-bed1', level: 'first', axis: 'y', line: 'main-n', x: 3.25, width: 0.74, type: 'door', leaf: 'single', swing: { hinge: 'b', toward: 'south' }, note: 'Hinged on the stairwell side so the leaf opens back against it.' },
     { id: 'f-open-landing', level: 'first', axis: 'y', line: 'main-n', x: 4.095, width: 0.94, type: 'door', leaf: 'cased', provenance: 'new', note: 'The old rear wall removed at the stairwell head, so the landing reaches the stair.' },
-    { id: 'f-door-master', level: 'first', axis: 'y', line: 'main-n', x: 4.99, width: 0.68, type: 'door', leaf: 'single', swing: { hinge: 'a', toward: 'south' } },
+    { id: 'f-door-master', level: 'first', axis: 'y', line: 'main-n', x: 4.964, width: 0.72, type: 'door', leaf: 'single', swing: { hinge: 'a', toward: 'south' } },
   ],
 
   stairs: [{
@@ -651,7 +693,7 @@ export const variants = [
       'A 1.6m island with two stools on its south side.',
       'Dining table at the east end: three chairs on its west side and a bench seat down the wall.',
       'Boot room takes the freezer, a sink and the washer-dryer, with the bench and coats against the wing wall.',
-      'Two desks and three chairs in the snug, an L-shaped sofa in its south-west corner.',
+      'Two desks and two chairs in the snug, and a sofa in its NORTH-WEST corner - moved there from the south-west corner the study draws it in, and reduced from an L to a single 1.26m seat, which is the longest run that corner holds between the chimney breast and the fitted store. The sideboard and loose chair that stood there are removed.',
       'The living room holds nothing but the stove. The study draws no sofa there and neither does this.',
       'Bedroom 3 holds one single bed. Bedroom 1 holds one double. Neither has a wardrobe or a bedside table on the drawing.',
     ],
@@ -680,19 +722,30 @@ export const variants = [
       F('kd-stool-2', 'ground', 'kitchen-diner', 'stool', 'Stool', [4.97, 2.58, 5.33, 2.94], { height: 0.70, belongsTo: 'kd-island' }),
       F('kd-table', 'ground', 'kitchen-diner', 'table', 'Dining table', [6.96, 1.09, 7.60, 2.51], { height: 0.75, clearance: { all: 0.40 } }),
       F('kd-bench', 'ground', 'kitchen-diner', 'bench', 'Bench seat', [7.60, 1.00, 7.97, 2.63], { height: 0.45, fixed: true, facing: 'w', belongsTo: 'kd-table' }),
-      F('kd-chair-1', 'ground', 'kitchen-diner', 'chair', 'Chair', [6.58, 1.14, 6.92, 1.51], { height: 0.90, belongsTo: 'kd-table' }),
-      F('kd-chair-2', 'ground', 'kitchen-diner', 'chair', 'Chair', [6.58, 1.61, 6.92, 2.00], { height: 0.90, belongsTo: 'kd-table' }),
-      F('kd-chair-3', 'ground', 'kitchen-diner', 'chair', 'Chair', [6.58, 2.08, 6.92, 2.46], { height: 0.90, belongsTo: 'kd-table' }),
+      F('kd-chair-1', 'ground', 'kitchen-diner', 'chair', 'Chair', [6.47, 1.10, 6.92, 1.55], { height: 0.90, belongsTo: 'kd-table' }),
+      F('kd-chair-2', 'ground', 'kitchen-diner', 'chair', 'Chair', [6.47, 1.58, 6.92, 2.03], { height: 0.90, belongsTo: 'kd-table' }),
+      F('kd-chair-3', 'ground', 'kitchen-diner', 'chair', 'Chair', [6.47, 2.045, 6.92, 2.495], { height: 0.90, belongsTo: 'kd-table' }),
       // --- Snug -----------------------------------------------------
-      F('sn-sideboard', 'ground', 'snug', 'shelf', 'Sideboard', [0.305, 3.60, 1.40, 4.14], { height: 0.85, facing: 's' }),
       F('sn-store', 'ground', 'snug', 'shelf', 'Store', [1.43, 3.60, 1.93, 4.04], { height: 2.00, fixed: true, facing: 's' }),
-      F('sn-chair-3', 'ground', 'snug', 'chair', 'Chair', [0.64, 4.15, 1.09, 4.60], { height: 0.90 }),
       F('sn-desk-n', 'ground', 'snug', 'desk', 'Desk', [2.84, 3.71, 3.49, 4.73], { height: 0.74, facing: 'w', clearance: { front: 0.6 } }),
       F('sn-chair-1', 'ground', 'snug', 'chair', 'Chair', [2.39, 4.02, 2.84, 4.47], { height: 0.90, belongsTo: 'sn-desk-n' }),
       F('sn-desk-s', 'ground', 'snug', 'desk', 'Desk', [2.84, 5.44, 3.49, 6.46], { height: 0.74, facing: 'w', clearance: { front: 0.6 } }),
       F('sn-chair-2', 'ground', 'snug', 'chair', 'Chair', [2.39, 5.75, 2.84, 6.20], { height: 0.90, belongsTo: 'sn-desk-s' }),
-      F('sn-sofa-w', 'ground', 'snug', 'sofa', 'L-shaped sofa', [0.23, 6.30, 0.97, 6.84], { height: 0.85, facing: 'e' }),
-      F('sn-sofa-s', 'ground', 'snug', 'sofa', 'L-shaped sofa', [0.23, 6.84, 2.57, 7.49], { height: 0.85, facing: 'n' }),
+      // MOVED to the room's north-west corner at the owner's request, out
+      // of the south-west corner the study draws it in, and the desk and
+      // chair that stood here are gone with it.
+      //
+      // It could not come across as an L. The study's is 2.31 x 1.16
+      // overall and the corner does not hold that: the chimney breast
+      // starts 1.29m down the west wall and the fitted store starts
+      // 1.20m along the north wall, which boxes the corner into roughly
+      // 1.2 x 1.3. So it is one sofa, 1.26 long and 0.85 deep, against
+      // the west wall between the north wall and the breast - the
+      // longest run the corner has. A return along the north wall was
+      // tried and came out 0.41m deep, which is a step, not a seat.
+      // Moving the store would let the whole L come across; nobody has
+      // asked for that.
+      F('sn-sofa', 'ground', 'snug', 'sofa', 'Sofa', [0.23, 3.60, 1.08, 4.86], { height: 0.82, facing: 'e' }),
       // --- Living room. The stove, and nothing else. ----------------
       F('lv-stove', 'ground', 'living', 'stove', 'Stove', [7.10, 5.32, 7.52, 5.77], { height: 0.65, fixed: true, facing: 'w' }),
       // --- Bedroom 3 ------------------------------------------------

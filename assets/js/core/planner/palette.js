@@ -31,7 +31,7 @@ export function palette() {
     external: t('--plan-external', 0xb08265),
     internal: t('--plan-internal', 0xe6e0d8),
     party: t('--plan-external', 0xb08265),
-    wallNew: t('--plan-wall-new', 0x2c3342),
+    wallNew: t('--plan-wall-new-face', 0xdfe2ea),
     roof: t('--plan-roof', 0x3d4552),
     built: t('--plan-built', 0xe0d9cd),
     furniture: t('--plan-furniture', 0xefe9df),
@@ -46,5 +46,15 @@ export function palette() {
     markerSoft: t('--accent-edge', 0x9fc0ae),
     sky: t('--paper-sunken', 0xf3f0ea),
     ground: t('--plan-ground', 0xdfe3d6),
+    // Joinery. A door and a window are the two things in a house whose
+    // size the eye actually knows, so they are the two worth colouring
+    // apart from the wall they sit in.
+    ceiling: t('--plan-ceiling', 0xf4f2ed),
+    lining: t('--plan-lining', 0xf6f4ef),
+    frame: t('--plan-lining', 0xf4f2ed),
+    leaf: t('--plan-leaf', 0xc9a877),
+    leafRail: t('--plan-leaf-rail', 0xd7bb92),
+    ironmongery: t('--plan-ironmongery', 0x8b8f96),
+    boundary: t('--plan-boundary', 0x4f8a5e),
   };
 }

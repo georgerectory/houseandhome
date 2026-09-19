@@ -13,10 +13,11 @@
 
 import { roomRects, stairsOn } from './floorplan.js';
 import { THREE } from './model3d/geom.js';
-import { buildWall, buildFloor } from './model3d/walls.js';
+import { buildWall, buildFloor, buildCeiling } from './model3d/walls.js';
 import { buildRoof, buildChimney } from './model3d/roof.js';
 import { buildFurniture, buildFeature, buildStair } from './model3d/furniture.js';
 import { buildMarker, buildLabel } from './model3d/markers.js';
+import { buildPlot } from './model3d/plot.js';
 
 /**
  * Build the whole model.
@@ -35,8 +36,16 @@ export function buildModel(building, placements = [], palette, opts = {}) {
   const levelGroups = {};
   const markerGroups = {};
   const furnitureGroups = {};
+  // Ceilings live in their own group per level, because the two views
+  // want opposite things. The orbit view looks DOWN into a storey and a
+  // ceiling would be a lid over everything it is there to show; the
+  // walkthrough is inside the room and without one you stand in a
+  // roofless box. Same geometry, shown in one and not the other.
+  const ceilingGroups = {};
   const roofGroup = new THREE.Group();
   roofGroup.name = 'roof';
+  const plotGroup = new THREE.Group();
+  plotGroup.name = 'plot';
   // What the walkthrough stops against, and what carries it upstairs.
   // Both are derived from the same geometry the model draws, so a wall
   // you can see is a wall you bump into.
@@ -59,14 +68,21 @@ export function buildModel(building, placements = [], palette, opts = {}) {
     const g = new THREE.Group();
     g.name = `level-${level.id}`;
     const shell = { ...level, ceilingHeight: storeyHeight(level) };
+    const cg = new THREE.Group();
+    cg.name = `ceiling-${level.id}`;
     for (const room of (building.rooms ?? []).filter((r) => r.level === level.id)) {
       // A compound room gets a slab per rectangle, so an L-shaped
-      // landing does not get a floor over the stairwell it wraps.
+      // landing does not get a floor over the stairwell it wraps - and
+      // for the same reason it does not get a ceiling over it either.
       for (const rect of roomRects(room)) {
         const f = buildFloor(rect, level, defaults, palette);
         if (f) g.add(f);
+        const c = buildCeiling(rect, level, palette);
+        if (c) cg.add(c);
       }
     }
+    ceilingGroups[level.id] = cg;
+    root.add(cg);
     for (const wall of (building.walls ?? []).filter((w) => w.level === level.id)) {
       const built = buildWall(wall, building.openings ?? [], shell, defaults, palette, opts);
       for (const m of built) g.add(m);
@@ -109,11 +125,22 @@ export function buildModel(building, placements = [], palette, opts = {}) {
   for (const stack of (building.chimneys ?? [])) roofGroup.add(buildChimney(stack, defaults, palette));
   root.add(roofGroup);
 
+  if (building.plot) {
+    for (const m of buildPlot(building.plot, palette)) plotGroup.add(m);
+  }
+  root.add(plotGroup);
+
   // Centre the model on the origin so orbiting turns around the house
   // rather than around a corner of it. Measured from the STRUCTURE
   // alone: a label sprite sticks out well past the wall it sits behind,
   // and letting one drag the centre sideways would put the house off
   // axis for the sake of a caption.
+  //
+  // The PLOT is excluded too, and for a stronger reason than a label: it
+  // is 40m long against a 7.7m house, so centring on it would put the
+  // building a third of the way up the frame and every viewpoint would
+  // frame lawn. The boundary is drawn where it falls around a house that
+  // stays the subject.
   const bbox = new THREE.Box3();
   for (const g of Object.values(levelGroups)) bbox.expandByObject(g);
   const centre = bbox.getCenter(new THREE.Vector3());
@@ -126,7 +153,10 @@ export function buildModel(building, placements = [], palette, opts = {}) {
   // box that includes a 7.7m ridge points the camera at the sky, and
   // aiming at it while a lower level is on its own - roof hidden - puts
   // the house in the bottom corner of the frame.
-  const full = new THREE.Box3().setFromObject(root);
+  const full = new THREE.Box3();
+  for (const g of [...Object.values(levelGroups), ...Object.values(ceilingGroups), roofGroup]) {
+    full.expandByObject(g);
+  }
   const topLevel = (building.levels ?? [])
     .reduce((best, l) => (!best || l.elevation > best.elevation ? l : best), null);
   return {
@@ -134,7 +164,9 @@ export function buildModel(building, placements = [], palette, opts = {}) {
     levelGroups,
     markerGroups,
     furnitureGroups,
+    ceilingGroups,
     roofGroup,
+    plotGroup,
     topLevelId: topLevel?.id ?? null,
     size: bbox.getSize(new THREE.Vector3()),
     fullSize: full.getSize(new THREE.Vector3()),

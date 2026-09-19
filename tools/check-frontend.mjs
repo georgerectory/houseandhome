@@ -387,21 +387,99 @@ for (const theme of THEMES) {
           else if (trip.upstairs.eye < 3) {
             failures.push(`${label}: upstairs put the eye at ${trip.upstairs.eye.toFixed(2)}m`);
           }
+
+          // A ROOM HAS A CEILING. Without one you are standing in a
+          // roofless box, which looks like a bug and reads as one - and
+          // it is invisible to every other check here, because nothing
+          // throws and nothing overflows.
+          const inside = await page.evaluate(() => {
+            const p = window.__hhPlanner;
+            const g = p.model.ceilingGroups ?? {};
+            return {
+              levels: Object.keys(g).length,
+              lit: Object.values(g).filter((x) => x.visible && x.children.length).length,
+              // And every ceiling sits at its own storey's height, not
+              // at the floor above: a ceiling drawn 300mm too high is a
+              // room that feels wrong and measures right.
+              heights: Object.entries(g).map(([id, x]) => {
+                const lvl = p.building.levels.find((l) => l.id === id);
+                const y = x.children[0]?.position.y ?? null;
+                return y === null ? null : Math.abs(y - (lvl.elevation + lvl.ceilingHeight - 0.0125));
+              }),
+            };
+          });
+          if (inside.lit < inside.levels) {
+            failures.push(`${label}: ${inside.levels - inside.lit} of ${inside.levels} storeys have no ceiling in the walkthrough`);
+          }
+          for (const d of inside.heights) {
+            if (d === null || d > 0.01) failures.push(`${label}: a ceiling is ${d === null ? 'missing' : `${(d * 1000).toFixed(0)}mm out`}`);
+          }
+
+          // DOOR LEAVES. Every door the spec hangs has to arrive as
+          // geometry: an opening with no leaf in it is the block this
+          // whole pass was about.
+          const joinery = await page.evaluate(() => {
+            const p = window.__hhPlanner;
+            const hung = (p.building.openings ?? [])
+              .filter((o) => o.type === 'door' && o.leaf !== 'cased').length;
+            let meshes = 0;
+            for (const g of Object.values(p.model.levelGroups)) {
+              g.traverse((m) => { if (m.isMesh) meshes += 1; });
+            }
+            return { hung, meshes };
+          });
+          if (joinery.hung && joinery.meshes < joinery.hung * 6) {
+            failures.push(`${label}: ${joinery.hung} doors but only ${joinery.meshes} meshes - leaves are missing`);
+          }
+
+          // THE PLOT. Off by default, and when it is on the house has to
+          // sit inside it rather than on top of it.
+          const site = await page.evaluate(() => {
+            const p = window.__hhPlanner;
+            p.showPlot(true);
+            const on = p.model.plotGroup.visible && p.model.plotGroup.children.length;
+            p.showPlot(false);
+            const plot = p.building.plot;
+            return {
+              on: !!on,
+              inside: !!plot && plot.originX < 0 && plot.originY < 0
+                && plot.originX + plot.widthM > p.building.envelope.widthM
+                && plot.originY + plot.depthM > p.building.envelope.depthM,
+            };
+          });
+          if (!site.on) failures.push(`${label}: the plot boundary draws nothing`);
+          if (!site.inside) failures.push(`${label}: the house is not inside its plot`);
         }
         if (!/^Facing /.test(walk.word)) {
           failures.push(`${label}: the compass says "${walk.word}" rather than a bearing`);
         }
         if (walk.scrollW > walk.clientW + 1) failures.push(`${label}: page scroll in the walkthrough`);
         if (!walk.hidden) {
+          // HOLDING W WALKS YOU ACROSS THE ROOM.
+          //
+          // Polled to a distance with a generous deadline, not measured
+          // over a fixed 700ms. The step is scaled by frame time, and
+          // these runs are on a software renderer whose frame rate
+          // swings with the viewport - so a fixed window measures the
+          // RENDERER'S throughput and fails on the small landscape
+          // viewport while the walking itself is perfect. What is under
+          // test is that the walker moves off and keeps going.
           await page.focus('#fp-canvas');
           const startedAt = await page.evaluate(() => window.__hhWalkProbe?.() ?? null);
           await page.keyboard.down('w');
-          await page.waitForTimeout(700);
+          let moved = 0;
+          const deadline = Date.now() + 5000;
+          while (Date.now() < deadline) {
+            await page.waitForTimeout(150);
+            const now = await page.evaluate(() => window.__hhWalkProbe?.() ?? null);
+            if (!startedAt || !now) break;
+            moved = Math.hypot(now[0] - startedAt[0], now[1] - startedAt[1]);
+            if (moved >= 0.6) break;
+          }
           await page.keyboard.up('w');
           const endedAt = await page.evaluate(() => window.__hhWalkProbe?.() ?? null);
           if (startedAt && endedAt) {
-            const moved = Math.hypot(endedAt[0] - startedAt[0], endedAt[1] - startedAt[1]);
-            if (moved < 0.2) failures.push(`${label}: holding W moved the walker ${moved.toFixed(2)}m`);
+            if (moved < 0.6) failures.push(`${label}: holding W for 5s moved the walker ${moved.toFixed(2)}m`);
           } else {
             failures.push(`${label}: the walkthrough exposed no position to check`);
           }

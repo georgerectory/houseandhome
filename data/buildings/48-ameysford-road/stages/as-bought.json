@@ -22,7 +22,7 @@
    "working": "0.23 + 3.14 (kitchen) + 0.23 (shared wall) + 3.89 (front rooms) + 0.23 = 7.72",
    "result": "depth = 7.72, against a stated 8.00",
    "residualMm": 280,
-   "note": "The stated 8.0 is a headline rounded to one decimal, and the design study draws its own plans at about 7.98. But the SAME study states an internal floor area of about 112 square metres, and (8.20 - 0.46) x (7.72 - 0.46) x 2 = 112.4. At a depth of 8.00 it would be 116.7. The agent's plan, which is the measured one, gives 7.72 from its own room sizes. The model is built at 7.72 and the 280mm is reported rather than absorbed."
+   "note": "The model is built at 7.72 because the agent's plan is the only MEASURED source and 7.72 is what its own room sizes add up to. The design study states 8.0 and draws 8.00 exactly - scaling its first-floor plan against its own stated 8.20 width gives 8.00 to the millimetre - but it is a concept whose legend calls its own windows indicative. CORRECTION: an earlier version of this derivation claimed the study's 112 square metre floor area corroborated 7.72, on the reading that the area deducted 0.46 for the walls. The handbook states the study's actual formula - (width - 0.6) x (depth - 0.6) x 2 - and on that formula 112 follows from 8.00, not from 7.72. So the floor area is not independent evidence at all: it is computed from the depth, and it agrees with the study, not with the agent. The case for 7.72 now rests on the agent's measurements alone, where it is still the stronger one: the study's stated snug width of 3.25 matches the agent's measured 3.26 to a centimetre, while its stated depth of 4.10 exceeds the agent's measured 3.89 by 210mm - the same residual, in the same direction, in a single room. The 280mm is reported, not absorbed."
   },
   {
    "id": "eaves",
@@ -961,7 +961,17 @@
   {
    "id": "depth-residual",
    "severity": "high",
-   "note": "The building is modelled 7.72m deep. The design study states 8.0m and draws about 7.98. See the derivation: the study's own floor-area figure and the agent's measured rooms both agree with 7.72, but until someone measures it this is a 280mm question."
+   "note": "The building is modelled 7.72m deep, from the agent's measured rooms. The design study states 8.0 and draws 8.00. Its floor-area figure is computed from its own depth and so corroborates nothing. Every room's north-south dimension carries this 280mm: at 8.00 the snug would be 4.04 deep against the agent's measured 3.89. Until someone measures it, this is the single biggest open question in the model."
+  },
+  {
+   "id": "landing-is-narrow",
+   "severity": "high",
+   "note": "The landing's west arm - the run past the bathroom and office doors to bedroom 3 - is 0.575m clear, because it is set out between a 0.13 partition and the old rear wall at 0.23. The study draws it at about 0.72, but it draws every wall thinner than this model builds them. Bedroom 3's door is the whole of that end, so it is 0.575 wide too, which is not a buildable door. Either the partition moves north or bedroom 3 loses some depth. Reported, not corrected."
+  },
+  {
+   "id": "plot-boundary",
+   "severity": "medium",
+   "note": "The plot is modelled as a 17.60 x 40.00m rectangle, scaled off the handbook's site plan, which labels it \"Boundary (approx.)\" and warns that outlines are traced from aerial photographs to plus or minus one to two metres. The setbacks it gives - 2.70 west, 6.61 east, 26.92 north, 4.91 south - sum to the stated plot in both directions, so the drawing is at least self-consistent. The house is anchored by its west and south faces, so the depth residual falls in the rear garden. No surface inside the boundary is modelled."
   }
  ]
 }

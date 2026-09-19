@@ -24,6 +24,13 @@ export const LAYERS = [
   { id: 'clearance', name: 'Circulation check', views: ['plan'], on: false },
   { id: 'roof', name: 'Roof', views: ['model', 'walk'], on: true },
   { id: 'glazing', name: 'Glass in the windows', views: ['model', 'walk'], on: true },
+  { id: 'doorLeaves', name: 'Door leaves', views: ['model', 'walk'], on: true },
+  // Off by default in the orbit view, on in the walkthrough. A ceiling
+  // is a lid over the storey you are looking down into, and a room
+  // without one is a pit you are standing in; no single default is
+  // right for both, so each view gets its own.
+  { id: 'ceilings', name: 'Ceilings', views: ['model', 'walk'], on: true },
+  { id: 'plot', name: 'Plot boundary', views: ['plan', 'model', 'walk'], on: false },
 ];
 
 const DEFAULTS = Object.fromEntries(LAYERS.map((l) => [l.id, l.on]));

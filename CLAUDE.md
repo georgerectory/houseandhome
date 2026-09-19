@@ -198,8 +198,9 @@ viewpoints), **Walk** (first person, eye height) and **Survey**.
 
 The walkthrough is phone-first. The left two fifths of the view is a
 movement stick that appears under the thumb wherever it lands; anywhere
-else looks, and DRAG RIGHT LOOKS RIGHT (`invertLook` is offered, not
-assumed). A keyboard gets pointer lock and WASD. Collision is against
+else looks, and DRAG RIGHT LOOKS RIGHT. There was a switch for the other
+convention; it is gone, because once this way round is right a switch is
+only a way to set it wrong. A keyboard gets pointer lock and WASD. Collision is against
 WALLS ONLY - furniture is walked through deliberately, so a sofa can
 never trap someone in a corner - and the stair is a ramp derived from
 the flight the model already carries, so which floor you are on follows
@@ -218,6 +219,38 @@ floor's ceiling is 2.40 and the first floor starts at 2.70; a wall built
 to the ceiling leaves a 300mm band of daylight round the whole building
 where the joists are.
 
+**Every room has a ceiling, and the two views want opposite things from
+it.** The orbit view looks DOWN into a storey, so a ceiling is a lid
+over everything it is there to show; the walkthrough is inside the room,
+where a missing ceiling is a roofless box. Same geometry, shown in one
+and not the other - `ceilingGroups` per level, switched by mode rather
+than by a preference.
+
+**An opening is joinery, not a hole.** A door gets a lined reveal and a
+leaf hung at the hinge the spec records, swinging the way it records,
+with stiles, rails and a handle; a window gets a cill, head, jambs and a
+mullion every 550mm. Without them a doorway is a dark slab and a window
+is a tinted rectangle with no scale - and the spec's `swing` field is a
+record nobody can check. `model3d/doors.js` owns all of it, and
+`tests/unit/doors.test.mjs` pins the hinge rule in arithmetic.
+
+Joinery took the model past 400 boxes, so `geom.js` shares ONE MATERIAL
+PER COLOUR. A material per mesh is a GPU state change per draw, and the
+walk step is scaled by frame time, so the cost showed up as walking that
+crawled rather than as a picture that stuttered.
+
+**The PLOT is a property of the site, not of a stage:** an extension
+changes the house, not the boundary. 17.60 x 40.00m, scaled off the
+handbook's site plan, with the house anchored by its west and south
+faces - the two a setting-out would work from - so the depth residual
+falls in the 27m rear garden rather than the 5m front. It is a
+switchable layer in all three views and OFF by default, because the plan
+has to zoom out to a fifth of its scale to fit it. Nothing inside the
+boundary is modelled: the source colours in hedge, grass, shrubs,
+hardstanding and sheds, every one traced off an aerial to plus or minus
+a metre or two, and drawing those beside walls measured off a floor plan
+would dress an estimate as a survey.
+
 **The equipment register belongs to the household, not to a building.**
 Its `plan_x_m` / `plan_y_m` were authored against whatever building was
 modelled at the time, and they do not travel: a freezer at x 15.4 was in
@@ -231,8 +264,8 @@ happened.
 
 Every layer of the drawing can be switched off from one Display panel -
 room names, sizes, furniture, furniture names, equipment pins, door
-swings, dimensions, grid, the circulation overlay, roof, glazing - and
-the choice is remembered. A toggle NEVER repaints the page: it would
+swings, dimensions, grid, the circulation overlay, roof, glazing, door
+leaves, ceilings and the plot boundary - and the choice is remembered. A toggle NEVER repaints the page: it would
 close the panel, lose the camera and, in the walkthrough, put you back at
 the front door.
 

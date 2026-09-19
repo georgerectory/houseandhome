@@ -38,7 +38,6 @@ const store = {
 };
 const KEY = { level: 'hh-house-level', view: 'hh-house-view', stage: 'hh-house-stage', variant: 'hh-house-variant' };
 const display = loadDisplay();
-let invertLook = store.get('hh-house-invert') === '1';
 let destinations = [];
 
 let model = await loadComposed(store.get(KEY.stage), store.get(KEY.variant));
@@ -142,7 +141,7 @@ function drawingHtml() {
       ghost: compare ? { ...parentStage, defaults: building.defaults } : null,
     })
     : canvasStage(building, {
-      view, viewpoints, viewpointId, coarse, destinations, invertLook,
+      view, viewpoints, viewpointId, coarse, destinations,
     });
   return `${stage}
     ${walking ? '' : legendHtml(level)}
@@ -351,16 +350,18 @@ async function mountModel() {
     planner.onStick = showStick;
     planner.setModel(building, display.markers ? placements : [], cameraState, {
       glazing: display.glazing,
+      doorLeaves: display.doorLeaves,
     });
     planner.showLevel(levelId);
     planner.showRoof(display.roof);
     planner.showFurniture(display.furniture);
+    planner.showCeilings(display.ceilings);
+    planner.showPlot(display.plot);
     // The equipment pins are billboard labels sized to be read from
     // outside the house. At eye height in a 3.3m room they cover the
     // room, so the walkthrough never shows them - the plan and the 3D
     // view both carry them, and that is where they are legible.
     planner.showMarkers(display.markers && view !== 'walk');
-    planner.invertLook = invertLook;
     planner.setMode(view === 'walk' ? 'walk' : 'orbit');
     if (view === 'walk') {
       destinations = planner.walkDestinations();
@@ -395,7 +396,7 @@ async function mountModel() {
 function paintWalkControls() {
   const host = document.querySelector('.hv-walkbar');
   if (!host || !destinations.length) return;
-  host.outerHTML = walkControls(destinations, invertLook);
+  host.outerHTML = walkControls(destinations);
 }
 
 function paintViewpoints() {
@@ -463,18 +464,32 @@ document.addEventListener('change', (e) => {
  * only the drawing is redrawn.
  */
 function applyLayer(id) {
-  const liveIn3d = { roof: 'showRoof', furniture: 'showFurniture', markers: 'showMarkers' };
-  if (planner && liveIn3d[id]) {
+  const liveIn3d = {
+    roof: 'showRoof',
+    furniture: 'showFurniture',
+    markers: 'showMarkers',
+    ceilings: 'showCeilings',
+    plot: 'showPlot',
+  };
+  if (view === 'plan' && (id === 'plot' || !liveIn3d[id])) {
+    redrawPlan();
+  } else if (planner && liveIn3d[id]) {
     planner[liveIn3d[id]](display[id] && !(id === 'markers' && view === 'walk'));
-  } else if (planner && id === 'glazing') {
-    // Glass is built into the wall meshes, so this one needs the model
-    // rebuilding - but the camera is handed back in, so the view holds.
+  } else if (planner && (id === 'glazing' || id === 'doorLeaves')) {
+    // Glass and door leaves are built into the wall meshes, so these two
+    // need the model rebuilding - but the camera is handed back in, so
+    // the view holds and the walkthrough stays where it was standing.
     const at = planner.cameraState();
-    planner.setModel(building, display.markers ? placements : [], at, { glazing: display.glazing });
+    planner.setModel(building, display.markers ? placements : [], at, {
+      glazing: display.glazing,
+      doorLeaves: display.doorLeaves,
+    });
     planner.showLevel(levelId);
     planner.showRoof(display.roof);
     planner.showFurniture(display.furniture);
-    planner.showMarkers(display.markers);
+    planner.showMarkers(display.markers && view !== 'walk');
+    planner.showCeilings(display.ceilings);
+    planner.showPlot(display.plot);
   } else if (view === 'plan') {
     redrawPlan();
   } else {
@@ -537,15 +552,6 @@ document.addEventListener('click', (e) => {
       updateDisplayCount();
     } else paint();
     if (view === 'plan') paint();
-    return;
-  }
-  const inv = e.target.closest('[data-invert-look]');
-  if (inv) {
-    invertLook = !invertLook;
-    store.set('hh-house-invert', invertLook ? '1' : '0');
-    if (planner) planner.invertLook = invertLook;
-    inv.classList.toggle('is-on', invertLook);
-    inv.setAttribute('aria-pressed', String(invertLook));
     return;
   }
   const vp = e.target.closest('[data-viewpoint]');

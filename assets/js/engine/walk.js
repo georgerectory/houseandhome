@@ -12,22 +12,41 @@ export const BODY_RADIUS = 0.26;
 export const WALK_SPEED = 2.6;
 export const RUN_MULTIPLIER = 1.9;
 
-/** A doorway has to be wider than the walker to be worth calling one.
- *  The jamb inset keeps a shoulder from clipping the reveal. */
-const JAMB = 0.06;
+/** The jamb inset stops a doorway reading as passable right at its edge.
+ *  It is small deliberately: the walker's CENTRE is what gets tested, so
+ *  0.06 took 120mm off every opening, and on the narrowest doors in this
+ *  house - a 0.575 landing end, a 0.57 bathroom - that left a band
+ *  barely wider than a thumb could aim at. */
+const JAMB = 0.03;
 
 /**
- * Is this plan position inside the passable part of an opening in `c`?
+ * How far along `c` this plan position is, measured the way the wall
+ * measures itself.
  *
- * Distance is measured from the wall's OWN start point, because a wall
- * drawn south-to-north starts at the high y and measuring from the min
- * corner would put every one of its doors at the wrong end.
+ * From the wall's OWN start point, because a wall drawn south-to-north
+ * starts at the high y and measuring from the min corner would put every
+ * one of its doors at the wrong end. And PROJECTED onto the wall's
+ * direction, because the walker is never on the wall's centreline: they
+ * are a body radius or more off it, approaching. Taking the straight
+ * line distance instead folds that standoff into the answer and reads
+ * the walker as further along the wall than they are - by 80mm for a
+ * door 0.7m from the start, which is a sixth of a doorway. That is what
+ * made doors feel like they had to be threaded.
  */
+function alongWall(c, px, py) {
+  if (!c.origin) {
+    return c.maxX - c.minX >= c.maxY - c.minY ? px - c.minX : py - c.minY;
+  }
+  const dx = px - c.origin[0];
+  const dy = py - c.origin[1];
+  if (!c.dir) return Math.hypot(dx, dy);
+  return dx * c.dir[0] + dy * c.dir[1];
+}
+
+/** Is this plan position inside the passable part of an opening in `c`? */
 function throughDoorway(c, px, py) {
   if (!c.doorways?.length) return false;
-  const along = c.origin
-    ? Math.hypot(px - c.origin[0], py - c.origin[1])
-    : (c.maxX - c.minX >= c.maxY - c.minY ? px - c.minX : py - c.minY);
+  const along = alongWall(c, px, py);
   return c.doorways.some((o) => along > o.start + JAMB && along < o.end - JAMB);
 }
 

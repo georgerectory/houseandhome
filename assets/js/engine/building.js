@@ -40,6 +40,9 @@ export function composeBuilding(building, stage, variant) {
     grid: building.grid,
     defaults: building.defaults,
     envelope: building.envelope,
+    // The plot belongs to the SITE, so it is the same in every stage and
+    // every variant: an extension changes the house, not the boundary.
+    plot: building.plot ?? null,
 
     stage: {
       id: stage.id, name: stage.name, status: stage.status, sequence: stage.sequence,

@@ -202,7 +202,15 @@ mistakes in the model and are not:
 - [x] Single bed against the WEST wall, head NORTH.
 - [x] Window in the WEST wall.
 - [x] Window in the NORTH wall.
-- [x] Door in the SOUTH wall at its EAST end, hinged east.
+- [x] Door in its EAST wall, **off the LANDING'S WEST END**, hinged on
+      the south jamb and opening back into the bedroom. THE SECOND BUILD
+      PUT IT IN THE SOUTH WALL, which is the old rear wall, so it opened
+      into BEDROOM 1 - a bedroom you could only reach through another
+      bedroom. The owner spotted it. Re-measured on the study at y 2.740
+      to 3.433, which is the whole of the landing's west end; the model
+      builds thicker walls than the study draws, so that end is 0.575
+      clear here and the door is 0.575 with it. Not a buildable door.
+      Reported, not corrected - see the landing-is-narrow assumption.
 - [x] NO desk, NO wardrobe. (The first build invented both.)
 
 **Bathroom** (approximately 4 m2)
@@ -232,8 +240,15 @@ mistakes in the model and are not:
 - [x] WC against the NORTH wall.
 - [x] Basin on the SOUTH wall.
 - [x] Shower against the EAST wall.
-- [x] Door in the WEST wall, **off the LANDING**, opening east into the
-      en-suite. (The first build hung it off the master.)
+- [x] Door in the SOUTH wall, **off the MASTER BEDROOM**, hinged on the
+      west jamb and opening north into the shower room. The study draws
+      the WEST wall solid its whole height between ens-n and the old
+      rear wall, and draws the leaf and its arc in the south wall.
+      Measured at x 5.75 to 6.43 on the old rear wall, moved 35mm east
+      so the west jamb lands on the face of the partition rather than
+      35mm behind it. The first build hung it off the master, the second
+      moved it to the landing, and the second was wrong: an en-suite you
+      reach from the landing is a second bathroom.
 
 **Master bedroom** (approximately 13 m2)
 - [x] "fitted wardrobes": hatched, along the NORTH wall at the EAST end.
@@ -256,8 +271,12 @@ mistakes in the model and are not:
 **Landing**
 - [x] An EAST-WEST corridor along the north side of the old rear wall,
       from bedroom 3's wall to the en-suite's, with the bathroom and the
-      office off its north side and the en-suite off its east end.
-      (The first build had no such corridor.)
+      office off its north side and BEDROOM 3 off its west end.
+      (The first build had no such corridor.) Nothing opens off its east
+      end: the en-suite is reached from the master.
+- [x] 0.575m clear, because it is set out between a 0.13 partition and
+      the old rear wall at 0.23. The study draws it about 0.72; it draws
+      every wall thinner than this model builds them. Reported.
 - [x] Joined to the stairwell head through a cased opening in the old
       rear wall.
 - [x] Doors to bedroom 1 and the master either side of that opening,
@@ -286,3 +305,41 @@ What the gate reports on this model today, and should keep reporting:
   desk's clear zone.
 
 Every one of those is what the drawing draws.
+
+---
+
+## The plot
+
+Added from the owner's handbook (`48 Ameysford Road - Home Plan, Final
+Designs`), which was not among the first four sources. Page 8 draws the
+whole plot to scale with its own bar; page 28 and page 35 state the
+figures in words.
+
+- [x] Plot 17.60 x 40.00m. Measured on page 8's boundary rectangle at
+      904 x 2056 pixels against a scale of 51.4 px/m, which is
+      17.59 x 40.00 - the stated figure to within 10mm.
+- [x] House 2.70m from the WEST boundary. Stated "about 2 m to the Pine
+      Close hedge"; the boundary is outside the hedge.
+- [x] 6.61m to the EAST boundary. Stated "5-6 m of garden to the east".
+- [x] 26.92m of REAR garden. Stated "approximately 27 m", and "25-28 m"
+      on page 27.
+- [x] 4.91m of FRONT garden. Stated "approximately 5 m".
+- [x] Those four and the footprint sum to the stated plot in BOTH
+      directions, so the source drawing is consistent with itself. That
+      sum is what `tests/unit/plot.test.mjs` asserts.
+- [x] The house is anchored by its WEST and SOUTH faces, which are the
+      two a setting-out would work from - the Pine Close hedge and the
+      road frontage - so the 280mm depth residual lands in the 27m rear
+      garden and not in the 5m front.
+- [x] Front faces SOUTH onto Ameysford Road. Pine Close WEST, No. 46
+      EAST, garages and then Pine Close homes NORTH. Corner plot.
+- [ ] NOT modelled, deliberately: hedge, rough grass, overgrown shrubs,
+      planting bed, hardstanding, shrub border, sheds, vehicles, open
+      ground, the rear gate. Every one is traced off an aerial to plus
+      or minus one to two metres by the source's own admission. The
+      owner asked for the boundary and not the surfaces, and the reason
+      holds independently: drawing them beside walls measured off a
+      floor plan would dress an estimate as a survey.
+- [ ] The boundary is a RECTANGLE because page 8 draws it as one and
+      labels it "Boundary (approx.)". The aerial on page 27 shows the
+      real boundary is not quite square. A title plan settles it.

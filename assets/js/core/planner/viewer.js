@@ -58,10 +58,18 @@ export class Planner {
     // disorienting and tells you nothing.
     this.controls.maxPolarAngle = Math.PI / 2.05;
 
-    this.scene.add(new THREE.HemisphereLight(0xffffff, 0x9a8f80, 1.6));
+    this.scene.add(new THREE.HemisphereLight(0xffffff, 0xbfb5a6, 1.5));
     const sun = new THREE.DirectionalLight(0xfff4e0, 1.5);
     sun.position.set(-22, 30, 18);
     this.scene.add(sun);
+    // A ceiling faces straight DOWN, so the only thing lighting it is
+    // the hemisphere's ground colour - and an unlit plaster ceiling
+    // reads as a dark lid pressing on the room. This weak upward light
+    // stands in for the bounce off a real floor. It matters only once
+    // there are ceilings to light, which is to say only inside.
+    const bounce = new THREE.DirectionalLight(0xfffaf2, 0.55);
+    bounce.position.set(8, -24, -10);
+    this.scene.add(bounce);
 
     const ground = new THREE.Mesh(
       new THREE.PlaneGeometry(160, 160),
@@ -114,6 +122,8 @@ export class Planner {
     this.showRoof(this.roofOn ?? true);
     this.showFurniture(this.furnitureOn ?? true);
     this.showMarkers(this.markersOn ?? true);
+    this.showCeilings(this.ceilingsOn ?? true);
+    this.showPlot(this.plotOn ?? false);
 
     if (restore?.position && restore?.target) {
       this.orbitCam.position.fromArray(restore.position);
@@ -171,6 +181,12 @@ export class Planner {
       for (const g of Object.values(this.model[key])) if (g.visible) box.expandByObject(g);
     }
     if (this.model.roofGroup.visible) box.expandByObject(this.model.roofGroup);
+    // The boundary counts as visible geometry ONLY when it is switched
+    // on, and then it decides the frame: the point of turning it on is
+    // to see the house in its plot, and a camera still fitted to the
+    // house leaves 40m of plot running off both sides of the picture
+    // with no way to tell how much of it you are missing.
+    if (this.model.plotGroup?.visible) box.expandByObject(this.model.plotGroup);
     if (box.isEmpty()) box.expandByObject(this.model.root);
     return box;
   }
@@ -228,16 +244,17 @@ export class Planner {
   /**
    * Turn the head.
    *
-   * Drag right, look right. That is the way a first-person view works
-   * everywhere else and it is what a hand expects; the opposite - drag
-   * right, the world comes with you - is the map convention, and using
-   * it here made the controls feel broken. `invertLook` is offered
-   * because the other camp is real, but it is not the default.
+   * Drag right, look right; drag up, look up. That is how a first-person
+   * view works everywhere else and it is what a hand expects. The
+   * opposite - drag right and the world comes with you - is the map
+   * convention, and using it here made the controls feel broken.
+   *
+   * There was a switch for the other convention. It is gone: once this
+   * way round is right, the switch is only a way to set it wrong.
    */
   _look(dx, dy, gain) {
-    const sign = this.invertLook ? -1 : 1;
-    this.yaw += dx * gain * sign;
-    this.pitch = Math.max(-1.35, Math.min(1.35, this.pitch - dy * gain * sign));
+    this.yaw += dx * gain;
+    this.pitch = Math.max(-1.35, Math.min(1.35, this.pitch - dy * gain));
   }
 
   _stepWalk(dt) {
@@ -281,6 +298,19 @@ export class Planner {
   showRoof(on) { this.roofOn = on; this.applyVisibility(); }
   showFurniture(on) { this.furnitureOn = on; this.applyVisibility(); }
   showMarkers(on) { this.markersOn = on; this.applyVisibility(); }
+  showCeilings(on) { this.ceilingsOn = on; this.applyVisibility(); }
+
+  /** The boundary, which changes what the orbit camera has to frame -
+   *  so switching it reframes, rather than leaving the plot half off
+   *  screen until you happen to pick a viewpoint. The walkthrough is
+   *  left alone: you are standing in the house and the boundary is
+   *  something you see when you look, not somewhere to be moved to. */
+  showPlot(on) {
+    const changed = this.plotOn !== on;
+    this.plotOn = on;
+    this.applyVisibility();
+    if (changed && this.mode !== 'walk' && this.viewpointId) this.viewpoint(this.viewpointId);
+  }
 
   applyVisibility() {
     if (!this.model) return;
@@ -296,10 +326,17 @@ export class Planner {
       g.visible = !!this.markersOn && (!only || id === only);
     }
     // The roof comes off when you are looking at a lower floor from
-    // outside, because a roof hovering over nothing reads as a bug. It
-    // stays on in the walkthrough, where it is the ceiling.
+    // outside, because a roof hovering over nothing reads as a bug.
     const onTop = !only || only === this.model.topLevelId;
     this.model.roofGroup.visible = !!this.roofOn && (walking || onTop);
+    // CEILINGS. In the walkthrough they are what stops a room being a
+    // roofless box, so they follow the switch. In the orbit view they
+    // are a lid over the storey you are looking down into, so they come
+    // off whatever the switch says - the switch is about being inside.
+    for (const [id, g] of Object.entries(this.model.ceilingGroups ?? {})) {
+      g.visible = walking && !!this.ceilingsOn && (!only || id === only);
+    }
+    if (this.model.plotGroup) this.model.plotGroup.visible = !!this.plotOn;
   }
 
   resize() {
@@ -318,7 +355,12 @@ export class Planner {
     const tick = () => {
       if (!this._running) return;
       this._frame = requestAnimationFrame(tick);
-      const dt = Math.min(this._clock.getDelta(), 0.1);
+      // Clamped so a backgrounded tab does not resume with a teleport.
+      // 0.25 and not 0.1: the clamp is also a FLOOR on the frame rate
+      // the walker moves at full speed, and 0.1 puts that floor at 10fps
+      // - which a software renderer drops under, and then walking
+      // silently slows to a crawl instead of the picture stuttering.
+      const dt = Math.min(this._clock.getDelta(), 0.25);
       if (this.mode === 'walk') this._stepWalk(dt);
       else {
         this.controls.update();

@@ -54,7 +54,7 @@
      "name": "Furnished, as the study draws it",
      "derivedFrom": "post-extension--empty",
      "summary": "Every piece of furniture the design study draws, in the room and the position it draws it, and nothing else. The living room is empty but for its stove, because that is how the study leaves it.",
-     "furnitureCount": 47,
+     "furnitureCount": 44,
      "file": "variants/post-extension--as-drawn.json"
     }
    ]

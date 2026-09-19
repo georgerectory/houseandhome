@@ -65,10 +65,8 @@ const HINTS = {
  * first. The walk out of a room is still there when the question is
  * whether you can get there at all.
  *
- * And one switch for which way looking works, because the two camps on
- * that are both real and neither is going to be talked out of it.
  */
-export function walkControls(destinations, invertLook) {
+export function walkControls(destinations) {
   const groups = [];
   for (const d of destinations) {
     const last = groups[groups.length - 1];
@@ -85,16 +83,13 @@ export function walkControls(destinations, invertLook) {
 }</optgroup>`).join('')}
       </select>
     </label>
-    <button type="button" class="hv-ghost hv-ghost--tight${invertLook ? ' is-on' : ''}"
-      data-invert-look="1" aria-pressed="${!!invertLook}"
-      title="Swap which way dragging turns the view">Invert look</button>
   </div>`;
 }
 
 /** The canvas the 3D model and the walkthrough share, with the overlays
  *  each mode needs. */
 export function canvasStage(building, {
-  view, viewpoints, viewpointId, coarse, destinations = [], invertLook = false,
+  view, viewpoints, viewpointId, coarse, destinations = [],
 }) {
   const walking = view === 'walk';
   // The overlays are positioned against the VIEW, not against the stage:
@@ -105,7 +100,7 @@ export function canvasStage(building, {
       <canvas class="hv-canvas" id="fp-canvas" tabindex="0"
         aria-label="${walking ? 'Walkthrough of' : '3D model of'} ${escape(building.name)}"></canvas>
       ${compass()}
-      ${walking ? stick() + walkControls(destinations, invertLook) : viewpointBar(viewpoints, viewpointId)}
+      ${walking ? stick() + walkControls(destinations) : viewpointBar(viewpoints, viewpointId)}
     </div>
     <p class="hv-hint" id="fp-note">${escape(
     walking ? (coarse ? HINTS.walkTouch : HINTS.walkKeys) : HINTS.model,
@@ -128,6 +123,7 @@ export function planStage(building, levelId, placements, { display, roomNames, t
     swings: display.openings,
     dimensions: display.dimensions,
     clearance: display.clearance,
+    plot: display.plot,
   })}
   </div>`;
 }

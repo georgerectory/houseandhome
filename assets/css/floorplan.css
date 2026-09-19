@@ -92,6 +92,26 @@
  * reads as a gap the way it does on a real plan. */
 .fp-hole { fill: var(--paper-raised); stroke: none; }
 .fp-glazing { stroke: var(--plan-glass); stroke-width: 0.05; }
+
+/* The site boundary. Dashed, because the source calls it approximate and
+ * a solid line would claim a title plan nobody has seen. */
+.fp-plot-area { fill: var(--plan-ground); opacity: 0.35; }
+.fp-plot-line {
+  fill: none;
+  stroke: var(--plan-boundary);
+  stroke-width: 0.12;
+  stroke-dasharray: 0.6 0.35;
+}
+.fp-plot-dim, .fp-plot-tick { stroke: var(--plan-boundary); stroke-width: 0.05; }
+.fp-plot-figure, .fp-plot-name {
+  fill: var(--plan-boundary);
+  font-size: 0.42px;
+  font-weight: 600;
+  paint-order: stroke;
+  stroke: var(--paper);
+  stroke-width: 0.14;
+}
+.fp-plot-figure { text-anchor: middle; dominant-baseline: middle; }
 /* The swing is the most useful mark on a floor plan: it is what tells
  * you the chest of drawers cannot go there. Drawn from the same numbers
  * the clearance check reserves the floor with. */
@@ -320,6 +340,19 @@
   --plan-swing:    oklch(62% 0.02 85);
   --plan-dimension: oklch(55% 0.09 250);
   --plan-clearance: oklch(90% 0.07 95);
+  --plan-ceiling:  oklch(95% 0.006 85);
+  --plan-lining:   oklch(96% 0.008 85);
+  --plan-leaf:     oklch(72% 0.055 65);
+  --plan-leaf-rail: oklch(79% 0.045 65);
+  --plan-ironmongery: oklch(62% 0.012 250);
+  --plan-boundary: oklch(58% 0.11 145);
+  /* New work SEEN AS A SURFACE rather than as a drawing. On the plan,
+   * new walls are near-black against the existing orange, which is the
+   * right weight for a construction drawing. Inside the model that same
+   * value makes every extension room read as a cave, so the 3D view
+   * takes a light tint of the same hue: still plainly a different wall,
+   * still plaster. */
+  --plan-wall-new-face: oklch(87% 0.020 250);
 }
 :root[data-theme="dark"] {
   --plan-external: oklch(46% 0.05 55);
@@ -336,6 +369,13 @@
   --plan-swing:    oklch(52% 0.02 85);
   --plan-dimension: oklch(68% 0.09 250);
   --plan-clearance: oklch(40% 0.06 95);
+  --plan-ceiling:  oklch(42% 0.008 85);
+  --plan-lining:   oklch(46% 0.010 85);
+  --plan-leaf:     oklch(52% 0.050 65);
+  --plan-leaf-rail: oklch(60% 0.042 65);
+  --plan-ironmongery: oklch(72% 0.012 250);
+  --plan-boundary: oklch(72% 0.10 145);
+  --plan-wall-new-face: oklch(42% 0.022 250);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -353,5 +393,12 @@
     --plan-swing:    oklch(52% 0.02 85);
     --plan-dimension: oklch(68% 0.09 250);
     --plan-clearance: oklch(40% 0.06 95);
+  --plan-ceiling:  oklch(42% 0.008 85);
+  --plan-lining:   oklch(46% 0.010 85);
+  --plan-leaf:     oklch(52% 0.050 65);
+  --plan-leaf-rail: oklch(60% 0.042 65);
+  --plan-ironmongery: oklch(72% 0.012 250);
+  --plan-boundary: oklch(72% 0.10 145);
+  --plan-wall-new-face: oklch(42% 0.022 250);
   }
 }

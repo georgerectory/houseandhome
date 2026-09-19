@@ -11,7 +11,7 @@
   "A 1.6m island with two stools on its south side.",
   "Dining table at the east end: three chairs on its west side and a bench seat down the wall.",
   "Boot room takes the freezer, a sink and the washer-dryer, with the bench and coats against the wing wall.",
-  "Two desks and three chairs in the snug, an L-shaped sofa in its south-west corner.",
+  "Two desks and two chairs in the snug, and a sofa in its NORTH-WEST corner - moved there from the south-west corner the study draws it in, and reduced from an L to a single 1.26m seat, which is the longest run that corner holds between the chimney breast and the fitted store. The sideboard and loose chair that stood there are removed.",
   "The living room holds nothing but the stove. The study draws no sofa there and neither does this.",
   "Bedroom 3 holds one single bed. Bedroom 1 holds one double. Neither has a wardrobe or a bedside table on the drawing."
  ],
@@ -352,10 +352,10 @@
    "kind": "chair",
    "name": "Chair",
    "rect": [
-    6.58,
-    1.14,
+    6.47,
+    1.1,
     6.92,
-    1.51
+    1.55
    ],
    "confidence": "drafted",
    "height": 0.9,
@@ -368,10 +368,10 @@
    "kind": "chair",
    "name": "Chair",
    "rect": [
-    6.58,
-    1.61,
+    6.47,
+    1.58,
     6.92,
-    2
+    2.03
    ],
    "confidence": "drafted",
    "height": 0.9,
@@ -384,30 +384,14 @@
    "kind": "chair",
    "name": "Chair",
    "rect": [
-    6.58,
-    2.08,
+    6.47,
+    2.045,
     6.92,
-    2.46
+    2.495
    ],
    "confidence": "drafted",
    "height": 0.9,
    "belongsTo": "kd-table"
-  },
-  {
-   "id": "sn-sideboard",
-   "level": "ground",
-   "room": "snug",
-   "kind": "shelf",
-   "name": "Sideboard",
-   "rect": [
-    0.305,
-    3.6,
-    1.4,
-    4.14
-   ],
-   "confidence": "drafted",
-   "height": 0.85,
-   "facing": "s"
   },
   {
    "id": "sn-store",
@@ -425,21 +409,6 @@
    "height": 2,
    "fixed": true,
    "facing": "s"
-  },
-  {
-   "id": "sn-chair-3",
-   "level": "ground",
-   "room": "snug",
-   "kind": "chair",
-   "name": "Chair",
-   "rect": [
-    0.64,
-    4.15,
-    1.09,
-    4.6
-   ],
-   "confidence": "drafted",
-   "height": 0.9
   },
   {
    "id": "sn-desk-n",
@@ -512,36 +481,20 @@
    "belongsTo": "sn-desk-s"
   },
   {
-   "id": "sn-sofa-w",
+   "id": "sn-sofa",
    "level": "ground",
    "room": "snug",
    "kind": "sofa",
-   "name": "L-shaped sofa",
+   "name": "Sofa",
    "rect": [
     0.23,
-    6.3,
-    0.97,
-    6.84
+    3.6,
+    1.08,
+    4.86
    ],
    "confidence": "drafted",
-   "height": 0.85,
+   "height": 0.82,
    "facing": "e"
-  },
-  {
-   "id": "sn-sofa-s",
-   "level": "ground",
-   "room": "snug",
-   "kind": "sofa",
-   "name": "L-shaped sofa",
-   "rect": [
-    0.23,
-    6.84,
-    2.57,
-    7.49
-   ],
-   "confidence": "drafted",
-   "height": 0.85,
-   "facing": "n"
   },
   {
    "id": "lv-stove",

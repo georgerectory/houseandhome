@@ -37,6 +37,21 @@
   "widthM": 8.2,
   "depthM": 7.72
  },
+ "plot": {
+  "widthM": 17.6,
+  "depthM": 40,
+  "originX": -2.7,
+  "originY": -27.37,
+  "confidence": "drafted",
+  "source": "design-study",
+  "note": "Boundary approximate. The handbook marks it \"Boundary (approx.)\" and says garden outlines are traced from aerial photographs to plus or minus one to two metres, to be refined against the title plan and a tape. It is a rectangle here because that is how the source draws it; the aerial on page 27 shows the real boundary is not quite square.",
+  "neighbours": {
+   "west": "Pine Close",
+   "east": "No. 46",
+   "north": "Garage and outbuilding range, then Pine Close homes",
+   "south": "Ameysford Road"
+  }
+ },
  "sources": [
   {
    "id": "agent-plan",
@@ -200,7 +215,7 @@
    "value": 8,
    "source": "design-study",
    "tolerance": 0.3,
-   "note": "Stated to one decimal place in a headline. The same study's floor-area figure agrees with 7.72, not 8.00."
+   "note": "Stated in a headline AND drawn: scaling the study's first-floor plan against its own 8.20m width gives 8.00 exactly. The model builds 7.72 from the agent's measured rooms. See the depth derivation - this is a 280mm question that only a tape settles."
   },
   {
    "of": "stage:post-extension",

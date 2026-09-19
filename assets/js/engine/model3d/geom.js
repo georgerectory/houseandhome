@@ -25,15 +25,38 @@ export { THREE };
 export const v = (x, h, y) => new THREE.Vector3(x, h, y);
 export const lerp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
 
-export function box(w, h, d, color, opts = {}) {
-  return new THREE.Mesh(
-    new THREE.BoxGeometry(w, h, d),
-    new THREE.MeshLambertMaterial({
+/**
+ * One material per colour, not one per mesh.
+ *
+ * Every box used to allocate its own MeshLambertMaterial. That was
+ * affordable while a house was a few dozen boxes; joinery took it past
+ * four hundred, each with a distinct material, which means a distinct
+ * GPU state change per draw. On a software renderer that is the
+ * difference between a walkthrough that walks and one that crawls - and
+ * it crawls in a way that looks like a bug in the walking rather than a
+ * bug in the drawing, because the step is scaled by frame time.
+ *
+ * Nothing here ever mutates a material after it is made, so sharing is
+ * safe. The cache is keyed on the colour's own hex, so a theme change
+ * makes new entries rather than corrupting old ones.
+ */
+const materials = new Map();
+function material(color, opacity) {
+  const key = `${color?.getHexString?.() ?? color}|${opacity ?? 1}`;
+  let m = materials.get(key);
+  if (!m) {
+    m = new THREE.MeshLambertMaterial({
       color,
-      transparent: opts.opacity !== undefined,
-      opacity: opts.opacity ?? 1,
-    }),
-  );
+      transparent: opacity !== undefined,
+      opacity: opacity ?? 1,
+    });
+    materials.set(key, m);
+  }
+  return m;
+}
+
+export function box(w, h, d, color, opts = {}) {
+  return new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material(color, opts.opacity));
 }
 
 /** A box sitting on a plan rectangle, from `base` up by `height`. The

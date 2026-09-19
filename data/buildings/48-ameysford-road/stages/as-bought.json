@@ -907,14 +907,17 @@
    "room": "hall",
    "kind": "porch",
    "rect": [
-    3.53,
+    3.445,
     7.72,
-    4.5,
-    8.55
+    4.745,
+    8.57
    ],
-   "height": 2.3,
+   "height": 2.75,
+   "eavesM": 2.05,
+   "cheekM": 0.215,
+   "overhang": 0.08,
    "roofKind": "gabled",
-   "note": "The small tiled gable canopy over the front door in the photograph."
+   "note": "The small tiled gable canopy over the front door in the listing photograph: two brick cheeks and a pitched roof with the apex facing the road, open between them. CENTRED ON THE DOOR at 4.095 - it was set out 80mm west of it before, which is the sort of error nobody sees on a plan and everybody sees on an elevation. 1.30 wide outside, so 0.87 clear between the cheeks, against a 0.79 door. It projects 0.85. Eaves at 2.05, just clear of the 1.98 door head; ridge at 2.75, which the photograph puts well below the first-floor sills. Scaled off the photograph against the door, not dimensioned anywhere."
   }
  ],
  "assumptions": [
@@ -950,8 +953,8 @@
   },
   {
    "id": "chimneys",
-   "severity": "low",
-   "note": "Both breasts are 1.44m along the gable and project 0.45m, scaled off the agent's plan, which draws them as solid blocks on the west and east walls of the front rooms. Stack heights are scaled off the photograph."
+   "severity": "medium",
+   "note": "Both breasts are 1.44m along the gable and project 0.45m, scaled off the agent's plan, which draws them as solid blocks on the west and east walls of the front rooms. Stack heights are scaled off the photograph. THE TOPS ARE MODELLED AS THEY SHOULD BE BUILT, not as they are: each stack gets a crown oversailing 50mm with its pots seated in it, because that is how a chimney sheds water. Neither listing photograph shows a sound crown on either stack - the east one, which serves the living room and the master, reads as an open brick top with the pots sitting on it. That is a survey job, not a modelling decision, and it is on the backlog."
   },
   {
    "id": "hall-is-not-a-passage",

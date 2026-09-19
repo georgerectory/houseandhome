@@ -1405,13 +1405,17 @@
    "room": "hall",
    "kind": "porch",
    "rect": [
-    3.53,
+    3.445,
     7.72,
-    4.5,
-    8.55
+    4.745,
+    8.57
    ],
-   "height": 2.3,
-   "roofKind": "gabled"
+   "height": 2.75,
+   "eavesM": 2.05,
+   "cheekM": 0.215,
+   "overhang": 0.08,
+   "roofKind": "gabled",
+   "note": "Kept as it stands. See the as-bought stage for how it is set out."
   }
  ],
  "assumptions": [
@@ -1447,8 +1451,8 @@
   },
   {
    "id": "chimneys",
-   "severity": "low",
-   "note": "Both breasts are 1.44m along the gable and project 0.45m, scaled off the agent's plan, which draws them as solid blocks on the west and east walls of the front rooms. Stack heights are scaled off the photograph."
+   "severity": "medium",
+   "note": "Both breasts are 1.44m along the gable and project 0.45m, scaled off the agent's plan, which draws them as solid blocks on the west and east walls of the front rooms. Stack heights are scaled off the photograph. THE TOPS ARE MODELLED AS THEY SHOULD BE BUILT, not as they are: each stack gets a crown oversailing 50mm with its pots seated in it, because that is how a chimney sheds water. Neither listing photograph shows a sound crown on either stack - the east one, which serves the living room and the master, reads as an open brick top with the pots sitting on it. That is a survey job, not a modelling decision, and it is on the backlog."
   },
   {
    "id": "hall-is-not-a-passage",

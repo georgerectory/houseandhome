@@ -27,6 +27,15 @@ hardstanding, no shrubs, no shed. Six feet is the owner's figure; the
 depth is scaled, and the clear gaps it leaves - 1.9m west, 5.9m east -
 land on the handbook's own stated 2m and 5.8m.
 
+**The porch and the chimney tops are fixed.** The porch was a solid
+2.3m block because every feature was; it is a gabled canopy now, two
+cheeks and a pitched roof, centred on the door rather than 80mm west of
+it. The chimney pots were eleven metres adrift over the garden: their
+position was written by hand and negated z, which is the LEFT-handed
+mapping the mirror fix removed everywhere it went through `v()`. Each
+stack also gets a crown, because a stack with pots balanced on a flat
+course is not a chimney.
+
 **A doorway bug is fixed.** The walker's distance along a wall was
 measured radially from the wall's start, which folded their standoff
 into the answer and shifted every door - 80mm for one 0.7m along. Doors
@@ -42,10 +51,21 @@ had to be threaded. It projects now.
    width of the landing's west arm. Not buildable as drawn. Reported by
    the geometry gate, not corrected.
 3. **Re-record the equipment positions** against this building.
-4. **The snug's sofa is cut down.** The study's L does not fit the
+4. **The chimneys are on the backlog and nothing about them is known.**
+   Neither listing photograph shows a sound crown on either stack; the
+   east one, serving the lounge and the main bedroom, reads as an open
+   brick top. An inspection item is `now`; the repair after it is
+   costed only as a placeholder until somebody has been up a ladder.
+5. **Lime is specified and the render question is not.** The owner has
+   set a standing specification - lime plaster, lime mortar, lime
+   render, breathable paint, no cement and no gypsum on a solid wall.
+   Whether the external brickwork gets rendered AT ALL is a separate,
+   open decision: the photographs show sound facing brick, and
+   repointing in lime would get the breathability without covering it.
+6. **The snug's sofa is cut down.** The study's L does not fit the
    north-west corner between the chimney breast and the fitted store.
    Moving the store would let the whole thing across.
-5. **Surface the graph on the Roadmap.** `store.js` does not load
+7. **Surface the graph on the Roadmap.** `store.js` does not load
    `knowledge_links`.
 
 ## Open decisions

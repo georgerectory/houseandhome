@@ -14,7 +14,7 @@
 import { roomRects, stairsOn } from './floorplan.js';
 import { THREE } from './model3d/geom.js';
 import { buildWall, buildFloor, buildCeiling } from './model3d/walls.js';
-import { buildRoof, buildChimney } from './model3d/roof.js';
+import { buildRoof, buildChimney, buildPorch } from './model3d/roof.js';
 import { buildFurniture, buildFeature, buildStair } from './model3d/furniture.js';
 import { buildMarker, buildLabel } from './model3d/markers.js';
 import { buildPlot } from './model3d/plot.js';
@@ -89,7 +89,12 @@ export function buildModel(building, placements = [], palette, opts = {}) {
       if (built.collider) colliders.push(built.collider);
     }
     for (const feature of (building.features ?? []).filter((f) => f.level === level.id)) {
-      const m = buildFeature(feature, level, palette);
+      // A porch is the one feature that is not a block: it is a canopy
+      // with a way in under it, and drawing it as a block puts a 2.3m
+      // slab across the front door.
+      const m = feature.kind === 'porch'
+        ? buildPorch(feature, level, palette)
+        : buildFeature(feature, level, palette);
       if (m) g.add(m);
     }
     for (const stair of stairsOn(building, level.id)) {

@@ -28,7 +28,42 @@
  * A SOLID 9-inch Victorian wall is two skins, so it is 120/m2 of wall
  * face, not 60. Getting that wrong halves the order.
  */
+/**
+ * Brick sizes, in metres, and the joint they are laid with.
+ *
+ * THE RATE IS DERIVED FROM THE BRICK, not typed. "60 bricks per square
+ * metre" is the number every bricklayer quotes, and it is the number
+ * for a METRIC brick: 215 x 65 with a 10mm joint tiles at 60.3/m2. An
+ * IMPERIAL Victorian brick is longer and deeper - 9 x 2 5/8 inches - so
+ * the same square metre takes about 55 of them, and ordering imperials
+ * at the metric rate over-buys by a tenth.
+ *
+ * On a target of several thousand collected over two years that is
+ * hundreds of bricks and hundreds of pounds, and it is invisible unless
+ * the rate is computed from the size it belongs to.
+ */
+export const BRICK_SIZES = {
+  // 9 x 4 3/8 x 2 5/8 inches. The house's own brick, owner-confirmed.
+  imperial: { lengthM: 0.2286, heightM: 0.0667, widthM: 0.1111, label: 'Imperial' },
+  // 215 x 102.5 x 65mm. Everything made since about 1970.
+  metric: { lengthM: 0.215, heightM: 0.065, widthM: 0.1025, label: 'Metric' },
+};
+
+/** The mortar joint a brick is laid with, in metres. */
+export const JOINT_M = 0.010;
+
+/**
+ * How many bricks make a square metre of half-brick skin, from the
+ * brick's own stretcher face plus one joint on each axis.
+ */
+export function bricksPerM2Skin(size = BRICK_SIZES.imperial) {
+  return 1 / ((size.lengthM + JOINT_M) * (size.heightM + JOINT_M));
+}
+
 export const RATES = {
+  // Kept for the metric case and for anything that still asks for a
+  // flat rate. Anything measuring THIS house should go through
+  // bricksPerM2Skin() with the imperial size.
   brickPerM2Skin: 60,
   skinsSolid9in: 2,
   skinsCavity: 2,
@@ -129,14 +164,20 @@ export function newWallFaceM2(diff, building) {
 export function brickTakeoff(diff, building, opts = {}) {
   const faceM2 = newWallFaceM2(diff, building);
   const construction = opts.construction ?? 'solid9';
+  const size = opts.brickSize ?? BRICK_SIZES.imperial;
+  const perM2 = bricksPerM2Skin(size);
   const brickSkins = construction === 'cavity' ? 1 : RATES.skinsSolid9in;
-  const bricks = faceM2 * RATES.brickPerM2Skin * brickSkins;
+  const bricks = faceM2 * perM2 * brickSkins;
   const basis = `${round(diff?.newExternalWallPlanM ?? 0, 2)}m of new outer wall on plan `
     + `x ${building?.defaults?.eavesHeight ?? 5}m to the eaves = ${round(faceM2, 1)} m2 of face, `
-    + `x ${RATES.brickPerM2Skin} bricks/m2 x ${brickSkins} skin${brickSkins > 1 ? 's' : ''} `
-    + `(${construction === 'cavity' ? 'cavity, brick outer and block inner' : 'solid 9in, matching the original'})`;
+    + `x ${round(perM2, 1)} bricks/m2 x ${brickSkins} skin${brickSkins > 1 ? 's' : ''} `
+    + `(${construction === 'cavity' ? 'cavity, brick outer and block inner' : 'solid 9in, matching the original'}). `
+    + `${size.label} brick at ${size.lengthM * 1000} x ${size.heightM * 1000}mm plus a `
+    + `${JOINT_M * 1000}mm joint - NOT the 60/m2 rate, which is for a metric brick and `
+    + 'over-orders an imperial one by about a tenth.';
   return [
-    line('brick', 'Facing brick', bricks, 'each', basis, { extra: { construction } }),
+    line('brick', 'Facing brick', bricks, 'each', basis,
+      { extra: { construction, brickSize: size.label } }),
     line('sand', 'Building sand', (bricks / 1000) * RATES.sandTonnesPer1000Bricks,
       'tonne', `${round(bricks)} bricks at ${RATES.sandTonnesPer1000Bricks} tonnes per thousand`,
       { dp: 2 }),

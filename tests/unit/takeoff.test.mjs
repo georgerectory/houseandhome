@@ -11,7 +11,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
-  RATES, newWallFaceM2, brickTakeoff, ufhTakeoff, pavingTakeoff, gravelTakeoff,
+  RATES, BRICK_SIZES, JOINT_M, bricksPerM2Skin,
+  newWallFaceM2, brickTakeoff, ufhTakeoff, pavingTakeoff, gravelTakeoff,
   internalFaceM2, ceilingAreaM2, floorAreaM2, beadM, plasterTakeoff,
   plasterSundriesTakeoff, stripWasteTakeoff, electricalTakeoff,
   plumbingTakeoff, radiatorTakeoff, restorationTakeoff,
@@ -36,6 +37,45 @@ test('a solid 9in wall is two skins of brick, not one', () => {
     'solid is two skins of brick; a cavity wall is one, with block behind');
 });
 
+test('an imperial brick is not a metric brick, and the rate is not 60', () => {
+  // The owner has confirmed the house is solid red Victorian IMPERIAL
+  // brick. 60 per square metre is the rate every bricklayer quotes and
+  // it belongs to a METRIC brick - 215 x 65. An imperial is 229 x 67,
+  // so the same wall takes about a tenth fewer, and ordering imperials
+  // at 60 over-buys by hundreds across a target this size.
+  const imp = bricksPerM2Skin(BRICK_SIZES.imperial);
+  const met = bricksPerM2Skin(BRICK_SIZES.metric);
+  assert.ok(imp < met, 'a bigger brick cannot take MORE of them per square metre');
+  assert.ok(met > 59 && met < 61,
+    `${met.toFixed(1)}/m2 for a metric brick should land on the familiar 60`);
+  assert.ok(imp > 53 && imp < 56,
+    `${imp.toFixed(1)}/m2 is not the rate for a 9 x 2 5/8in brick`);
+
+  // And it is DERIVED from the size, not typed beside it: change the
+  // brick and the rate has to move with it.
+  const tall = { ...BRICK_SIZES.imperial, heightM: BRICK_SIZES.imperial.heightM * 2 };
+  assert.ok(bricksPerM2Skin(tall) < imp * 0.6,
+    'the rate is not actually computed from the brick dimensions');
+
+  // The joint counts. A brick tiles at its size PLUS the mortar round it.
+  assert.equal(imp, 1 / ((BRICK_SIZES.imperial.lengthM + JOINT_M)
+    * (BRICK_SIZES.imperial.heightM + JOINT_M)));
+});
+
+test('this house is taken off in imperial by default, and says so', () => {
+  const line = brickTakeoff(diff, property).find((l) => l.key === 'brick');
+  assert.equal(line.brickSize, 'Imperial');
+  // The working has to carry the warning, because the order is placed
+  // from the working and 60/m2 is what a supplier will assume.
+  assert.match(line.basis, /not the 60\/m2 rate/i);
+  assert.match(line.basis, /metric/i);
+
+  const metric = brickTakeoff(diff, property, { brickSize: BRICK_SIZES.metric })
+    .find((l) => l.key === 'brick');
+  assert.ok(metric.quantity > line.quantity,
+    'the same wall in metric brick takes more of them, not fewer');
+});
+
 test('the brick count follows the wall the extension actually builds', () => {
   const faceM2 = newWallFaceM2(diff, property);
   const eaves = property.defaults.eavesHeight;
@@ -43,7 +83,8 @@ test('the brick count follows the wall the extension actually builds', () => {
   assert.equal(faceM2, diff.newExternalWallPlanM * eaves);
 
   const bricks = brickTakeoff(diff, property).find((l) => l.key === 'brick');
-  assert.equal(bricks.quantity, Math.round(faceM2 * RATES.brickPerM2Skin * 2));
+  assert.equal(bricks.quantity,
+    Math.round(faceM2 * bricksPerM2Skin(BRICK_SIZES.imperial) * 2));
   // A sanity band rather than a fixed number: the geometry may move,
   // but an order that comes out at 400 or at 40,000 is a bug, and both
   // are the kind of bug that looks plausible in a cell.

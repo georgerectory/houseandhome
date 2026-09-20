@@ -23,16 +23,28 @@ waste, moving gear, plant hire, derived materials, windows, UFH.
 
 **The stockpile is nine targets**, each with a spec tight enough to
 match a listing against and a `reject_if` that does the other half.
-Brick is deliberately `idea`, not `collecting`: the exact brick has not
-been identified and the wall may yet be a cavity, which halves 6,882 to
-3,441.
+Brick is now `collecting`: the owner has confirmed solid red Victorian
+IMPERIAL, so a listing can be held up against it.
+
+**The brick rate was wrong and is now derived.** 60 bricks per square
+metre is the figure every bricklayer quotes and it belongs to a METRIC
+brick; an imperial is 229 x 67 rather than 215 x 65, so the same wall
+takes 54.6 of them. `bricksPerM2Skin()` computes it from the brick's own
+dimensions, and the takeoff dropped from 6,882 to 6,268 solid, 3,441 to
+3,134 cavity.
 
 ## Next steps
 
-1. **Identify the brick.** Everything about the largest stockpile target
-   waits on one brick in the hand. Until then the spec is a placeholder
-   and collecting against it is how a pile of nearly-right brick
-   happens.
+1. **Settle the extension wall build-up.** The original is solid 9in
+   and performs at about 2.1 W/m2K; a new extension has to meet Part L
+   at around 0.18-0.26, so it CANNOT simply match. Cavity with a
+   reclaimed outer skin needs 3,134 bricks, solid 9in with internal
+   insulation needs 6,268. Collecting up to 3,134 is safe either way;
+   past it is collecting on a guess.
+2. **Record the brick SHADE.** The format is confirmed, the colour is
+   not. Victorian reds run from soft orange to deep plum and a pile of
+   two shades cannot be laid on one elevation. Match the first haul
+   against a brick off the house and write the shade into the spec.
 2. **Nine existing rows conflict with the full strip.** Painting,
    carpeting, grouting and draught-proofing ahead of a strip-out. Each
    carries a `risk` note tagged `review:scope-conflict`. They are the
@@ -56,8 +68,6 @@ been identified and the wall may yet be a cavity, which halves 6,882 to
 
 ## Open decisions
 
-- **Solid 9in or cavity** for the extension. Halves or doubles the brick
-  target.
 - **Allocation curve.** Decay 0.85, floor share 0.10.
 - **Learning thresholds.** Tables exist; the derivation job does not.
 - **Supabase unverified from CI.** The sandbox blocks supabase.co.

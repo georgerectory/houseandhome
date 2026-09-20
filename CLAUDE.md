@@ -231,11 +231,26 @@ The owner opens a chat and says **"I wish to review this"** - the
 roadmap, the shopping list, the stockpile, the monthly budget. That is
 a defined session shape, not a conversation.
 
-**Ground first, then ask.** `house_context()`, then the relevant view -
-`shopping_list`, `shopping_totals`, `stock_plan`, the roadmap. Open by
-saying what is in front of you in two or three lines: how many rows,
-what they total, how much of that total is unconfirmed, and what is
-dormant. Never open with a question.
+**Ground first, then ask.** `house_context()` now carries `shopping`,
+`stockpile` and `review` for exactly this. Open by saying what is in
+front of you in two or three lines: how many rows, what they total, how
+much of that total is unconfirmed, and what is dormant. Never open with
+a question.
+
+**Work `review_queue`, not the table.** A review over a hundred rows
+does not finish in one sitting, and a session that starts at the top of
+the same list every time asks about the same bedding forever and never
+reaches the far end. The queue is scored by money at stake, how long
+since anybody looked and whether the figure is trusted, and it EXCLUDES
+dormant purchases - a question about a digger in a year with no digging
+has no useful answer and is exactly what makes a review feel wasted.
+Each row's `gaps` array is its agenda. Work down `review_score`.
+
+**Close each row with `mark_reviewed(id, note)`.** It stamps
+`reviewed_at` and keeps the note as a `work_note`, so the row drops down
+the queue and the next session inherits the judgement instead of
+re-deriving it. A row asked about and not marked will come round again
+next month as though nobody ever answered.
 
 **Then walk the list, one row at a time, as CLICKABLE QUESTIONS.** Use
 the question tool with two to four concrete options - not free text, and

@@ -180,24 +180,40 @@ insert into households (id, name) values
 insert into household_members (household_id, user_id) values
   ('ffffffff-0000-0000-0000-000000000001','ffffffff-1111-1111-1111-111111111111');
 
+-- A purchase of their own, so "sees nothing" cannot be the answer to
+-- both "RLS works" and "nobody is logged in".
+insert into work_items (id, household_id, title, kind, status, horizon, phase,
+                        acquisition, cost_expected)
+values ('ffffffff-3333-0000-0000-000000000001','ffffffff-0000-0000-0000-000000000001',
+        'Their own kettle','purchase','planned','now','move_in','new', 30);
+
 grant usage on schema public to authenticated;
 grant select, insert, update on all tables in schema public to authenticated;
 grant select on public.shopping_list, public.shopping_totals, public.stock_plan
   to authenticated;
 
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"ffffffff-1111-1111-1111-111111111111"}';
+set local request.jwt.claim.sub = 'ffffffff-1111-1111-1111-111111111111';
 
 do $$
-declare n int;
+declare n int; mine int;
 begin
-  select count(*) into n from shopping_list;
+  select count(*) into mine from shopping_list
+   where household_id = 'ffffffff-0000-0000-0000-000000000001';
+  if mine <> 1 then perform fail('shopping RLS: the other household sees its OWN row',
+    'saw ' || mine || ' - auth.uid() has probably not resolved, so the rest of this '
+    || 'test proves nothing'); end if;
+
+  select count(*) into n from shopping_list
+   where household_id = 'eeeeeeee-0000-0000-0000-000000000001';
   if n <> 0 then perform fail('shopping RLS: the list does not leak',
     'saw ' || n || ' - shopping_list is probably missing security_invoker'); end if;
-  select count(*) into n from shopping_totals;
+  select count(*) into n from shopping_totals
+   where household_id = 'eeeeeeee-0000-0000-0000-000000000001';
   if n <> 0 then perform fail('shopping RLS: the totals do not leak either',
     'saw ' || n); end if;
-  select count(*) into n from stock_plan;
+  select count(*) into n from stock_plan
+   where household_id = 'eeeeeeee-0000-0000-0000-000000000001';
   if n <> 0 then perform fail('shopping RLS: stock_plan does not leak',
     'saw ' || n); end if;
   perform pass('shopping RLS: all three derived views are household-scoped');

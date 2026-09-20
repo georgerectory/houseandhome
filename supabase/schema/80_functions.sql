@@ -417,6 +417,50 @@ begin
                     'confidence', h.confidence) order by h.category), '[]'::jsonb)
                    from public.house_facts h
                   where h.household_id = v_hh and (v_room is null or h.room_id = v_room)),
+    -- THE SHOPPING LIST, as money rather than as rows. A cold session
+    -- that does not know what is already on the list will add a second
+    -- dust extractor, and a cold session that does not know what is
+    -- DORMANT will read the total as the whole cost of the project.
+    -- Whole-house only: the shopping list is phased, not roomed.
+    'shopping', (select case when v_room is null then
+                   coalesce(jsonb_agg(jsonb_build_object(
+                     'phase', t.phase, 'in_scope', t.items_in_scope,
+                     'dormant', t.items_dormant, 'buy', t.buy_cost,
+                     'hire', t.hire_cost, 'total', t.total_in_scope,
+                     'parked', t.dormant_cost, 'unconfirmed', t.unconfirmed_cost)
+                     order by t.total_in_scope desc), '[]'::jsonb) end
+                   from public.shopping_totals t
+                  where t.household_id = v_hh),
+    -- THE STOCKPILE. Progress against a target is the one figure here
+    -- nobody can hold in their head across two years of collecting.
+    'stockpile', (select coalesce(jsonb_agg(jsonb_build_object(
+                    'name', s.name, 'category', s.category,
+                    'acquisition', s.acquisition, 'status', s.status,
+                    'held', s.quantity_held, 'to_collect', s.quantity_to_collect,
+                    'unit', s.unit, 'pct', s.pct_collected,
+                    'spent', s.spent_so_far, 'budget_cap', s.budget_cap,
+                    'saving_if_reclaimed', s.saving_if_reclaimed,
+                    'spec', s.spec) order by s.pct_collected nulls last), '[]'::jsonb)
+                   from public.stock_status s
+                  where s.household_id = v_hh
+                    and s.status not in ('complete','dropped')
+                    and (v_room is null or s.room_id = v_room)),
+    -- WHAT A REVIEW SESSION SHOULD OPEN WITH. Not the rows - the size
+    -- of the job, so the session can say how far through it is instead
+    -- of starting at the top of the same list every time.
+    'review', (select jsonb_build_object(
+                    'never_reviewed', count(*) filter (where q.reviewed_at is null),
+                    'in_queue', count(*),
+                    'top', (select coalesce(jsonb_agg(jsonb_build_object(
+                              'id', x.id, 'title', x.title,
+                              'cost', x.cost_expected, 'gaps', x.gaps)), '[]'::jsonb)
+                            from (select * from public.review_queue rq
+                                   where rq.household_id = v_hh
+                                     and (v_room is null or rq.room_id = v_room)
+                                   order by rq.review_score desc limit 5) x))
+                   from public.review_queue q
+                  where q.household_id = v_hh
+                    and (v_room is null or q.room_id = v_room)),
     'unconfirmed_warning', (
       select case when count(*) > 0
              then format('%s row(s) in scope are still unconfirmed or carried over. '

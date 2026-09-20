@@ -47,7 +47,13 @@ on conflict (key) do nothing;
 create or replace function public.work_item_is_live(
   p_status text, p_horizon text
 ) returns boolean
-language sql immutable parallel safe as $$
+language sql immutable parallel safe
+-- Pinned, because the security advisor counts a mutable search_path as
+-- a finding whether or not the body touches a schema-qualified name,
+-- and the standing rule after a schema change is ZERO findings we put
+-- there ourselves.
+set search_path = public
+as $$
   select p_status in ('ready','in_progress')
       or (p_status = 'planned' and p_horizon in ('now','next'));
 $$;

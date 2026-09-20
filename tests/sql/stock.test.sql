@@ -160,25 +160,44 @@ insert into households (id, name) values
 insert into household_members (household_id, user_id) values
   ('dddddddd-0000-0000-0000-000000000001','dddddddd-1111-1111-1111-111111111111');
 
+-- The other household gets a target of its own. Without it, "sees
+-- nothing" would also be the answer if auth.uid() resolved to null -
+-- so the isolation test would pass for entirely the wrong reason, and
+-- would go on passing if RLS were removed tomorrow.
+insert into stock_targets (id, household_id, name, category, spec, unit, quantity_needed)
+values ('dddddddd-2222-0000-0000-000000000001','dddddddd-0000-0000-0000-000000000001',
+        'Their own slate','tile','Welsh slate, 500 x 250, salvaged','each', 40);
+
 grant usage on schema public to authenticated;
 grant select, insert, update on all tables in schema public to authenticated;
 grant select on public.stock_status to authenticated;
 
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"dddddddd-1111-1111-1111-111111111111"}';
+set local request.jwt.claim.sub = 'dddddddd-1111-1111-1111-111111111111';
 
 do $$
-declare n int;
+declare n int; mine int;
 begin
-  select count(*) into n from stock_targets;
+  -- First prove the session IS somebody. A test that only checks for
+  -- zero rows passes just as well when nobody is logged in.
+  select count(*) into mine from stock_targets
+   where household_id = 'dddddddd-0000-0000-0000-000000000001';
+  if mine <> 1 then perform fail('stock RLS: the other household sees its OWN target',
+    'saw ' || mine || ' - auth.uid() has probably not resolved, so the rest of this '
+    || 'test proves nothing'); end if;
+
+  select count(*) into n from stock_targets
+   where household_id = 'cccccccc-0000-0000-0000-000000000001';
   if n <> 0 then perform fail('stock RLS: another household sees no targets',
     'saw ' || n); end if;
 
-  select count(*) into n from stock_acquisitions;
+  select count(*) into n from stock_acquisitions
+   where household_id = 'cccccccc-0000-0000-0000-000000000001';
   if n <> 0 then perform fail('stock RLS: another household sees no hauls',
     'saw ' || n); end if;
 
-  select count(*) into n from stock_status;
+  select count(*) into n from stock_status
+   where household_id = 'cccccccc-0000-0000-0000-000000000001';
   if n <> 0 then perform fail('stock RLS: the VIEW does not leak either',
     'saw ' || n || ' - the view is probably missing security_invoker'); end if;
 

@@ -5,15 +5,9 @@
 // choice to localStorage; with nothing stored, the system preference
 // wins, which is what the tokens are written to expect.
 
-const PAGES = [
-  { href: 'index.html',    label: 'Dashboard' },
-  { href: 'roadmap.html',  label: 'Roadmap' },
-  { href: 'backlog.html',  label: 'Backlog' },
-  { href: 'money.html',    label: 'Money' },
-  { href: 'shopping.html', label: 'Shopping' },
-  { href: 'house.html',    label: 'House' },
-  { href: 'handbook.html', label: 'Handbook' },
-];
+// ONE home for the page list - see core/pages.js. The generator and
+// the front-end sweep read the same array.
+import { PAGES } from './pages.js';
 
 const THEME_KEY = 'hh-theme';
 

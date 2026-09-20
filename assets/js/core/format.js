@@ -37,7 +37,16 @@ export function pct(part, whole) {
   return Math.max(0, Math.min(100, (Number(part) / Number(whole)) * 100));
 }
 
-const TRUSTED = new Set(['confirmed', 'actual']);
+/**
+ * The two confidence states that may drive a total, a projection or an
+ * allocation of real money. Everything else is a guess wearing a
+ * decimal point.
+ *
+ * EXPORTED because it had four copies - here, in engine/shopping.js,
+ * and twice inline in core/store.js - and four copies of the rule that
+ * decides which money counts is three too many. One home.
+ */
+export const TRUSTED = new Set(['confirmed', 'actual']);
 export const isTrusted = (c) => TRUSTED.has(c);
 
 const PROV_LABEL = {

@@ -7,8 +7,9 @@
 //
 // Two implementations of one rule is exactly the duplication this
 // project avoids elsewhere, so it is held honest mechanically:
-// tests/unit/allocate-parity.test.js runs both against the same inputs
-// and fails if a single micro-pound differs.
+// `npm run test:parity` (tools/parity-check.mjs) provisions a real
+// Postgres from supabase/schema/, runs both against the same inputs and
+// fails if a single micro-pound differs.
 //
 // The rule:
 //   * every open, fundable, costed item gets a share of every deposit

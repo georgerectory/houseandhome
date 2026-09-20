@@ -144,6 +144,51 @@ BUY.forEach(([title, category, cb, cw, theme, benefit, roomKey], i) => {
   });
 });
 
+// CHECKLIST SECTIONS. Work items that carry their content in `details`
+// as `- [ ]` lines, read by the Plan page through engine/checklist.js.
+//
+// They are here because the front-end gate forces demo mode: without a
+// fixture the Plan page renders nothing, and the gate's "a page that
+// renders nothing fails" assertion would catch it as an empty page
+// rather than as a missing fixture. Two sections is enough to exercise
+// the parser's three block kinds and the tier chip.
+const CHECKS = [
+  ['Before you view', 10, 'tier:offer',
+   'What to have in hand before the day itself.',
+   `PAPERWORK
+- [ ] Title register and title plan
+- [ ] EPC records
+- [ ] Planning history
+Ask the agent for anything already in existence rather than commissioning it twice.
+- [ ] Proof of deposit ready`],
+  ['On the day', 20, 'tier:financing',
+   'The go/no-go checks, before anything else.',
+   `SERVICES - these decide whether it can be mortgaged at all
+- [ ] A WC that flushes
+- [ ] Running water at a tap
+- [ ] A fixed heat source that fires
+FABRIC
+- [ ] Damp course visible, and ground below it
+- [ ] No daylight in the loft`],
+];
+CHECKS.forEach(([title, sort_order, tier, summary, details], i) => {
+  items.push({
+    id: uid('check', i), title, summary, details, sort_order,
+    tags: ['viewing', tier], kind: 'research', trade: 'admin',
+    theme: 'make_safe', benefit_type: 'safety',
+    room_id: null, room_key: null, room_name: null,
+    cost_best: 0, cost_worst: 0, cost_expected: 0, cost_confidence: 'drafted',
+    duration_min_minutes: 20, duration_max_minutes: 60, min_session_minutes: 20,
+    tools_required: [], setting: 'either', physical_demand: 'light', posture: [],
+    mess_level: 'clean', weather_needs: [], needs_daylight: false,
+    drying_or_curing_hours: null, season_window: [], materials_ready: true,
+    status: 'ready', horizon: 'now', allocated_balance: 0,
+    house_benefit: null, benefit_status: null, confidence: 'drafted',
+    roomWeight: 3, themeWeight: THEME_W.make_safe ?? 5,
+    benefitWeight: BENEFIT_W.safety ?? 5,
+  });
+});
+
 // Rank exactly as the database would, then band the top of the list.
 // rank() returns the ENGINE's vocabulary - score and explain. The
 // database stores those as priority_score and priority_explain, and the
@@ -259,7 +304,8 @@ const data = {
 mkdirSync('data/fixtures', { recursive: true });
 writeFileSync('data/fixtures/demo.json', JSON.stringify(data, null, 2) + '\n');
 
+const checks = items.filter((i) => (i.tags ?? []).includes('viewing')).length;
 const jobs = items.filter((i) => i.kind !== 'purchase').length;
 const buys = items.filter((i) => i.kind === 'purchase').length;
-console.log(`fixtures: ${items.length} items (${jobs} jobs, ${buys} purchases), ${rooms.length} rooms, ${bills.length} bills, ${assets.length} assets`);
+console.log(`fixtures: ${items.length} items (${jobs} jobs, ${buys} purchases, ${checks} checklist), ${rooms.length} rooms, ${bills.length} bills, ${assets.length} assets`);
 console.log(`top of list: ${items.slice(0, 5).map((i) => `${i.priority}. ${i.title}`).join(' | ')}`);

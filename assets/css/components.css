@@ -623,3 +623,116 @@ fieldset[role="group"] {
   color: var(--ink-muted);
 }
 .shop-mark-age { color: var(--ink-faint); }
+
+/* ---------------------------------------------------------------
+   Document and checklist - the Plan page.
+
+   This is the page that replaces a PDF, so it is the one place where
+   PRINT is a first-class target rather than an afterthought. The
+   checkbox is a drawn square, not an <input>: nothing on this site is
+   interactive, and a real checkbox would be a control that cannot be
+   saved and a 24px target the gate would then have to police.
+   --------------------------------------------------------------- */
+.doc { max-width: var(--measure); }
+
+.ck-toc {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+  margin-block: var(--space-6);
+  background: var(--paper-raised);
+}
+.ck-toc h3 {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--ink-muted);
+  margin: 0 0 var(--space-2);
+}
+.ck-toc ol { margin: 0; padding-left: var(--space-6); }
+.ck-toc li { padding-block: var(--space-1); }
+/* A contents entry is a link, so it is a target and has to clear the
+   24px floor - at the default line height it comes out at 19. */
+.ck-toc a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--tap-min-floor);
+  padding-inline-end: var(--space-2);
+}
+.ck-count { color: var(--ink-faint); font-size: var(--text-sm); }
+
+.ck-section { margin-block: var(--space-8); }
+.ck-title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  font-size: var(--text-lg);
+  margin: 0 0 var(--space-2);
+  padding-top: var(--space-4);
+  border-top: 2px solid var(--ink);
+}
+.ck-num {
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-faint);
+  font-size: var(--text-base);
+}
+.ck-why {
+  color: var(--ink-muted);
+  font-style: italic;
+  margin: var(--space-2) 0 var(--space-4);
+}
+.ck-head {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--ink-muted);
+  margin: var(--space-6) 0 var(--space-2);
+}
+.ck-note { margin: var(--space-3) 0; }
+
+.ck-list { list-style: none; padding: 0; margin: 0 0 var(--space-3); }
+.ck-item {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  padding-block: var(--space-2);
+  border-bottom: 1px solid var(--rule);
+}
+.ck-item::before {
+  content: "";
+  flex: 0 0 auto;
+  inline-size: 1.1rem;
+  block-size: 1.1rem;
+  margin-block-start: 0.2em;
+  border: 2px solid var(--ink-muted);
+  border-radius: var(--radius-sm);
+}
+.ck-item.is-done { color: var(--ink-muted); text-decoration: line-through; }
+.ck-item.is-done::before {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+/* ---------------------------------------------------------------
+   Print. The Plan page IS the export, so the browser's own Save as
+   PDF has to produce something worth keeping: no navigation, no
+   theme chrome, and no section split across a page break.
+   --------------------------------------------------------------- */
+@media print {
+  .site-header,
+  .site-footer,
+  .skip-link,
+  .ck-toc,
+  .toolbar,
+  .filters { display: none; }
+
+  .page { padding-block: 0; }
+  .doc { max-width: none; }
+
+  .ck-section { break-inside: avoid; margin-block: var(--space-4); }
+  .ck-title { break-after: avoid; }
+  .ck-head { break-after: avoid; }
+  .ck-item { break-inside: avoid; padding-block: var(--space-1); }
+  .notice, .card, .table-wrap { break-inside: avoid; }
+}

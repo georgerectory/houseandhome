@@ -152,8 +152,11 @@ so shares sum to the deposit exactly.
 Timeline (a waterfall) and List are projections over the same
 `work_items`, and grouping is by the axes a house has - room, trade,
 intent, benefit, kind, horizon - never anything resembling a department.
-The logic lives in `assets/js/engine/roadmap-views.js` and is pure, so it
-is unit-tested; the page is a thin renderer over it. A trade filter
+The logic lives in `assets/js/engine/roadmap-*.js` - `roadmap-model.js`
+is the shared spine (placement, filters, grouping) and `-timeline`,
+`-cascade` and `-summary` are the three projections over it, with
+`-detail` and `-export` beside them. All pure, so all unit-tested; the
+page is a thin renderer over them. A trade filter
 matches the owning trade OR an associated one, so an "electrical" view
 shows everything electrical touches.
 

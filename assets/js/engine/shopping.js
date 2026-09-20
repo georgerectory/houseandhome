@@ -24,7 +24,23 @@ export const TRIP_AXES = [
   { key: 'theme', label: 'Intent', field: 'theme', fallback: 'Unclassified' },
   { key: 'horizon', label: 'When', field: 'horizon', fallback: 'someday',
     order: ['now', 'next', 'later', 'someday'] },
-  { key: 'channel', label: 'Where from', field: 'channel', fallback: 'Channel not set' },
+  // Which part of the project needs it, as opposed to when it can be
+  // afforded. Those are different questions and the list is organised
+  // by both.
+  //
+  // This slot used to be a 'channel' axis reading `item.channel`.
+  // work_items HAS NO SUCH COLUMN - channel lives on price_references
+  // and purchase_options - so every item fell into "Channel not set"
+  // and the tab had never once grouped anything, in any dataset, since
+  // the day it shipped. The fixture carried no channel key either, so
+  // no test could see it.
+  { key: 'phase', label: 'Phase', field: 'phase', fallback: 'Not placed yet',
+    order: ['before_purchase', 'move_in', 'strip_out', 'first_year',
+      'second_year', 'extension', 'fit_out', 'garden', 'ongoing'] },
+  // How it is come by. Hire is the one that matters: a skip and a
+  // digger are real money and are never owned.
+  { key: 'acquisition', label: 'How', field: 'acquisition', fallback: 'new',
+    order: ['new', 'reclaimed', 'either', 'hire', 'owned', 'gift'] },
 ];
 
 export const axisFor = (key) => TRIP_AXES.find((a) => a.key === key) ?? TRIP_AXES[0];

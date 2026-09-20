@@ -6,16 +6,10 @@
 // actually resolve on a notched phone), the same skip target, and one
 // <main id="main">.
 import { writeFileSync } from 'node:fs';
-
-const PAGES = [
-  ['index.html', 'Dashboard', 'What to do next, and where things stand.'],
-  ['roadmap.html', 'Roadmap', 'The same work as a board, a timeline or a list — grouped by room, trade, intent or benefit.'],
-  ['backlog.html', 'Backlog', 'Every job and purchase, ranked and filterable.'],
-  ['money.html', 'Money', 'The pot, what it is funding, and what is due.'],
-  ['shopping.html', 'Shopping', 'What to buy, grouped into trips, with what each run costs.'],
-  ['house.html', 'House', 'The floor plan, what sits where on it, and the equipment register.'],
-  ['handbook.html', 'Handbook', 'What this house is and what was decided.'],
-];
+// ONE home for the page list - see assets/js/core/pages.js. The nav,
+// this generator and the front-end sweep all read it, so a page cannot
+// be generated but left out of the navigation or the tests.
+import { PAGES } from '../assets/js/core/pages.js';
 
 // The login screen has no nav, no <h1> of its own and no lede: it is
 // rendered entirely by its module, so it gets a bare shell.
@@ -77,8 +71,8 @@ try { var t = localStorage.getItem('hh-theme'); if (t) document.documentElement.
 </html>
 `;
 
-for (const [file, title, lede] of PAGES) {
-  writeFileSync(file, tpl(file, title, lede));
+for (const { href, label, lede } of PAGES) {
+  writeFileSync(href, tpl(href, label, lede));
 }
 writeFileSync('login.html', LOGIN);
 console.log(`pages: ${PAGES.length + 1} written`);

@@ -19,6 +19,7 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import { mkdirSync, existsSync } from 'node:fs';
+import { PAGES as PAGE_LIST, PUBLIC_PAGES } from '../assets/js/core/pages.js';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 // Port 0 asks the OS for a free one. A fixed port made this gate fail
@@ -41,11 +42,14 @@ const server = createServer(async (req, res) => {
 await new Promise((r) => server.listen(0, '127.0.0.1', r));
 PORT = server.address().port;
 
-const PAGES = ['index.html', 'roadmap.html', 'backlog.html', 'money.html',
-  'shopping.html', 'house.html', 'handbook.html'];
-// The login screen is checked separately: it has no nav and is reached
-// without a session.
-const PUBLIC_PAGES = ['login.html'];
+// ONE home for the page list - see assets/js/core/pages.js. A page
+// added there is generated, navigated to AND swept, in one edit.
+const PAGES = PAGE_LIST.map((p) => p.href);
+// The login screen: no nav, no session, a smaller stylesheet set. It
+// was declared here and never used, so the only unauthenticated page on
+// the site had never been checked at any viewport. It is swept now,
+// with the landmark assertions that do not apply to it relaxed.
+const PUBLIC = PUBLIC_PAGES.map((p) => p.href);
 const VIEWPORTS = [
   { name: 'iPhone portrait',  width: 390, height: 844, touch: true },
   { name: 'iPhone landscape', width: 844, height: 390, touch: true },
@@ -77,6 +81,60 @@ const browser = await chromium.launch({
 let failures = [];
 let checks = 0;
 
+// ---------------------------------------------------------------
+// One ruler, used on every page.
+//
+// Lifted out of the sweep loop so the LOGIN screen can be measured by
+// exactly the same rules as the rest of the site. It was declared in
+// PUBLIC_PAGES and never visited, so the only unauthenticated page -
+// the only one with a form, and therefore the only one where the 16px
+// rule actually prevents iOS zooming on focus - had never been checked
+// at any viewport in either theme.
+// ---------------------------------------------------------------
+const measure = (page, minTap = 24) => page.evaluate((tap) => {
+  const out = { overflow: [], smallTargets: [], fontTooSmall: null };
+  out.scrollW = document.documentElement.scrollWidth;
+  out.clientW = document.documentElement.clientWidth;
+
+  for (const el of document.querySelectorAll('body *')) {
+    const b = el.getBoundingClientRect();
+    if (b.width === 0 || b.height === 0) continue;
+    // An element inside its own horizontal scroll container is allowed
+    // to be wider - that is the sanctioned escape for tables and for
+    // the navigation. Anything else must fit.
+    let inScroller = false;
+    for (let n = el.parentElement; n; n = n.parentElement) {
+      const cs = getComputedStyle(n);
+      if (cs.overflowX === 'auto' || cs.overflowX === 'scroll') { inScroller = true; break; }
+    }
+    if (!inScroller && b.right > window.innerWidth + 1) {
+      out.overflow.push(`${el.tagName.toLowerCase()}.${(el.className || '').toString().split(' ')[0]} right=${Math.round(b.right)}`);
+    }
+  }
+
+  for (const el of document.querySelectorAll('a, button, select, input, summary, [role="button"]')) {
+    const b = el.getBoundingClientRect();
+    if (b.width === 0 || b.height === 0) continue;
+    if (getComputedStyle(el).position === 'absolute' && el.classList.contains('skip-link')) continue;
+    if (b.height < tap || b.width < tap) {
+      out.smallTargets.push(`${el.tagName.toLowerCase()}"${(el.textContent || '').trim().slice(0, 24)}" ${Math.round(b.width)}x${Math.round(b.height)}`);
+    }
+  }
+
+  const bodySize = parseFloat(getComputedStyle(document.body).fontSize);
+  if (bodySize < 16) out.fontTooSmall = bodySize;
+
+  out.mains = document.querySelectorAll('main#main').length;
+  out.h1s = document.querySelectorAll('h1').length;
+  out.skip = !!document.querySelector('a.skip-link[href="#main"]');
+  out.hasNav = !!document.querySelector('nav[aria-label]');
+  out.bodyBg = getComputedStyle(document.body).backgroundColor;
+  out.bodyColor = getComputedStyle(document.body).color;
+  out.contentLen = (document.querySelector('[data-page-root]')?.textContent || '').trim().length;
+  return out;
+}, minTap);
+
+
 for (const theme of THEMES) {
   for (const vp of VIEWPORTS) {
     const ctx = await browser.newContext({
@@ -95,7 +153,34 @@ for (const theme of THEMES) {
     // Every protected page redirects to the login screen without a
     // session, so establish one before the sweep - otherwise this would
     // silently check the same login page six times and report success.
+    const loginErrors = [];
+    page.on('console', (m) => { if (m.type() === 'error') loginErrors.push(m.text()); });
+    page.on('pageerror', (e) => loginErrors.push(String(e)));
     await page.goto(`http://localhost:${PORT}/login.html`, { waitUntil: 'networkidle' });
+    await page.waitForTimeout(120);
+
+    // The public pages, measured here rather than in the sweep below,
+    // because the sweep runs signed in and every protected page would
+    // redirect. The nav and skip-link assertions are relaxed: the login
+    // screen deliberately has neither.
+    {
+      const lr = await measure(page);
+      const label = `${theme}/${vp.name}/login.html`;
+      checks++;
+      if (lr.scrollW > lr.clientW + 1) failures.push(`${label}: horizontal page scroll (${lr.scrollW} > ${lr.clientW})`);
+      if (lr.overflow.length) failures.push(`${label}: ${lr.overflow.length} element(s) overflow viewport - ${lr.overflow.slice(0, 2).join('; ')}`);
+      if (lr.smallTargets.length) failures.push(`${label}: ${lr.smallTargets.length} target(s) below 24px - ${lr.smallTargets.slice(0, 2).join('; ')}`);
+      // The one that matters most here: a sign-in field under 16px
+      // makes iOS zoom the moment it is focused, on the first screen
+      // anybody ever sees.
+      if (lr.fontTooSmall) failures.push(`${label}: body font ${lr.fontTooSmall}px < 16px (iOS will zoom on focus)`);
+      if (lr.mains !== 1) failures.push(`${label}: ${lr.mains} <main id="main"> (expected 1)`);
+      if (lr.h1s !== 1) failures.push(`${label}: ${lr.h1s} <h1> (expected 1)`);
+      if (lr.contentLen < 50) failures.push(`${label}: page rendered no content (${lr.contentLen} chars)`);
+      if (lr.bodyBg === 'rgba(0, 0, 0, 0)') failures.push(`${label}: body has no background`);
+      if (loginErrors.length) failures.push(`${label}: console error - ${loginErrors[0].slice(0, 120)}`);
+    }
+
     await page.fill('#username', 'homeowner');
     await page.fill('#password', 'houseandhome');
     await Promise.all([
@@ -118,48 +203,7 @@ for (const theme of THEMES) {
       await page.goto(`http://localhost:${PORT}/${p}`, { waitUntil: 'networkidle' });
       await page.waitForTimeout(120);
 
-      const r = await page.evaluate((minTap) => {
-        const out = { overflow: [], smallTargets: [], fontTooSmall: null };
-        out.scrollW = document.documentElement.scrollWidth;
-        out.clientW = document.documentElement.clientWidth;
-
-        for (const el of document.querySelectorAll('body *')) {
-          const b = el.getBoundingClientRect();
-          if (b.width === 0 || b.height === 0) continue;
-          // An element inside its own horizontal scroll container is
-          // allowed to be wider - that is the sanctioned escape for
-          // tables. Anything else must fit.
-          let inScroller = false;
-          for (let n = el.parentElement; n; n = n.parentElement) {
-            const s = getComputedStyle(n);
-            if (s.overflowX === 'auto' || s.overflowX === 'scroll') { inScroller = true; break; }
-          }
-          if (!inScroller && b.right > window.innerWidth + 1) {
-            out.overflow.push(`${el.tagName.toLowerCase()}.${(el.className || '').toString().split(' ')[0]} right=${Math.round(b.right)}`);
-          }
-        }
-
-        for (const el of document.querySelectorAll('a, button, select, input, summary, [role="button"]')) {
-          const b = el.getBoundingClientRect();
-          if (b.width === 0 || b.height === 0) continue;
-          if (getComputedStyle(el).position === 'absolute' && el.classList.contains('skip-link')) continue;
-          if (b.height < minTap || b.width < minTap) {
-            out.smallTargets.push(`${el.tagName.toLowerCase()}"${(el.textContent || '').trim().slice(0, 24)}" ${Math.round(b.width)}x${Math.round(b.height)}`);
-          }
-        }
-
-        const bodySize = parseFloat(getComputedStyle(document.body).fontSize);
-        if (bodySize < 16) out.fontTooSmall = bodySize;
-
-        out.mains = document.querySelectorAll('main#main').length;
-        out.h1s = document.querySelectorAll('h1').length;
-        out.skip = !!document.querySelector('a.skip-link[href="#main"]');
-        out.hasNav = !!document.querySelector('nav[aria-label]');
-        out.bodyBg = getComputedStyle(document.body).backgroundColor;
-        out.bodyColor = getComputedStyle(document.body).color;
-        out.contentLen = (document.querySelector('[data-page-root]')?.textContent || '').trim().length;
-        return out;
-      }, vp.width < 1024 ? 24 : 24);
+      const r = await measure(page);
 
       const label = `${theme}/${vp.name}/${p}`;
       checks++;

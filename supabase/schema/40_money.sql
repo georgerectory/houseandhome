@@ -119,6 +119,13 @@ begin
 end;
 $$;
 
+-- A trigger function is never called directly, and this one is SECURITY
+-- DEFINER, so it runs as its owner. CREATE OR REPLACE resets grants to
+-- the default - which on this schema means anon and authenticated can
+-- reach it through /rest/v1/rpc - so the revoke has to sit with the
+-- definition rather than be applied once and forgotten.
+revoke all on function public.apply_allocation_to_item() from public, anon, authenticated;
+
 drop trigger if exists allocations_apply on public.allocations;
 create trigger allocations_apply after insert on public.allocations
   for each row execute function public.apply_allocation_to_item();

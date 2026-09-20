@@ -32,6 +32,7 @@ begin
     'assets','asset_parts','asset_faults','inventory_items','consumables',
     'recipes','recipe_ingredients',
     'stock_targets','stock_acquisitions',
+    'income_sources','quotes','payment_schedule',
     'house_facts','decisions','palettes','contractors','invoices','scheduled_events',
     'estimate_outcomes','learned_factors','learning_runs','insight_messages'
   ] loop
@@ -100,6 +101,7 @@ begin
     'assets','asset_parts','asset_faults','inventory_items','consumables',
     'recipes','recipe_ingredients',
     'stock_targets','stock_acquisitions',
+    'income_sources','quotes','payment_schedule',
     'house_facts','decisions','palettes','contractors','invoices','scheduled_events',
     'estimate_outcomes','learned_factors','learning_runs','insight_messages'
   ] loop

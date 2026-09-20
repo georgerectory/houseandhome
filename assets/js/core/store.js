@@ -28,7 +28,7 @@ async function loadLive() {
   if (!session) { location.replace('login.html'); return null; }
 
   const [rooms, items, bills, assets, storage, inventory, settings, prices,
-    carried, accounts] = await Promise.all([
+    carried, accounts, shopping, totals, stock, review, links] = await Promise.all([
     sb.from('rooms').select('*'),
     sb.from('work_items').select('*').order('priority'),
     sb.from('bills').select('*').eq('is_active', true),
@@ -42,6 +42,19 @@ async function loadLive() {
     // decide something they have already decided.
     sb.from('carried_finance').select('*').eq('review_status', 'pending'),
     sb.from('accounts').select('*').eq('is_active', true),
+    // THE DERIVED VIEWS. These were written, tested and then never read
+    // by the site, which queried the base tables and re-derived a worse
+    // answer client-side. shopping_list knows which purchases are
+    // dormant, which are hire and which are already owned; the page
+    // summing work_items directly knew none of it and totalled all
+    // three into one number.
+    sb.from('shopping_list').select('*'),
+    sb.from('shopping_totals').select('*'),
+    sb.from('stock_plan').select('*').not('status', 'in', '(complete,dropped)'),
+    sb.from('review_queue').select('*').order('review_score', { ascending: false }),
+    // The edges. Without them the client cannot see why anything is on
+    // the list, which is what made the view necessary in the first place.
+    sb.from('knowledge_links').select('*').is('valid_to', null),
   ]);
   const { data: pot, error: potError } = await sb.from('pots')
     .select('*').eq('is_active', true).maybeSingle();
@@ -52,7 +65,7 @@ async function loadLive() {
   // it knows, so a broken read is raised rather than swallowed.
   const failed = Object.entries({
     rooms, items, bills, assets, storage, inventory, settings, prices, carried,
-    accounts, pot: { error: potError },
+    accounts, shopping, totals, stock, review, links, pot: { error: potError },
   }).filter(([, r]) => r?.error).map(([name, r]) => `${name}: ${r.error.message}`);
   if (failed.length) {
     throw new Error(`Could not read the database - ${failed.join('; ')}`);
@@ -100,6 +113,11 @@ async function loadLive() {
     // allocation until a person has confirmed it.
     carried_finance: carried.data ?? [],
     accounts: accounts.data ?? [],
+    shopping_list: shopping.data ?? [],
+    shopping_totals: totals.data ?? [],
+    stock_plan: stock.data ?? [],
+    review_queue: review.data ?? [],
+    knowledge_links: links.data ?? [],
   };
   return cache;
 }

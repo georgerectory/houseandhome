@@ -8,6 +8,7 @@
 // that the system works, and is honest, with nothing yet verified.
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { rank } from '../assets/js/engine/priority.js';
+import { shoppingList, shoppingTotals } from '../assets/js/engine/demand.js';
 
 const ROOMS = [
   ['hallway','Hallway','hallway',4], ['lounge','Lounge','living',4],
@@ -206,6 +207,31 @@ items = rank(items).map(({ score, explain, roomWeight, themeWeight, benefitWeigh
 const HORIZON = (p) => (p <= 6 ? 'now' : p <= 16 ? 'next' : p <= 34 ? 'later' : 'someday');
 items = items.map((i) => ({ ...i, horizon: HORIZON(i.priority) }));
 
+// THE DERIVED VIEWS, mirrored for demo mode.
+//
+// The front-end gate forces demo mode, so a page reading shopping_list
+// would render blank against the fixture and the gate would report it
+// as an empty page rather than as a missing fixture. These are built by
+// the same pure rule the database uses; `npm run test:parity` runs both
+// against the same rows and fails on any disagreement.
+//
+// TWO LINKS are authored deliberately. Without them every purchase is
+// `standalone` and the dormant path - the whole reason the view exists
+// - would never render in any test.
+const digJob = items.find((i) => i.kind !== 'purchase');
+const dormantBuys = items.filter((i) => i.kind === 'purchase').slice(0, 2);
+const knowledge_links = dormantBuys.map((buy, i) => ({
+  id: uid('link', i),
+  from_type: 'work_item', from_id: digJob?.id ?? null,
+  to_type: 'work_item', to_id: buy.id,
+  kind: 'requires_material', confidence: 'derived', valid_to: null,
+}));
+// The job they hang off is parked, so both read dormant.
+if (digJob) { digJob.status = 'idea'; digJob.horizon = 'someday'; }
+
+const shopping_list = shoppingList(items, knowledge_links);
+const shopping_totals = shoppingTotals(shopping_list);
+
 const bills = [
   ['Council tax', 'council_tax', 'monthly'], ['Energy', 'energy', 'monthly'],
   ['Water', 'water', 'monthly'], ['Broadband', 'broadband', 'monthly'],
@@ -267,6 +293,8 @@ const data = {
   pot: { name: 'House pot', monthly_contribution: 400, contribution_confidence: 'drafted', unallocated_balance: 0 },
   allocation_settings: { decay: 0.85, floor_share: 0.10 },
   rooms, items, bills, assets,
+  shopping_list, shopping_totals, knowledge_links,
+  stock_plan: [], review_queue: [],
   storage: [
     { id: uid('store', 0), name: 'Loft boxes', kind: 'box', room_key: 'loft', label_code: 'L-01' },
     { id: uid('store', 1), name: 'Garage rack', kind: 'rack', room_key: 'garage', label_code: 'G-01' },

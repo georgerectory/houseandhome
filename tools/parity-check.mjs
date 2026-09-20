@@ -1,5 +1,4 @@
-// parity-check.mjs - prove the JS allocation engine and the SQL one
-// agree to the micro-pound.
+// parity-check.mjs - prove the JS engines and the SQL ones agree.
 //
 // Two implementations of one rule is a liability unless something
 // mechanically forbids them drifting. This is that something: it drives
@@ -11,6 +10,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { allocate } from '../assets/js/engine/allocate.js';
+import { shoppingList } from '../assets/js/engine/demand.js';
 
 const PGBIN = process.env.PGBIN || '/usr/lib/postgresql/16/bin';
 const DB = process.env.PARITY_DB || 'househome_parity';
@@ -145,6 +145,88 @@ for (const c of CASES) {
   }
 }
 
+// ---------------------------------------------------------------
+// DEMAND PARITY. engine/demand.js mirrors the shopping_list view, and
+// it exists for the same reason allocate.js does: the fixture
+// generator has to produce view-shaped rows so the front-end gate can
+// run offline. Same liability, same remedy.
+//
+// The case is built to exercise every branch at once: a live job, a
+// parked job, a purchase nothing requires, one already owned, one
+// hired, and one closed.
+// ---------------------------------------------------------------
+const HH = '11111111-1111-1111-1111-111111111111';
+psql(`begin;
+      set local house.allow_work_item_delete = 'on';
+      delete from knowledge_links where household_id='${HH}';
+      delete from allocations; delete from deposits;
+      delete from work_items where household_id='${HH}';
+      commit;`);
+
+psql(`insert into work_items (id, household_id, title, kind, status, horizon, phase,
+        acquisition, cost_expected, cost_confidence) values
+  ('aaaa0000-0000-0000-0000-000000000001','${HH}','Live job','renovation','planned','next','strip_out','new',null,'drafted'),
+  ('aaaa0000-0000-0000-0000-000000000002','${HH}','Parked job','renovation','idea','someday','extension','new',null,'drafted'),
+  ('bbbb0000-0000-0000-0000-000000000001','${HH}','Needed now','purchase','planned','next','strip_out','new',380,'drafted'),
+  ('bbbb0000-0000-0000-0000-000000000002','${HH}','Digger hire','purchase','idea','someday','extension','hire',750,'drafted'),
+  ('bbbb0000-0000-0000-0000-000000000003','${HH}','Bedding','purchase','planned','now','move_in','new',100,'confirmed'),
+  ('bbbb0000-0000-0000-0000-000000000004','${HH}','Already owned','purchase','planned','now','move_in','owned',60,'drafted'),
+  ('bbbb0000-0000-0000-0000-000000000005','${HH}','Bought already','purchase','done','now','move_in','new',40,'actual');
+insert into knowledge_links (household_id, from_type, from_id, to_type, to_id, kind) values
+  ('${HH}','work_item','aaaa0000-0000-0000-0000-000000000001','work_item','bbbb0000-0000-0000-0000-000000000001','requires_material'),
+  ('${HH}','work_item','aaaa0000-0000-0000-0000-000000000002','work_item','bbbb0000-0000-0000-0000-000000000002','requires_material');`);
+
+const sqlDemand = psql(`select id, demand_state, cost_in_scope, is_hire
+  from shopping_list where household_id='${HH}' order by id;`)
+  .split('\n').filter(Boolean).map((l) => {
+    const [id, state, cost, hire] = l.split('|');
+    return { id, state, cost: Number(cost), hire: hire === 't' };
+  });
+
+const rowsRaw = psql(`select id, kind, status, horizon, acquisition, coalesce(cost_expected::text,'')
+  from work_items where household_id='${HH}' order by id;`);
+const linksRaw = psql(`select from_id, to_id from knowledge_links
+  where household_id='${HH}' and kind='requires_material' and valid_to is null;`);
+
+const jsItems = rowsRaw.split('\n').filter(Boolean).map((l) => {
+  const [id, kind, status, horizon, acquisition, cost] = l.split('|');
+  return { id, kind, status, horizon, acquisition, cost_expected: cost === '' ? null : Number(cost) };
+});
+const jsLinks = linksRaw.split('\n').filter(Boolean).map((l) => {
+  const [from_id, to_id] = l.split('|');
+  return { from_id, to_id, from_type: 'work_item', to_type: 'work_item',
+    kind: 'requires_material', valid_to: null };
+});
+const jsDemand = shoppingList(jsItems, jsLinks)
+  .map((r) => ({ id: r.id, state: r.demand_state, cost: r.cost_in_scope, hire: r.is_hire }))
+  .sort((a, b) => a.id.localeCompare(b.id));
+
+let demandDiffs = 0;
+if (sqlDemand.length !== jsDemand.length) {
+  demandDiffs++;
+  console.log(`  row count differs: sql=${sqlDemand.length} js=${jsDemand.length}`);
+} else {
+  for (let i = 0; i < sqlDemand.length; i++) {
+    const a = sqlDemand[i], b = jsDemand[i];
+    if (a.id !== b.id || a.state !== b.state
+      || Math.round(a.cost * 100) !== Math.round(b.cost * 100) || a.hire !== b.hire) {
+      console.log(`  ${a.id}: sql=${a.state}/${a.cost}/${a.hire} js=${b.state}/${b.cost}/${b.hire}`);
+      demandDiffs++;
+    }
+  }
+}
+// Every branch must actually have been exercised, or the case proves
+// only that two implementations agree about nothing happening.
+const seen = new Set(sqlDemand.map((r) => r.state));
+const allBranches = ['live', 'dormant', 'standalone', 'closed'].every((x) => seen.has(x));
+
+if (demandDiffs === 0 && allBranches) {
+  console.log(`PASS parity: demand states (${sqlDemand.length} rows) - identical across live, dormant, standalone and closed`);
+} else {
+  failures++;
+  console.log(`FAIL parity: demand - diffs=${demandDiffs} allBranches=${allBranches} saw=${[...seen].join(',')}`);
+}
+
 console.log('');
-console.log(failures === 0 ? `Parity: all ${CASES.length} cases identical` : `Parity: ${failures} case(s) failed`);
+console.log(failures === 0 ? `Parity: all ${CASES.length + 1} cases identical` : `Parity: ${failures} case(s) failed`);
 process.exit(failures === 0 ? 0 : 1);

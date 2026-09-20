@@ -12,7 +12,7 @@ import { load, confidenceSummary } from '../core/store.js';
 import { emptyState } from '../core/page.js';
 import { money, preciseMoney, provenance, titleCase, escape } from '../core/format.js';
 import {
-  TRIP_AXES, purchases, trips, totals, funding, readyToBuy, nextUp,
+  TRIP_AXES, trips, totals, funding, readyToBuy, nextUp,
   benchmarks, estimateCheck, targetCost,
 } from '../engine/shopping.js';
 
@@ -22,9 +22,21 @@ mountShell('shopping.html', { user });
 
 const d = await load();
 const refs = d.price_references ?? [];
-const list = purchases(d.items ?? []);
-const grand = totals(list);
-const ready = readyToBuy(list);
+
+// THE LIST IS DERIVED, NOT RE-DERIVED HERE. `shopping_list` knows which
+// purchases are dormant behind work nobody has started, which are hire
+// and never owned, and which are already covered. This page used to sum
+// work_items directly and knew none of it, so a mini digger parked two
+// years out was counted in the headline total - the exact failure the
+// view was written to prevent.
+const list = (d.shopping_list ?? []).filter((i) => i.demand_state !== 'closed');
+const inScope = list.filter((i) => i.demand_state !== 'dormant');
+const dormant = list.filter((i) => i.demand_state === 'dormant');
+const parked = dormant.reduce((n, i) => n + Number(i.cost_expected ?? 0), 0);
+const hire = inScope.filter((i) => i.is_hire)
+  .reduce((n, i) => n + Number(i.cost_in_scope ?? 0), 0);
+const grand = totals(inScope);
+const ready = readyToBuy(inScope);
 
 const AXIS_KEY = 'hh-shop-axis';
 const store = {
@@ -84,7 +96,7 @@ function tripHtml(g) {
 }
 
 function body() {
-  const groups = trips(list, axis);
+  const groups = trips(inScope, axis);
   return `
   ${confidenceBanner(confidenceSummary(d))}
 
@@ -95,7 +107,15 @@ function body() {
       ${escape(money(grand.expected))} of estimates against ${escape(preciseMoney(grand.saved))} saved.
       ${grand.trusted
         ? ''
-        : 'Not one price on this list has been confirmed, so this is the size of the job, not a budget.'}</p>
+        : 'Not one price on this list has been confirmed, so this is the size of the job, not a budget.'}
+      ${hire > 0
+        ? `<br>${escape(money(hire))} of that is HIRE - skips, plant, a portaloo - which is real money and is never owned.`
+        : ''}
+      ${dormant.length
+        ? `<br>A further ${escape(money(parked))} across ${dormant.length} item${dormant.length === 1 ? '' : 's'}
+           is parked behind work nobody has started, and is not counted above.
+           Move the job that needs them and they appear.`
+        : ''}</p>
   </section>
 
   <section class="section">
@@ -113,9 +133,9 @@ function body() {
     <div class="section__head"><h2>Next up</h2></div>
     <p class="lede">The highest-priority purchases, whatever their price. This is what
       the pot is saving toward - not what is affordable today.</p>
-    ${list.length ? `<div class="table-wrap"><table class="table">
+    ${inScope.length ? `<div class="table-wrap"><table class="table">
       <thead><tr><th>#</th><th>Item</th><th>Room</th><th class="num">Estimate</th><th class="num">Still needed</th></tr></thead>
-      <tbody>${nextUp(list).map((i) => {
+      <tbody>${nextUp(inScope).map((i) => {
         const f = funding(i);
         return `<tr>
           <td class="num">${i.priority ?? ''}</td>

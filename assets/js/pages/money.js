@@ -37,6 +37,20 @@ const opts = { decay: d.allocation_settings?.decay, floorShare: d.allocation_set
 const split = allocate(queue, monthly, opts);
 const projection = projectFunding(queue, monthly, opts);
 const outstanding = totalOutstanding(d);
+// How much of that total rests on a figure nobody has checked. The
+// pattern comes from shopping_totals, which is the best-designed money
+// total in the system: report the number AND the share of it that is
+// still a guess, on the same line, so a projection cannot be read as a
+// budget.
+const queueRows = fundable(d);
+const byId = new Map((d.items ?? []).map((i) => [i.id, i]));
+const TRUSTED_COST = new Set(['confirmed', 'actual']);
+const unconfirmedShare = queueRows.reduce((sum, q) => {
+  const src = byId.get(q.id);
+  if (TRUSTED_COST.has(src?.cost_confidence)) return sum;
+  return sum + Math.max(0, (q.targetCost ?? 0) - q.allocatedBalance);
+}, 0);
+const costTrusted = unconfirmedShare === 0;
 const potProv = provenance(d.pot?.contribution_confidence);
 
 const soonest = projection.filter((p) => p.monthsToFund).sort((a, b) => a.monthsToFund - b.monthsToFund);
@@ -103,10 +117,23 @@ render('[data-page-root]', `
   <section class="verdict">
     <span class="verdict__label">Outstanding across the whole list</span>
     <span class="verdict__value verdict__value--num value--provisional">${escape(money(outstanding))}</span>
-    <p class="verdict__note">${monthly > 0
-      ? `At ${escape(money(monthly))} a month that clears in about ${Math.ceil(outstanding / monthly)} months,
-         assuming the list stops changing — which it will not.`
-      : 'Set a monthly contribution to see a timeline.'}</p>
+    <p class="verdict__note">
+      ${unconfirmedShare > 0
+        ? `${escape(money(unconfirmedShare))} of that rests on a figure nobody has checked.`
+        : 'Every figure behind this has been confirmed.'}
+      ${monthly > 0
+        ? (costTrusted
+          ? `At ${escape(money(monthly))} a month that clears in about
+             ${Math.ceil(outstanding / monthly)} months, assuming the list stops
+             changing — which it will not.`
+          // The rule this page used to break, stated in CLAUDE.md:
+          // never assert "this will take N months" from an unconfirmed
+          // figure. A month count computed from drafted estimates reads
+          // as a plan and is arithmetic on a guess.
+          : `A timeline is not worth printing from drafted estimates — the answer
+             would move by years on one confirmed quote. Confirm the costs and this
+             becomes a date.`)
+        : 'Set a monthly contribution to see a timeline.'}</p>
   </section>
 
   <section class="section">

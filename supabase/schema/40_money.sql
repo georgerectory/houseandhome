@@ -98,9 +98,20 @@ as $$
 begin
   update public.work_items
      set allocated_balance = allocated_balance + new.amount,
+         -- "Fully funded" is a claim about a TARGET, so it can only be
+         -- made against a target somebody has checked. Stamping it from
+         -- a drafted cost_expected says "this is paid for" on the
+         -- strength of a figure nobody has verified - and the whole
+         -- confidence model exists to stop exactly that sentence.
+         --
+         -- An item with a drafted cost still receives its share of
+         -- every deposit: nothing starves, and the money is really
+         -- allocated. It simply does not get to announce that it is
+         -- finished until the cost is confirmed or actual.
          fully_funded_at = case
            when fully_funded_at is null
                 and cost_expected is not null
+                and cost_confidence in ('confirmed','actual')
                 and allocated_balance + new.amount >= cost_expected
            then now() else fully_funded_at end
    where id = new.work_item_id;

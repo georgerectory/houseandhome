@@ -63,12 +63,20 @@ export function priorityScore(input = {}) {
   };
 }
 
-/** Rank a list by score descending; ties break by id so it is stable. */
+/**
+ * Rank a list by score descending; ties break by id so it is stable.
+ *
+ * `priority_override` WINS, exactly as `recompute_priorities()` does -
+ * `coalesce(priority_override, rnk)`. This module used to write
+ * `idx + 1` unconditionally, so any item the owner had pinned by hand
+ * ranked one way in the database and another in the front end. There
+ * was no parity gate to catch it; there is one now.
+ */
 export function rank(items) {
   return [...items]
     .map((i) => ({ ...i, ...priorityScore(i) }))
     .sort((a, b) => (b.score - a.score) || String(a.id).localeCompare(String(b.id)))
-    .map((i, idx) => ({ ...i, priority: idx + 1 }));
+    .map((i, idx) => ({ ...i, priority: i.priority_override ?? (idx + 1) }));
 }
 
 /** Turn an explain payload into one plain sentence. */

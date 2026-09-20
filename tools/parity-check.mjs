@@ -11,6 +11,7 @@ import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { allocate } from '../assets/js/engine/allocate.js';
 import { shoppingList } from '../assets/js/engine/demand.js';
+import { rank } from '../assets/js/engine/priority.js';
 
 const PGBIN = process.env.PGBIN || '/usr/lib/postgresql/16/bin';
 const DB = process.env.PARITY_DB || 'househome_parity';
@@ -227,6 +228,88 @@ if (demandDiffs === 0 && allBranches) {
   console.log(`FAIL parity: demand - diffs=${demandDiffs} allBranches=${allBranches} saw=${[...seen].join(',')}`);
 }
 
+// ---------------------------------------------------------------
+// PRIORITY PARITY. engine/priority.js mirrors recompute_priorities()
+// and, unlike allocate.js, had no gate - so it had already drifted: it
+// wrote `idx + 1` and ignored priority_override entirely, meaning any
+// item pinned by hand ranked one way in the database and another in
+// the front end. The case includes an override for that reason.
+// ---------------------------------------------------------------
+psql(`begin;
+      set local house.allow_work_item_delete = 'on';
+      delete from knowledge_links where household_id='${HH}';
+      delete from allocations; delete from deposits;
+      delete from work_items where household_id='${HH}';
+      commit;`);
+
+psql(`delete from rooms where household_id='${HH}' and key='parity-room';
+insert into rooms (id, household_id, key, name, room_weight) values
+  ('cccc0000-0000-0000-0000-000000000001','${HH}','parity-room','Parity room', 4);
+insert into work_items (household_id, room_id, title, kind, theme, benefit_type,
+                        status, horizon, priority_override) values
+  ('${HH}','cccc0000-0000-0000-0000-000000000001','High','renovation','make_safe','safety','planned','now',null),
+  ('${HH}','cccc0000-0000-0000-0000-000000000001','Middle','renovation','make_dry','habitability','planned','now',null),
+  ('${HH}','cccc0000-0000-0000-0000-000000000001','Low','decoration','cosmetic','enjoyment','planned','now',null),
+  ('${HH}','cccc0000-0000-0000-0000-000000000001','Pinned','decoration','cosmetic','enjoyment','planned','now',1);
+select public.recompute_priorities('${HH}');`);
+
+const sqlRank = psql(`select w.title, w.priority_score, w.priority
+  from work_items w where w.household_id='${HH}' order by w.title;`)
+  .split('\n').filter(Boolean).map((l) => {
+    const [title, score, priority] = l.split('|');
+    return { title, score: Number(score), priority: Number(priority) };
+  });
+
+// The REAL ids, because the tie-break is `order by score desc, id` on
+// both sides and feeding JS anything else compares a different
+// sequence. The two orderings agree across the uuid charset, which is
+// agreement by accident unless the test actually uses uuids.
+const wRaw = psql(`select w.id, w.title, r.room_weight, t.theme_weight, b.benefit_weight,
+    coalesce(w.priority_override::text,'')
+  from work_items w
+  left join rooms r on r.id = w.room_id
+  left join themes t on t.key = w.theme
+  left join benefit_types b on b.key = w.benefit_type
+  where w.household_id='${HH}' order by w.title;`);
+const jsIn = wRaw.split('\n').filter(Boolean).map((l) => {
+  const [id, title, rw, tw, bw, ov] = l.split('|');
+  return {
+    id, title,
+    roomWeight: Number(rw), themeWeight: Number(tw), benefitWeight: Number(bw),
+    priority_override: ov === '' ? null : Number(ov),
+  };
+});
+const jsRank = rank(jsIn)
+  .map((r) => ({ title: r.title, score: r.score, priority: r.priority }))
+  .sort((a, b) => a.title.localeCompare(b.title));
+
+// An empty comparison passes vacuously - the same failure mode that
+// made three RLS tests meaningless earlier in this session. Prove the
+// rows exist before proving they agree.
+let prioDiffs = 0;
+if (sqlRank.length !== 4) {
+  console.log(`  expected 4 rows, got ${sqlRank.length} - the fixture did not insert`);
+  prioDiffs++;
+}
+if (sqlRank.length !== jsRank.length) {
+  console.log(`  row count differs: sql=${sqlRank.length} js=${jsRank.length}`);
+  prioDiffs++;
+}
+for (let i = 0; i < sqlRank.length; i++) {
+  const a = sqlRank[i], b = jsRank[i];
+  if (!b || a.title !== b.title || a.score !== b.score || a.priority !== b.priority) {
+    console.log(`  ${a.title}: sql=score ${a.score}/priority ${a.priority} js=score ${b?.score}/priority ${b?.priority}`);
+    prioDiffs++;
+  }
+}
+const sawOverride = sqlRank.some((r) => r.title === 'Pinned' && r.priority === 1);
+if (prioDiffs === 0 && sawOverride) {
+  console.log(`PASS parity: priority (${sqlRank.length} rows) - identical, and priority_override wins in both`);
+} else {
+  failures++;
+  console.log(`FAIL parity: priority - diffs=${prioDiffs} overrideHonoured=${sawOverride}`);
+}
+
 console.log('');
-console.log(failures === 0 ? `Parity: all ${CASES.length + 1} cases identical` : `Parity: ${failures} case(s) failed`);
+console.log(failures === 0 ? `Parity: all ${CASES.length + 2} cases identical` : `Parity: ${failures} case(s) failed`);
 process.exit(failures === 0 ? 0 : 1);

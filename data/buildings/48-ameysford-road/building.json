@@ -9,8 +9,6 @@
  "note": "A candidate property, not a purchase. No offer has been accepted and no survey has been done. Every dimension in this model is read off a drawing or derived from one, so none of it may size a real job or order a real material until it is measured on site.",
  "orientation": {
   "planUpIs": "north",
-  "planNorthOffsetDeg": 0,
-  "frontElevation": "south",
   "street": "Ameysford Road",
   "note": "The front door faces south onto Ameysford Road; the garden is north. Pine Close is to the west, No. 46 to the east."
  },
@@ -30,8 +28,7 @@
   "windowHead": 2.05,
   "garageDoorHeight": 2.13,
   "eavesHeight": 5,
-  "roofPitchDeg": 35,
-  "roofOverhang": 0.3
+  "roofPitchDeg": 35
  },
  "envelope": {
   "widthM": 8.2,
@@ -61,11 +58,6 @@
     "east",
     "south",
     "north"
-   ],
-   "drawnOn": [
-    "west",
-    "east",
-    "south"
    ],
    "species": "Laurel",
    "note": "Six feet is the owner's figure, not a measurement. The depth is scaled off the site plan's laurel band and agrees with the handbook's own two setback statements. Nothing here is surveyed."

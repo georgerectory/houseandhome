@@ -73,8 +73,6 @@ export function titleCase(s) {
   return String(s ?? '').replace(/[_-]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-export const HORIZON_LABEL = { now: 'Now', next: 'Next', later: 'Later', someday: 'Someday' };
-
 export function escape(s) {
   return String(s ?? '').replace(/[&<>"']/g, (c) =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));

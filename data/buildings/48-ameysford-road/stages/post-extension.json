@@ -65,16 +65,14 @@
    "name": "Ground floor",
    "code": "G",
    "elevation": 0,
-   "ceilingHeight": 2.4,
-   "sortOrder": 10
+   "ceilingHeight": 2.4
   },
   {
    "id": "first",
    "name": "First floor",
    "code": "1",
    "elevation": 2.7,
-   "ceilingHeight": 2.3,
-   "sortOrder": 20
+   "ceilingHeight": 2.3
   }
  ],
  "rooms": [
@@ -1261,7 +1259,6 @@
    "rise": 0.2077,
    "going": 0.215,
    "winders": 0,
-   "handrail": "east",
    "note": "Unchanged from the as-bought house: the stair stays exactly where it is, which is most of why the front door can stay centred. The void now runs the full depth, because the study carries the stairwell walls through to the front wall."
   }
  ],
@@ -1326,7 +1323,6 @@
     0.68,
     6.33
    ],
-   "projection": 0.45,
    "height": 2.4
   },
   {
@@ -1340,7 +1336,6 @@
     7.97,
     6.33
    ],
-   "projection": 0.45,
    "height": 2.4
   },
   {
@@ -1368,7 +1363,6 @@
     0.68,
     6.33
    ],
-   "projection": 0.45,
    "height": 2.3
   },
   {
@@ -1396,7 +1390,6 @@
     7.97,
     6.33
    ],
-   "projection": 0.45,
    "height": 2.3
   },
   {
@@ -1414,7 +1407,6 @@
    "eavesM": 2.05,
    "cheekM": 0.215,
    "overhang": 0.08,
-   "roofKind": "gabled",
    "note": "Kept as it stands. See the as-bought stage for how it is set out."
   }
  ],

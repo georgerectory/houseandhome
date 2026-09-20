@@ -47,16 +47,14 @@
    "name": "Ground floor",
    "code": "G",
    "elevation": 0,
-   "ceilingHeight": 2.4,
-   "sortOrder": 10
+   "ceilingHeight": 2.4
   },
   {
    "id": "first",
    "name": "First floor",
    "code": "1",
    "elevation": 2.7,
-   "ceilingHeight": 2.3,
-   "sortOrder": 20
+   "ceilingHeight": 2.3
   }
  ],
  "rooms": [
@@ -774,7 +772,6 @@
    "rise": 0.2077,
    "going": 0.215,
    "winders": 0,
-   "handrail": "east",
    "note": "13 risers at 0.2077 make the 2.70m storey height exactly; 12 goings at 0.215 make the 2.58m run. The void stops at 6.30 because that is where the agent's first-floor plan stops it, leaving the foot of the flight under bedroom 1's floor with about 2.08m of headroom."
   }
  ],
@@ -856,7 +853,6 @@
     0.68,
     6.33
    ],
-   "projection": 0.45,
    "height": 2.4
   },
   {
@@ -870,7 +866,6 @@
     7.97,
     6.33
    ],
-   "projection": 0.45,
    "height": 2.4
   },
   {
@@ -884,7 +879,6 @@
     0.68,
     6.33
    ],
-   "projection": 0.45,
    "height": 2.3
   },
   {
@@ -898,7 +892,6 @@
     7.97,
     6.33
    ],
-   "projection": 0.45,
    "height": 2.3
   },
   {
@@ -916,7 +909,6 @@
    "eavesM": 2.05,
    "cheekM": 0.215,
    "overhang": 0.08,
-   "roofKind": "gabled",
    "note": "The small tiled gable canopy over the front door in the listing photograph: two brick cheeks and a pitched roof with the apex facing the road, open between them. CENTRED ON THE DOOR at 4.095 - it was set out 80mm west of it before, which is the sort of error nobody sees on a plan and everybody sees on an elevation. 1.30 wide outside, so 0.87 clear between the cheeks, against a 0.79 door. It projects 0.85. Eaves at 2.05, just clear of the 1.98 door head; ridge at 2.75, which the photograph puts well below the first-floor sills. Scaled off the photograph against the door, not dimensioned anywhere."
   }
  ],

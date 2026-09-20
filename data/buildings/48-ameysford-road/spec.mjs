@@ -77,8 +77,8 @@ const int = (at, opts = {}) => ({ at, t: T_INT, kind: 'internal', provenance: 'e
 // Both storeys, both stages. The elevations are inferred from the roof,
 // not measured - see the `storey-heights` assumption.
 const LEVELS = [
-  { id: 'ground', name: 'Ground floor', code: 'G', elevation: 0, ceilingHeight: 2.40, sortOrder: 10 },
-  { id: 'first', name: 'First floor', code: '1', elevation: 2.70, ceilingHeight: 2.30, sortOrder: 20 },
+  { id: 'ground', name: 'Ground floor', code: 'G', elevation: 0, ceilingHeight: 2.40 },
+  { id: 'first', name: 'First floor', code: '1', elevation: 2.70, ceilingHeight: 2.30 },
 ];
 const EAVES = 5.00;
 
@@ -93,8 +93,6 @@ export const building = {
   note: 'A candidate property, not a purchase. No offer has been accepted and no survey has been done. Every dimension in this model is read off a drawing or derived from one, so none of it may size a real job or order a real material until it is measured on site.',
   orientation: {
     planUpIs: 'north',
-    planNorthOffsetDeg: 0,
-    frontElevation: 'south',
     street: 'Ameysford Road',
     note: 'The front door faces south onto Ameysford Road; the garden is north. Pine Close is to the west, No. 46 to the east.',
   },
@@ -111,7 +109,6 @@ export const building = {
     garageDoorHeight: 2.13,
     eavesHeight: EAVES,
     roofPitchDeg: 35,
-    roofOverhang: 0.3,
   },
   envelope: { widthM: W_ENV, depthM: D_ENV },
 
@@ -184,7 +181,6 @@ export const building = {
       heightConfidence: 'confirmed',
       depthConfidence: 'researched',
       sides: ['west', 'east', 'south', 'north'],
-      drawnOn: ['west', 'east', 'south'],
       species: 'Laurel',
       note: 'Six feet is the owner\'s figure, not a measurement. The depth is scaled off the site plan\'s laurel band and agrees with the handbook\'s own two setback statements. Nothing here is surveyed.',
     },
@@ -414,7 +410,6 @@ const asBought = {
     rise: 0.2077,
     going: 0.215,
     winders: 0,
-    handrail: 'east',
     note: '13 risers at 0.2077 make the 2.70m storey height exactly; 12 goings at 0.215 make the 2.58m run. The void stops at 6.30 because that is where the agent\'s first-floor plan stops it, leaving the foot of the flight under bedroom 1\'s floor with about 2.08m of headroom.',
   }],
 
@@ -429,11 +424,11 @@ const asBought = {
   ],
 
   features: [
-    { id: 'breast-dining', level: 'ground', room: 'dining', kind: 'chimney_breast', rect: [0.23, 4.89, 0.68, 6.33], projection: 0.45, height: 2.40 },
-    { id: 'breast-lounge', level: 'ground', room: 'lounge', kind: 'chimney_breast', rect: [7.52, 4.89, 7.97, 6.33], projection: 0.45, height: 2.40 },
-    { id: 'breast-bed1', level: 'first', room: 'bed1', kind: 'chimney_breast', rect: [0.23, 4.89, 0.68, 6.33], projection: 0.45, height: 2.30 },
-    { id: 'breast-bed2', level: 'first', room: 'bed2', kind: 'chimney_breast', rect: [7.52, 4.89, 7.97, 6.33], projection: 0.45, height: 2.30 },
-    { id: 'porch', level: 'ground', room: 'hall', kind: 'porch', rect: [3.445, D_ENV, 4.745, 8.57], height: 2.75, eavesM: 2.05, cheekM: 0.215, overhang: 0.08, roofKind: 'gabled', note: 'The small tiled gable canopy over the front door in the listing photograph: two brick cheeks and a pitched roof with the apex facing the road, open between them. CENTRED ON THE DOOR at 4.095 - it was set out 80mm west of it before, which is the sort of error nobody sees on a plan and everybody sees on an elevation. 1.30 wide outside, so 0.87 clear between the cheeks, against a 0.79 door. It projects 0.85. Eaves at 2.05, just clear of the 1.98 door head; ridge at 2.75, which the photograph puts well below the first-floor sills. Scaled off the photograph against the door, not dimensioned anywhere.' },
+    { id: 'breast-dining', level: 'ground', room: 'dining', kind: 'chimney_breast', rect: [0.23, 4.89, 0.68, 6.33], height: 2.40 },
+    { id: 'breast-lounge', level: 'ground', room: 'lounge', kind: 'chimney_breast', rect: [7.52, 4.89, 7.97, 6.33], height: 2.40 },
+    { id: 'breast-bed1', level: 'first', room: 'bed1', kind: 'chimney_breast', rect: [0.23, 4.89, 0.68, 6.33], height: 2.30 },
+    { id: 'breast-bed2', level: 'first', room: 'bed2', kind: 'chimney_breast', rect: [7.52, 4.89, 7.97, 6.33], height: 2.30 },
+    { id: 'porch', level: 'ground', room: 'hall', kind: 'porch', rect: [3.445, D_ENV, 4.745, 8.57], height: 2.75, eavesM: 2.05, cheekM: 0.215, overhang: 0.08, note: 'The small tiled gable canopy over the front door in the listing photograph: two brick cheeks and a pitched roof with the apex facing the road, open between them. CENTRED ON THE DOOR at 4.095 - it was set out 80mm west of it before, which is the sort of error nobody sees on a plan and everybody sees on an elevation. 1.30 wide outside, so 0.87 clear between the cheeks, against a 0.79 door. It projects 0.85. Eaves at 2.05, just clear of the 1.98 door head; ridge at 2.75, which the photograph puts well below the first-floor sills. Scaled off the photograph against the door, not dimensioned anywhere.' },
   ],
 };
 
@@ -634,7 +629,6 @@ const postExtension = {
     rise: 0.2077,
     going: 0.215,
     winders: 0,
-    handrail: 'east',
     note: 'Unchanged from the as-bought house: the stair stays exactly where it is, which is most of why the front door can stay centred. The void now runs the full depth, because the study carries the stairwell walls through to the front wall.',
   }],
 
@@ -648,13 +642,13 @@ const postExtension = {
   ],
 
   features: [
-    { id: 'breast-snug', level: 'ground', room: 'snug', kind: 'chimney_breast', rect: [0.23, 4.89, 0.68, 6.33], projection: 0.45, height: 2.40 },
-    { id: 'breast-living', level: 'ground', room: 'living', kind: 'chimney_breast', rect: [7.52, 4.89, 7.97, 6.33], projection: 0.45, height: 2.40 },
+    { id: 'breast-snug', level: 'ground', room: 'snug', kind: 'chimney_breast', rect: [0.23, 4.89, 0.68, 6.33], height: 2.40 },
+    { id: 'breast-living', level: 'ground', room: 'living', kind: 'chimney_breast', rect: [7.52, 4.89, 7.97, 6.33], height: 2.40 },
     { id: 'shelves-office', level: 'first', room: 'office', kind: 'fitted_shelving', rect: [4.285, 0.23, 4.595, 2.665], height: 2.30, note: 'The study hatches these, which is how it draws built-in work: bookshelves the full height of the office\'s west wall, not a bookcase somebody could carry out.' },
-    { id: 'breast-bed1', level: 'first', room: 'bed1', kind: 'chimney_breast', rect: [0.23, 4.89, 0.68, 6.33], projection: 0.45, height: 2.30 },
+    { id: 'breast-bed1', level: 'first', room: 'bed1', kind: 'chimney_breast', rect: [0.23, 4.89, 0.68, 6.33], height: 2.30 },
     { id: 'wardrobes-master', level: 'first', room: 'master', kind: 'fitted_wardrobe', rect: [6.58, 3.60, 7.97, 4.11], height: 2.30, note: 'Hatched on the study: fitted wardrobes across the master\'s north wall at its east end.' },
-    { id: 'breast-master', level: 'first', room: 'master', kind: 'chimney_breast', rect: [7.52, 4.89, 7.97, 6.33], projection: 0.45, height: 2.30 },
-    { id: 'porch', level: 'ground', room: 'hall', kind: 'porch', rect: [3.445, D_ENV, 4.745, 8.57], height: 2.75, eavesM: 2.05, cheekM: 0.215, overhang: 0.08, roofKind: 'gabled', note: 'Kept as it stands. See the as-bought stage for how it is set out.' },
+    { id: 'breast-master', level: 'first', room: 'master', kind: 'chimney_breast', rect: [7.52, 4.89, 7.97, 6.33], height: 2.30 },
+    { id: 'porch', level: 'ground', room: 'hall', kind: 'porch', rect: [3.445, D_ENV, 4.745, 8.57], height: 2.75, eavesM: 2.05, cheekM: 0.215, overhang: 0.08, note: 'Kept as it stands. See the as-bought stage for how it is set out.' },
   ],
 };
 

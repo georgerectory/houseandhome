@@ -477,13 +477,3 @@ export function restorationTakeoff(stage, building, opts = {}) {
   ];
 }
 
-/**
- * Everything the extension needs, in one call, so a review session can
- * put the whole material list on screen and ask about it.
- */
-export function extensionTakeoff(diff, building, opts = {}) {
-  return [
-    ...brickTakeoff(diff, building, opts),
-    ...(opts.ufhRooms?.length ? ufhTakeoff(building, opts.ufhRooms) : []),
-  ];
-}

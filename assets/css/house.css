@@ -24,7 +24,6 @@
 
 .section--flush > .hv-bar:first-child { padding-top: 0; }
 
-
 .hv-bar {
   position: sticky;
   top: 0;
@@ -412,9 +411,3 @@
 
 .hv-walkbar > * { pointer-events: auto; }
 
-.hv-ghost--tight {
-  min-height: var(--tap-min-floor);
-  padding: 0 var(--space-2);
-  font-size: var(--text-xs);
-  background: var(--paper-raised);
-}

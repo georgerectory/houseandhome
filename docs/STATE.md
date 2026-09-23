@@ -42,7 +42,11 @@ names what is wrong instead of moving it: the downstairs WC pan is
 the other two WCs in the same model are 0.40 x 0.70, so that one is
 internally inconsistent - and seven internal doors give under 0.68m
 clear against the 0.75m Part M looks for. The narrowest, the downstairs
-WC door, gives 0.54m.
+WC door, gives 0.54m. And the boot room's washer-dryer stands across
+0.56m of a 0.78m doorway into the kitchen - which the clearance check
+never noticed, because the room is still reachable round the other side.
+That is a different question from reachability and now has its own
+check.
 
 **The lounge is furnished in its own variant.** The study draws nothing
 there but the stove, so `post-extension--lived-in` holds the seating and

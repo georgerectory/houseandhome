@@ -216,6 +216,37 @@ export function auditIntegrity(building, opts = {}) {
           { level: wall.level });
       }
     }
+    // IS THE DOORWAY ITSELF BLOCKED?
+    //
+    // Different question from the clearance check, which asks whether
+    // you can get from one doorway to another. This asks whether a
+    // fitting is standing IN the opening - a washer across a doorway
+    // still leaves the room reachable round the other side, so
+    // reachability never notices it, and it is exactly the sort of thing
+    // a plan drawn at small scale hides.
+    if (o.type === 'door' && o.width > 0) {
+      const half = o.width / 2;
+      // The threshold, plus 100mm into each room: a unit hard against
+      // the opening is in the way even if it technically stops at the
+      // wall face.
+      const reach = wall.thickness / 2 + 0.1;
+      const band = wall.axis === 'x'
+        ? [wall.a[0] - reach, wall.a[1] + o.at - half, wall.a[0] + reach, wall.a[1] + o.at + half]
+        : [wall.a[0] + o.at - half, wall.a[1] - reach, wall.a[0] + o.at + half, wall.a[1] + reach];
+      for (const f of building.furniture ?? []) {
+        if (f.level !== wall.level) continue;
+        const across = overlapArea(f.rect, band);
+        if (across <= 0.01) continue;
+        // How much of the opening's own width it eats.
+        const eaten = wall.axis === 'x'
+          ? Math.min(f.rect[3], band[3]) - Math.max(f.rect[1], band[1])
+          : Math.min(f.rect[2], band[2]) - Math.max(f.rect[0], band[0]);
+        add('warning', 'door-blocked',
+          `${f.name} stands in ${o.id}, across ${round(eaten)}m of a ${round(o.width)}m doorway`,
+          { level: wall.level, opening: o.id });
+      }
+    }
+
     const head = o.head ?? (o.type === 'door' ? building.defaults?.doorHeight : building.defaults?.windowHead);
     const ceil = (levels(building).find((l) => l.id === wall.level)?.ceilingHeight) ?? 2.4;
     if (head != null && head > ceil + EPS) {

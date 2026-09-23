@@ -283,3 +283,38 @@ test('the hipped roof pulls its ridge in and the gabled one does not', () => {
 test('a side that is not a side of the building says so', () => {
   assert.match(elevationSvg(postExt, 'up'), /not a side/);
 });
+
+// --- What the drawings get wrong -------------------------------------
+//
+// These report; they never correct. docs/SOURCE-FIDELITY.md makes the
+// drawing the authority, and a checker that moved furniture until the
+// numbers came out green is the mistake that file was written after.
+
+test('a fitting standing in a doorway is reported, and measured', () => {
+  // Reachability never notices this: a washer across a doorway still
+  // leaves the room reachable round the other side. The real house has
+  // one - the boot room's washer-dryer takes 0.56m of a 0.78m door.
+  const found = auditIntegrity(postExtDrawn).filter((f) => f.id === 'door-blocked');
+  assert.ok(found.length >= 1, 'the boot room door is blocked on the study drawing');
+  assert.match(found[0].message, /across 0\.\d+m of a 0\.\d+m doorway/);
+  assert.equal(found[0].severity, 'warning', 'reported, never an error that would invite a fix');
+});
+
+test('a WC pan too shallow to be one is reported', () => {
+  const found = auditIntegrity(postExtDrawn).filter((f) => f.id === 'furniture-implausible');
+  assert.ok(found.some((f) => /WC/.test(f.message)),
+    'a 0.52 deep pan has nowhere to put the cistern');
+});
+
+test('plausibility stays quiet about furniture that is legitimately small', () => {
+  // An armchair is kind "sofa" and a side table is kind "table". A check
+  // that cries wolf about those gets ignored, and then it catches nothing.
+  const found = auditIntegrity(postExtDrawn).filter((f) => f.id === 'furniture-implausible');
+  assert.ok(!found.some((f) => /Armchair|Coffee|Side/.test(f.message)));
+});
+
+test('a narrow door is measured in clear width, not structural width', () => {
+  const found = auditIntegrity(postExtDrawn).filter((f) => f.id === 'door-narrow');
+  assert.ok(found.length > 0);
+  assert.match(found[0].message, /clear/);
+});

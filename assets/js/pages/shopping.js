@@ -8,7 +8,8 @@
 // presenting a drafted total as a budget.
 import { requireAuth } from '../core/auth.js';
 import { mountShell, render, confidenceBanner } from '../core/shell.js';
-import { load, confidenceSummary } from '../core/store.js';
+import { load } from '../core/store.js';
+import { confidenceSummary } from '../engine/selectors.js';
 import { emptyState } from '../core/page.js';
 import { money, preciseMoney, provenance, titleCase, escape } from '../core/format.js';
 import {

@@ -5,7 +5,8 @@
 // the same rows, so two pages can never disagree about the same money.
 import { requireAuth } from '../core/auth.js';
 import { mountShell, render, confidenceBanner } from '../core/shell.js';
-import { load, fundable, totalOutstanding, confidenceSummary, houseFunds } from '../core/store.js';
+import { load } from '../core/store.js';
+import { fundable, totalOutstanding, confidenceSummary, houseFunds } from '../engine/selectors.js';
 import { emptyState } from '../core/page.js';
 import { money, preciseMoney, provenance, titleCase, escape } from '../core/format.js';
 import { allocate, projectFunding } from '../../js/engine/allocate.js';

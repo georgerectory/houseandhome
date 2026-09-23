@@ -2,7 +2,8 @@
 // been decided. The reference a cold session reads to become competent.
 import { requireAuth } from '../core/auth.js';
 import { mountShell, render } from '../core/shell.js';
-import { load, openItems, confidenceSummary } from '../core/store.js';
+import { load } from '../core/store.js';
+import { openItems, confidenceSummary } from '../engine/selectors.js';
 import { titleCase, escape } from '../core/format.js';
 import { placeAll, roomLabel, spreadInferred } from '../engine/floorplan.js';
 import { loadComposed } from '../core/building-data.js';

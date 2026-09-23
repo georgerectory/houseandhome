@@ -11,7 +11,8 @@
 // preference rather than part of the link.
 import { requireAuth } from '../core/auth.js';
 import { mountShell, render, confidenceBanner } from '../core/shell.js';
-import { load, confidenceSummary } from '../core/store.js';
+import { load } from '../core/store.js';
+import { confidenceSummary } from '../engine/selectors.js';
 import { escape, titleCase } from '../core/format.js';
 import {
   LEVELS, LAYOUTS, BANDS, context, markRecency, byTrade, byRoom, bySearch,

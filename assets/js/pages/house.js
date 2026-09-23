@@ -14,7 +14,8 @@
 // a real thing you can look at, check and fork.
 import { requireAuth } from '../core/auth.js';
 import { mountShell, render, confidenceBanner } from '../core/shell.js';
-import { load, openItems, confidenceSummary } from '../core/store.js';
+import { load } from '../core/store.js';
+import { openItems, confidenceSummary } from '../engine/selectors.js';
 import { emptyState } from '../core/page.js';
 import { money, provenance, titleCase, escape } from '../core/format.js';
 import {

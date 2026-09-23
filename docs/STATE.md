@@ -35,6 +35,18 @@ derived, the 3D frame is right-handed, no emojis, no 100vw - stay stated
 in both. `docs/GLOSSARY.md` is new: the words this repo uses in a
 particular way, for a session reading it cold.
 
+**takeoff.js split along the seam that was already in its comments** -
+`takeoff/newbuild.js` for what gets built and `takeoff/restoration.js`
+for what comes off and goes back on - behind a thin re-export shim, so
+no import path changed. 479 lines became 252 and 237. The shim states
+the public surface once, and deliberately leaves `round` and `line` out
+of it: those are how a takeoff line is built, not something to call.
+
+**The selectors left store.js.** That module's job is to know WHERE DATA
+COMES FROM, Supabase or the fixture, and nothing else; reading the shape
+of what came back is a different and pure job, so it is
+`engine/selectors.js` now and testable from disk with the rest.
+
 **localStorage has one home.** There were five copies of the same
 try/catch wrapper. That is not a tidiness point: localStorage THROWS in
 private mode rather than returning null, so an unguarded read does not
@@ -137,6 +149,16 @@ brick; an imperial is 229 x 67 rather than 215 x 65, so the same wall
 takes 54.6 of them. `bricksPerM2Skin()` computes it from the brick's own
 dimensions, and the takeoff dropped from 6,882 to 6,268 solid, 3,441 to
 3,134 cavity.
+
+## Known and deliberately left
+
+`tools/check-frontend.mjs` (793 lines) and `assets/js/pages/house.js`
+(599) are both over the 400-line mark this repository keeps to. Neither
+was split this round: check-frontend is one long cohesive list of checks
+against a browser, and house.js is a page that already delegates to
+`pages/house/`. Splitting either is mechanical churn with real
+regression risk and little gain in readability, so it is a deliberate
+debt rather than an oversight.
 
 ## Next steps
 

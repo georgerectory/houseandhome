@@ -7,7 +7,7 @@
 // overdraft, and a lender will not make the same mistake.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { houseFunds } from '../../assets/js/core/store.js';
+import { houseFunds } from '../../assets/js/engine/selectors.js';
 
 const acct = (o = {}) => ({
   id: Math.random().toString(36).slice(2), name: 'Account', kind: 'savings',

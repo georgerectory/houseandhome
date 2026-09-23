@@ -2,7 +2,8 @@
 // navigate - the whole list stays one page.
 import { requireAuth } from '../core/auth.js';
 import { mountShell, render, confidenceBanner } from '../core/shell.js';
-import { load, openItems, confidenceSummary } from '../core/store.js';
+import { load } from '../core/store.js';
+import { openItems, confidenceSummary } from '../engine/selectors.js';
 import { itemDetail, itemChips } from '../core/page.js';
 import { money, duration, provenance, titleCase, escape } from '../core/format.js';
 

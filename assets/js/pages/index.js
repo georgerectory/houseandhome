@@ -2,7 +2,8 @@
 // do next, and where do things stand.
 import { requireAuth } from '../core/auth.js';
 import { mountShell, render, confidenceBanner } from '../core/shell.js';
-import { load, openItems, byHorizon, fundable, totalOutstanding, confidenceSummary, isDemo } from '../core/store.js';
+import { load, isDemo } from '../core/store.js';
+import { openItems, byHorizon, fundable, totalOutstanding, confidenceSummary } from '../engine/selectors.js';
 import { itemCard, emptyState } from '../core/page.js';
 import { money, preciseMoney, escape } from '../core/format.js';
 import { allocate } from '../../js/engine/allocate.js';

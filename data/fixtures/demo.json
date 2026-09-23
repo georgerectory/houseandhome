@@ -10480,6 +10480,47 @@
   ],
   "stock_plan": [],
   "review_queue": [],
+  "whats_next": [
+    {
+      "source": "event",
+      "id": "ev-0000",
+      "key": null,
+      "title": "Open house at 48 Ameysford Road",
+      "description": "Take the viewing checklist, a torch, a tape and a practical friend.",
+      "on_date": "2026-09-26",
+      "starts_at": null,
+      "location": "48 Ameysford Road, Ferndown, Dorset BH22 9QA",
+      "status": "planned",
+      "days_until": 3,
+      "open_items": 0
+    },
+    {
+      "source": "milestone",
+      "id": "ms-0000",
+      "key": "open-house",
+      "title": "Open house",
+      "description": "Guide price plus an open house signals a best-and-final round.",
+      "on_date": "2026-09-26",
+      "starts_at": null,
+      "location": null,
+      "status": "planned",
+      "days_until": 3,
+      "open_items": 2
+    },
+    {
+      "source": "milestone",
+      "id": "ms-0001",
+      "key": "gate",
+      "title": "The decision gate",
+      "description": "Consent, three fixed quotes, value evidence, finance agreed. All pass: build. Any fail: sell with consent.",
+      "on_date": "2028-01-11",
+      "starts_at": null,
+      "location": null,
+      "status": "planned",
+      "days_until": 475,
+      "open_items": 0
+    }
+  ],
   "theme_book": [
     {
       "id": "theme-0000",

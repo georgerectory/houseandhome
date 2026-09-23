@@ -230,6 +230,13 @@ const knowledge_links = dormantBuys.map((buy, i) => ({
 // The job they hang off is parked, so both read dormant.
 if (digJob) { digJob.status = 'idea'; digJob.horizon = 'someday'; }
 
+// A date this many days from the build, as YYYY-MM-DD.
+const dayOffset = (n) => {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);
+};
+
 const shopping_list = shoppingList(items, knowledge_links);
 const work_item_readiness = readinessReport(items, knowledge_links);
 const shopping_totals = shoppingTotals(shopping_list);
@@ -297,6 +304,32 @@ const data = {
   rooms, items, bills, assets,
   shopping_list, shopping_totals, knowledge_links, work_item_readiness,
   stock_plan: [], review_queue: [],
+  // The diary, dated FROM THE BUILD so the demo never shows a countdown
+  // that has already run out. Live mode reads whats_next, which counts
+  // the days in Postgres; this only has to be the same shape.
+  whats_next: [
+    {
+      source: 'event', id: uid('ev', 0), key: null,
+      title: 'Open house at 48 Ameysford Road',
+      description: 'Take the viewing checklist, a torch, a tape and a practical friend.',
+      on_date: dayOffset(3), starts_at: null,
+      location: '48 Ameysford Road, Ferndown, Dorset BH22 9QA',
+      status: 'planned', days_until: 3, open_items: 0,
+    },
+    {
+      source: 'milestone', id: uid('ms', 0), key: 'open-house',
+      title: 'Open house', description: 'Guide price plus an open house signals a best-and-final round.',
+      on_date: dayOffset(3), starts_at: null, location: null,
+      status: 'planned', days_until: 3, open_items: 2,
+    },
+    {
+      source: 'milestone', id: uid('ms', 1), key: 'gate',
+      title: 'The decision gate',
+      description: 'Consent, three fixed quotes, value evidence, finance agreed. All pass: build. Any fail: sell with consent.',
+      on_date: dayOffset(475), starts_at: null, location: null,
+      status: 'planned', days_until: 475, open_items: 0,
+    },
+  ],
   // The specification. Two rows so the demo page shows a row that leads
   // with what to reject and a row carrying the two lighting numbers.
   theme_book: [

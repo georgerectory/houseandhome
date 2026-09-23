@@ -524,6 +524,52 @@ fieldset[role="group"] {
 }
 .ck-count { color: var(--ink-faint); font-size: var(--text-sm); }
 
+/* The diary.
+   ---------
+   One line, big, because on the week the open house lands nothing else
+   on the page matters as much. `is-soon` is the only place on the site
+   where a date changes colour, and it earns it: a week's notice on an
+   open house is the difference between going prepared and not going. */
+.diary__lead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin-block: 0 var(--space-2);
+  font-size: var(--text-lg);
+}
+.diary__when {
+  font-weight: 600;
+  color: var(--ink-muted);
+}
+.diary__when.is-soon { color: var(--alert); }
+.diary__where,
+.diary__note {
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+  margin-block: 0 var(--space-2);
+}
+/* An inline link in small type comes out at 16-18px tall, under the
+   24px floor the gate enforces - the same trap the contents links fell
+   into. inline-flex lets it keep reading as part of the sentence while
+   still being a target you can hit. */
+.diary__note a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--tap-min-floor);
+}
+
+.diary { list-style: none; margin: var(--space-4) 0 0; padding: 0; }
+.diary__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  justify-content: space-between;
+  padding-block: var(--space-2);
+  border-block-start: 1px solid var(--rule);
+}
+
 /* What I could do today.
    ---------------------
    A list, not cards: the question is "which one", and six cards is a

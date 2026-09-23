@@ -53,6 +53,26 @@ private mode rather than returning null, so an unguarded read does not
 degrade, it takes the page down before anything renders. `core/prefs.js`
 is now the only module that touches it.
 
+**The diary is live, and it is three days to the open house.** Milestones
+and scheduled events answer the same question from two tables - a
+milestone is a date the PLAN has to hit, an event is a date SOMEBODY ELSE
+set - so `whats_next` unions them and counts `days_until` once, in
+Postgres. Counting days in two surfaces is two chances to get a timezone
+wrong, and a countdown a day out is worse than no countdown; the event
+side converts through Europe/London before taking the date so an 11am
+viewing does not land on the previous day in summer.
+
+Fourteen milestones now carry the plan's spine, from the open house on
+26 Sept 2026 through the decision gate in Jan 2028 to the move in Jan
+2030. The six viewing-checklist items are pinned to the open-house
+milestone, so `open_items` makes the difference between a date in a
+document and a deadline with work behind it.
+
+For reading, one day is one row: the EVENT wins because it knows the time
+and the address, and the milestone's pinned work count is carried across
+so nothing is lost. That merge is presentation, so it lives in
+`engine/diary.js`, not in the view.
+
 **The system can answer "what can I do today".** `work_item_readiness`
 derives WHY each job cannot be started from the edges that already
 exist - `must_precede` for what has to happen first, `requires_material`

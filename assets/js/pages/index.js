@@ -8,6 +8,7 @@ import { itemCard, emptyState } from '../core/page.js';
 import { money, preciseMoney, escape } from '../core/format.js';
 import { allocate } from '../../js/engine/allocate.js';
 import { whatCanIDoToday, readinessSummary } from '../engine/readiness.js';
+import { upcoming, whenLabel } from '../engine/diary.js';
 
 const user = await requireAuth();
 if (!user) throw new Error('redirecting to login');
@@ -27,6 +28,11 @@ const outstanding = totalOutstanding(d);
 const months = monthly > 0 ? Math.ceil(outstanding / monthly) : null;
 
 const nextUp = now.length ? now : openItems(d).slice(0, 3);
+
+// THE DIARY. The most urgent thing first, because on the week the open
+// house lands nothing else on this page matters as much.
+const next = upcoming(d.whats_next ?? []);
+const soon = next[0] ?? null;
 
 // WHAT CAN I DO TODAY. A different question from what matters most, and
 // the one actually asked on a Saturday morning. Two hours is the default
@@ -85,6 +91,23 @@ render('[data-page-root]', `
       <span class="stat__note">${months ? 'months to clear the list' : 'set a contribution'}</span>
     </div>
   </div>
+
+  ${soon ? `<section class="section">
+    <div class="section__head"><h2>Next</h2><a href="plan.html">The plan</a></div>
+    <p class="diary__lead">
+      <span class="diary__when${soon.days_until <= 7 ? ' is-soon' : ''}">${escape(whenLabel(soon.days_until))}</span>
+      <span class="diary__what">${escape(soon.title)}</span>
+    </p>
+    ${soon.location ? `<p class="diary__where">${escape(soon.location)}</p>` : ''}
+    ${soon.description ? `<p class="diary__note">${escape(soon.description)}</p>` : ''}
+    ${soon.open_items ? `<p class="diary__note">${soon.open_items} open item${soon.open_items === 1 ? '' : 's'} pinned to it - <a href="plan.html">the checklist</a>.</p>` : ''}
+    ${next.length > 1 ? `<ul class="diary">
+      ${next.slice(1, 4).map((r) => `<li class="diary__row">
+        <span class="diary__what">${escape(r.title)}</span>
+        <span class="chip">${escape(whenLabel(r.days_until))}</span>
+      </li>`).join('')}
+    </ul>` : ''}
+  </section>` : ''}
 
   <section class="section">
     <div class="section__head">

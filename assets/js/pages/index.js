@@ -6,6 +6,7 @@ import { load, openItems, byHorizon, fundable, totalOutstanding, confidenceSumma
 import { itemCard, emptyState } from '../core/page.js';
 import { money, preciseMoney, escape } from '../core/format.js';
 import { allocate } from '../../js/engine/allocate.js';
+import { whatCanIDoToday, readinessSummary } from '../engine/readiness.js';
 
 const user = await requireAuth();
 if (!user) throw new Error('redirecting to login');
@@ -25,6 +26,24 @@ const outstanding = totalOutstanding(d);
 const months = monthly > 0 ? Math.ceil(outstanding / monthly) : null;
 
 const nextUp = now.length ? now : openItems(d).slice(0, 3);
+
+// WHAT CAN I DO TODAY. A different question from what matters most, and
+// the one actually asked on a Saturday morning. Two hours is the default
+// because it is the session most weekends really have.
+const ready = d.work_item_readiness ?? [];
+const today = whatCanIDoToday(ready, { minutes: 120 });
+const stuck = readinessSummary(ready);
+const STUCK_LABEL = {
+  waiting_on_work: 'waiting on other work',
+  waiting_on_materials: 'waiting on materials',
+  waiting_on_money: 'not funded yet',
+  blocked: 'blocked',
+  not_decided: 'still an idea',
+};
+const holdUps = Object.entries(STUCK_LABEL)
+  .filter(([k]) => stuck[k])
+  .map(([k, label]) => `${stuck[k]} ${label}`)
+  .join(', ');
 
 render('[data-page-root]', `
   ${isDemo() ? `<div class="notice" role="status">
@@ -65,6 +84,33 @@ render('[data-page-root]', `
       <span class="stat__note">${months ? 'months to clear the list' : 'set a contribution'}</span>
     </div>
   </div>
+
+  <section class="section">
+    <div class="section__head">
+      <h2>What I could do today</h2>
+      <a href="backlog.html">Backlog</a>
+    </div>
+    ${today.length ? `<ul class="today">
+      ${today.slice(0, 6).map((r) => `<li class="today__row">
+        <span class="today__title">${escape(r.title)}</span>
+        <span class="today__meta">
+          ${r.duration_known
+            ? `<span class="chip">${r.duration_min_minutes} min</span>`
+            : '<span class="chip">no estimate</span>'}
+          ${r.skill_level ? `<span class="chip">${escape(r.skill_level)}</span>` : ''}
+          ${r.two_person_job ? '<span class="chip">two people</span>' : ''}
+        </span>
+      </li>`).join('')}
+    </ul>
+    <p class="today__note">
+      Ready means nothing has to happen first and the materials are in
+      the house - not merely that it is high on the list. An item with no
+      estimate is shown last and says so, rather than being assumed to
+      fit.${holdUps ? ` Everything else is held up: ${escape(holdUps)}.` : ''}
+    </p>`
+      : emptyState('Nothing is ready to start',
+        holdUps ? `Everything open is held up: ${holdUps}.` : 'Add some work items.')}
+  </section>
 
   <section class="section">
     <div class="section__head"><h2>Now</h2><a href="roadmap.html">Full roadmap</a></div>

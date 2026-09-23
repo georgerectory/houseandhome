@@ -524,6 +524,29 @@ fieldset[role="group"] {
 }
 .ck-count { color: var(--ink-faint); font-size: var(--text-sm); }
 
+/* What I could do today.
+   ---------------------
+   A list, not cards: the question is "which one", and six cards is a
+   layout to scan while six lines is a list to choose from. */
+.today { list-style: none; margin: 0; padding: 0; }
+.today__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  justify-content: space-between;
+  padding-block: var(--space-3);
+  border-block-end: 1px solid var(--rule);
+}
+.today__row:last-child { border-block-end: 0; }
+.today__title { flex: 1 1 14rem; }
+.today__meta { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.today__note {
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+  margin-block: var(--space-3) 0;
+}
+
 /* The specification.
    -----------------
    Buy and Reject lead, because this page is read on a phone in an aisle

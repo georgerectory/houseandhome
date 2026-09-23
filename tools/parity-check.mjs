@@ -12,6 +12,7 @@ import { randomUUID } from 'node:crypto';
 import { allocate } from '../assets/js/engine/allocate.js';
 import { shoppingList } from '../assets/js/engine/demand.js';
 import { rank } from '../assets/js/engine/priority.js';
+import { readinessReport } from '../assets/js/engine/readiness.js';
 
 const PGBIN = process.env.PGBIN || '/usr/lib/postgresql/16/bin';
 const DB = process.env.PARITY_DB || 'househome_parity';
@@ -310,6 +311,88 @@ if (prioDiffs === 0 && sawOverride) {
   console.log(`FAIL parity: priority - diffs=${prioDiffs} overrideHonoured=${sawOverride}`);
 }
 
+// ---------------------------------------------------------------
+// READINESS PARITY. engine/readiness.js mirrors work_item_readiness.
+//
+// The case exercises every label at once, and the ORDER they are
+// decided in is the part worth holding: a job that is both blocked and
+// unfunded must come back blocked in both engines. If the two ever
+// disagreed there, the site would tell somebody to go and spend money
+// that changes nothing.
+// ---------------------------------------------------------------
+const RH = '22222222-2222-2222-2222-222222222222';
+psql(`begin;
+      set local house.allow_work_item_delete = 'on';
+      delete from knowledge_links where household_id='${RH}';
+      delete from work_items where household_id='${RH}';
+      commit;`);
+psql(`insert into households (id, name) values ('${RH}','Parity readiness')
+        on conflict (id) do nothing;
+insert into work_items (id, household_id, title, kind, status, horizon,
+        acquisition, cost_expected, allocated_balance, cost_confidence) values
+  ('cccc0000-0000-0000-0000-000000000001','${RH}','Ready','renovation','planned','now','new',0,0,'drafted'),
+  ('cccc0000-0000-0000-0000-000000000002','${RH}','Funded','renovation','planned','now','new',500,500,'drafted'),
+  ('cccc0000-0000-0000-0000-000000000003','${RH}','Unfunded','renovation','planned','now','new',500,0,'drafted'),
+  ('cccc0000-0000-0000-0000-000000000004','${RH}','After the rewire','renovation','planned','now','new',500,0,'drafted'),
+  ('cccc0000-0000-0000-0000-000000000005','${RH}','Needs lime','renovation','planned','now','new',0,0,'drafted'),
+  ('cccc0000-0000-0000-0000-000000000006','${RH}','An idea','renovation','idea','someday','new',0,0,'drafted'),
+  ('cccc0000-0000-0000-0000-000000000007','${RH}','Finished','renovation','done','now','new',0,0,'actual'),
+  ('cccc0000-0000-0000-0000-000000000008','${RH}','Held up','renovation','blocked','now','new',0,0,'drafted'),
+  ('dddd0000-0000-0000-0000-000000000001','${RH}','The rewire','renovation','planned','now','new',0,0,'drafted'),
+  ('dddd0000-0000-0000-0000-000000000002','${RH}','Lime','purchase','planned','now','new',300,0,'drafted');
+insert into knowledge_links (household_id, from_type, from_id, to_type, to_id, kind) values
+  ('${RH}','work_item','dddd0000-0000-0000-0000-000000000001','work_item','cccc0000-0000-0000-0000-000000000004','must_precede'),
+  ('${RH}','work_item','cccc0000-0000-0000-0000-000000000005','work_item','dddd0000-0000-0000-0000-000000000002','requires_material');`);
+
+const sqlReady = psql(`select id, readiness from work_item_readiness
+  where household_id='${RH}' order by id;`)
+  .split('\n').filter(Boolean).map((l) => {
+    const [id, readiness] = l.split('|');
+    return { id, readiness };
+  });
+
+const rItemsRaw = psql(`select id, title, kind, status, acquisition,
+    coalesce(cost_expected::text,''), coalesce(allocated_balance::text,'')
+  from work_items where household_id='${RH}' order by id;`);
+const rLinksRaw = psql(`select from_id, to_id, kind from knowledge_links
+  where household_id='${RH}' and valid_to is null;`);
+const rItems = rItemsRaw.split('\n').filter(Boolean).map((l) => {
+  const [id, title, kind, status, acquisition, cost, alloc] = l.split('|');
+  return { id, title, kind, status, acquisition,
+    cost_expected: cost === '' ? null : Number(cost),
+    allocated_balance: alloc === '' ? null : Number(alloc) };
+});
+const rLinks = rLinksRaw.split('\n').filter(Boolean).map((l) => {
+  const [from_id, to_id, kind] = l.split('|');
+  return { from_id, to_id, kind, from_type: 'work_item', to_type: 'work_item', valid_to: null };
+});
+const jsReady = readinessReport(rItems, rLinks)
+  .map((r) => ({ id: r.id, readiness: r.readiness }))
+  .sort((a, b) => a.id.localeCompare(b.id));
+
+let readyDiffs = 0;
+if (sqlReady.length !== jsReady.length) {
+  readyDiffs++;
+  console.log(`  row count differs: sql=${sqlReady.length} js=${jsReady.length}`);
+} else {
+  for (let i = 0; i < sqlReady.length; i++) {
+    if (sqlReady[i].readiness !== jsReady[i].readiness) {
+      console.log(`  ${sqlReady[i].id}: sql=${sqlReady[i].readiness} js=${jsReady[i].readiness}`);
+      readyDiffs++;
+    }
+  }
+}
+const labels = new Set(sqlReady.map((r) => r.readiness));
+const wanted = ['ready', 'waiting_on_work', 'waiting_on_materials',
+  'waiting_on_money', 'not_decided', 'closed', 'blocked'];
+const allLabels = wanted.every((x) => labels.has(x));
+if (readyDiffs === 0 && allLabels) {
+  console.log(`PASS parity: readiness (${sqlReady.length} rows) - identical across all ${wanted.length} labels`);
+} else {
+  failures++;
+  console.log(`FAIL parity: readiness - diffs=${readyDiffs} allLabels=${allLabels} saw=${[...labels].join(',')}`);
+}
+
 console.log('');
-console.log(failures === 0 ? `Parity: all ${CASES.length + 2} cases identical` : `Parity: ${failures} case(s) failed`);
+console.log(failures === 0 ? `Parity: all ${CASES.length + 3} cases identical` : `Parity: ${failures} case(s) failed`);
 process.exit(failures === 0 ? 0 : 1);

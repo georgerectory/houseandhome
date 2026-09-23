@@ -24,6 +24,27 @@ a full restoration is £7,500, and replasters the front rooms and hall
 for £2,500 where replastering throughout is £11,000. Both figures stay
 on the page. The handbook is a different scope, not a cheaper quote.
 
+**The system can answer "what can I do today".** `work_item_readiness`
+derives WHY each job cannot be started from the edges that already
+exist - `must_precede` for what has to happen first, `requires_material`
+for what has to be in the house - so nothing is stored and nothing is
+typed. It is the same two edge kinds that already drive the shopping
+list: one set of edges, read three ways. Right now that reads 12 ready,
+5 waiting on materials, 148 waiting on money and 19 still an idea.
+
+`what_can_i_do_today(minutes, budget, setting)` filters it to what fits.
+The rule worth keeping is that AN UNKNOWN DURATION IS NOT A DURATION OF
+ZERO: the first cut used `coalesce(duration_min_minutes, 0)`, which
+quietly answered "yes, it fits" for every item nobody has estimated -
+and most are unestimated. Hiding them would have been no better, so they
+come back flagged and sorted last, the same shape as `shopping_totals`
+reporting `unconfirmed_cost`.
+
+Parity now holds nine cases: the JS mirror and the view agree across all
+seven readiness labels, including the ORDER the obstacles are decided
+in. A job both blocked and unfunded must read as blocked in both, or the
+dashboard sends somebody to spend money that changes nothing.
+
 **Furniture has parts now, not one box each.** A bed, a sofa, a WC and
 a fridge were the same gesture at different sizes, so a room read as a
 car park. `model3d/furniture-parts.js` gives each of 23 kinds its real

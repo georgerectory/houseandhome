@@ -9,6 +9,7 @@
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { rank } from '../assets/js/engine/priority.js';
 import { shoppingList, shoppingTotals } from '../assets/js/engine/demand.js';
+import { readinessReport } from '../assets/js/engine/readiness.js';
 
 const ROOMS = [
   ['hallway','Hallway','hallway',4], ['lounge','Lounge','living',4],
@@ -230,6 +231,7 @@ const knowledge_links = dormantBuys.map((buy, i) => ({
 if (digJob) { digJob.status = 'idea'; digJob.horizon = 'someday'; }
 
 const shopping_list = shoppingList(items, knowledge_links);
+const work_item_readiness = readinessReport(items, knowledge_links);
 const shopping_totals = shoppingTotals(shopping_list);
 
 const bills = [
@@ -293,7 +295,7 @@ const data = {
   pot: { name: 'House pot', monthly_contribution: 400, contribution_confidence: 'drafted', unallocated_balance: 0 },
   allocation_settings: { decay: 0.85, floor_share: 0.10 },
   rooms, items, bills, assets,
-  shopping_list, shopping_totals, knowledge_links,
+  shopping_list, shopping_totals, knowledge_links, work_item_readiness,
   stock_plan: [], review_queue: [],
   // The specification. Two rows so the demo page shows a row that leads
   // with what to reject and a row carrying the two lighting numbers.

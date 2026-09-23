@@ -24,6 +24,23 @@ a full restoration is £7,500, and replasters the front rooms and hall
 for £2,500 where replastering throughout is £11,000. Both figures stay
 on the page. The handbook is a different scope, not a cheaper quote.
 
+**The instruction files are split by when they are read.** CLAUDE.md is
+read IN FULL at the start of every session, so its length was a cost
+paid every time: 545 lines down to 311, with nothing lost. The reference
+moved out to `docs/DECISIONS.md`, `docs/REVIEW.md`,
+`docs/BUILDING-MODEL.md` and `docs/FRONTEND.md`, and CLAUDE.md now
+carries a table saying which to read when. The rules too important to be
+only in a linked file - priority is computed, the shopping list is
+derived, the 3D frame is right-handed, no emojis, no 100vw - stay stated
+in both. `docs/GLOSSARY.md` is new: the words this repo uses in a
+particular way, for a session reading it cold.
+
+**localStorage has one home.** There were five copies of the same
+try/catch wrapper. That is not a tidiness point: localStorage THROWS in
+private mode rather than returning null, so an unguarded read does not
+degrade, it takes the page down before anything renders. `core/prefs.js`
+is now the only module that touches it.
+
 **The system can answer "what can I do today".** `work_item_readiness`
 derives WHY each job cannot be started from the edges that already
 exist - `must_precede` for what has to happen first, `requires_material`

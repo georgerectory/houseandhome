@@ -15,6 +15,7 @@ import {
   TRIP_AXES, trips, totals, funding, readyToBuy, nextUp,
   benchmarks, estimateCheck, targetCost,
 } from '../engine/shopping.js';
+import * as store from '../core/prefs.js';
 
 const user = await requireAuth();
 if (!user) throw new Error('redirecting to login');
@@ -39,10 +40,6 @@ const grand = totals(inScope);
 const ready = readyToBuy(inScope);
 
 const AXIS_KEY = 'hh-shop-axis';
-const store = {
-  get: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
-  set: (k, v) => { try { localStorage.setItem(k, v); } catch { /* private mode */ } },
-};
 const stored = store.get(AXIS_KEY);
 let axis = TRIP_AXES.some((a) => a.key === stored) ? stored : 'room';
 

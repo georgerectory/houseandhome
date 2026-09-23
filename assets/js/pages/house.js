@@ -25,6 +25,7 @@ import { surveyHtml } from './house/survey-view.js';
 import { loadDisplay, saveDisplay, layersFor } from './house/display.js';
 import { viewTabs, pickers, levelRow, displayPanel } from './house/toolbar.js';
 import { canvasStage, planStage, walkControls } from './house/stage.js';
+import * as store from '../core/prefs.js';
 
 const user = await requireAuth();
 if (!user) throw new Error('redirecting to login');
@@ -32,10 +33,6 @@ mountShell('house.html', { user });
 
 const d = await load();
 
-const store = {
-  get: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
-  set: (k, v) => { try { localStorage.setItem(k, v); } catch { /* private mode */ } },
-};
 const KEY = { level: 'hh-house-level', view: 'hh-house-view', stage: 'hh-house-stage', variant: 'hh-house-variant' };
 const display = loadDisplay();
 let destinations = [];

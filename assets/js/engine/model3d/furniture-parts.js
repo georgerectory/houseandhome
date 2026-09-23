@@ -20,7 +20,7 @@
 //
 // Writing a sofa's back at v 0.72-1.0 means it is at the back of the
 // sofa in all four orientations, and nothing has to be restated per
-// rotation. Plan space runs y NORTH TO SOUTH (see CLAUDE.md), so facing
+// rotation. Plan space runs y NORTH TO SOUTH (docs/BUILDING-MODEL.md), so facing
 // 'n' looks toward LOW y and its back is at high y.
 
 /**

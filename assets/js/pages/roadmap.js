@@ -21,6 +21,7 @@ import { cascade } from '../engine/roadmap-cascade.js';
 import { summary } from '../engine/roadmap-summary.js';
 import { drawerHtml, itemExport } from '../engine/roadmap-detail.js';
 import { toCSV, toJSON } from '../engine/roadmap-export.js';
+import * as store from '../core/prefs.js';
 
 const user = await requireAuth();
 if (!user) throw new Error('redirecting to login');
@@ -42,10 +43,6 @@ const KEYS = {
   wide: 'hh-rm-wide', room: 'hh-rm-room', trade: 'hh-rm-trade',
   hideQuick: 'hh-rm-hidequick', bands: 'hh-rm-bands', search: 'hh-rm-search',
   expanded: 'hh-rm-expanded',
-};
-const store = {
-  get: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
-  set: (k, v) => { try { localStorage.setItem(k, v); } catch { /* private mode */ } },
 };
 
 const known = (opts, v) => opts.some((o) => o.key === v);

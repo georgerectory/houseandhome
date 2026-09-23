@@ -65,7 +65,17 @@ values in `assets/js/core/config.js` does the same for the whole site.
 
 ## Documentation
 
-- [`CLAUDE.md`](CLAUDE.md) — operating rules for a Claude session.
+- [`CLAUDE.md`](CLAUDE.md) — operating rules for a Claude session. Short
+  by design: it is read in full every time, and the reference below is
+  read only when the work touches it.
+- [`docs/DECISIONS.md`](docs/DECISIONS.md) — priority, money, the
+  roadmap, the derived shopping list, quantities, stockpiles, links.
+- [`docs/REVIEW.md`](docs/REVIEW.md) — the review session protocol.
+- [`docs/BUILDING-MODEL.md`](docs/BUILDING-MODEL.md) — stages, variants,
+  the 3D frame, the plot, the walkthrough.
+- [`docs/FRONTEND.md`](docs/FRONTEND.md) — tokens, breakpoints, targets.
+- [`docs/GLOSSARY.md`](docs/GLOSSARY.md) — the words this repo uses in a
+  particular way.
 - [`docs/PLAN.md`](docs/PLAN.md) — the design record and why things are
   shaped the way they are.
 - [`docs/STATE.md`](docs/STATE.md) — what is in flight right now.

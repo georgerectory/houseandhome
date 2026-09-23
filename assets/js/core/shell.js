@@ -8,15 +8,12 @@
 // ONE home for the page list - see core/pages.js. The generator and
 // the front-end sweep read the same array.
 import { PAGES } from './pages.js';
+import * as prefs from './prefs.js';
 
 const THEME_KEY = 'hh-theme';
 
-function storedTheme() {
-  try { return localStorage.getItem(THEME_KEY); } catch { return null; }
-}
-function storeTheme(v) {
-  try { v ? localStorage.setItem(THEME_KEY, v) : localStorage.removeItem(THEME_KEY); } catch { /* private mode */ }
-}
+const storedTheme = () => prefs.get(THEME_KEY);
+const storeTheme = (v) => prefs.set(THEME_KEY, v);
 
 export function applyStoredTheme() {
   const t = storedTheme();

@@ -38,6 +38,24 @@ Two things follow from it, and neither is optional:
   tonnes of lime plaster back. `npm run takeoff` derives it from the
   geometry. Nothing about it is typed.
 
+## Where the rest lives
+
+This file is read IN FULL at the start of every session, so it holds
+only what every session needs. The reference lives beside it and is read
+when the work touches it:
+
+| File | When to read it |
+|---|---|
+| `docs/STATE.md` | Always, straight after this. What is in flight. |
+| `docs/DECISIONS.md` | Priority, money, the roadmap, the shopping list, quantities, stockpiles, links. |
+| `docs/REVIEW.md` | A review session. |
+| `docs/BUILDING-MODEL.md` | Anything under `model3d/`, `planner/` or `data/buildings/`. |
+| `docs/SOURCE-FIDELITY.md` | Before changing any drawn geometry. The drawings decide; checkers report. |
+| `docs/FRONTEND.md` | CSS, layout, tokens, breakpoints. |
+| `docs/CARRY-OVER.md` | Loading the earlier system's figures. |
+| `docs/GLOSSARY.md` | A word in this repo you do not recognise. |
+| `docs/PLAN.md` | The design record: why things are the way they are. |
+
 ## Non-negotiable rules
 
 1. **Never commit a credential.** The Supabase anon key in
@@ -135,165 +153,41 @@ run `npm test`, then commit.
 
 ## How the system decides things
 
-**Priority is computed, never typed.** `recompute_priorities()` scores
-each item as room weight x theme weight x benefit weight, plus a bonus
-for unblocking other work, plus decay pressure on preservation work,
-minus a penalty when it is itself blocked. The three axes multiply so a
-low score on any one holds the item down. Every row stores
-`priority_explain`, so the order can always explain itself.
+Four rules, each with its reasoning in `docs/DECISIONS.md`:
 
-**Money follows priority, not cost.** One pot funds one list; jobs and
-purchases are the same table. Every open costed item gets a share of
-every deposit - geometric by rank, plus an equal floor share so nothing
-ever reaches zero. Settled in integer micro-pounds by largest remainder
-so shares sum to the deposit exactly.
+- **Priority is computed, never typed.** Room weight x theme weight x
+  benefit weight, plus unblocking, minus blocked. Every row stores
+  `priority_explain`.
+- **Money follows priority, not cost.** One pot, one list; geometric by
+  rank with an equal floor share, settled in integer micro-pounds.
+- **The shopping list is DERIVED.** A thing is on it because a live job
+  requires it, through `requires_material`. Move the job and the list
+  follows; never hand-edit a total.
+- **Quantities come from `npm run takeoff`**, never from a cell. The
+  geometry is the authority.
 
-**The roadmap is one set of rows read three ways.** Board (swimlanes),
-Timeline (a waterfall) and List are projections over the same
-`work_items`, and grouping is by the axes a house has - room, trade,
-intent, benefit, kind, horizon - never anything resembling a department.
-The logic lives in `assets/js/engine/roadmap-*.js` - `roadmap-model.js`
-is the shared spine (placement, filters, grouping) and `-timeline`,
-`-cascade` and `-summary` are the three projections over it, with
-`-detail` and `-export` beside them. All pure, so all unit-tested; the
-page is a thin renderer over them. A trade filter
-matches the owning trade OR an associated one, so an "electrical" view
-shows everything electrical touches.
+Two more: a stockpile is a spec, a count and a reason - and a spec you
+cannot hold a listing up against is not a spec. Relationships are rows
+in `knowledge_links`, never a new column.
 
-The Timeline's x-axis is **affordability, not dates**: a bar sits in the
-month that item becomes fundable under the current allocation curve.
-Work needing no money starts immediately; work that cannot be funded
-inside the horizon is hatched and labelled rather than hidden. Because it
-is computed from cost estimates, it is a projection whenever those are
-unconfirmed, and the page says so.
-
-**A thing is on the shopping list because a live job needs it.** Not
-because somebody thought of it. A renovation list written in one sitting
-contains a mini digger on the day the keys are collected, and the total
-at the bottom is therefore wrong by thousands in the direction that
-makes the whole plan look unaffordable. So the list is DERIVED: a
-`requires_material` link runs from the job to the purchase, and
-`shopping_list.demand_state` computes what that means right now -
-
-| State | Means |
-|---|---|
-| `live` | A job that requires it is ready, in progress, or planned in the `now`/`next` horizon. It costs money this round. |
-| `dormant` | It is required, but only by work nobody has started. Cost excluded from the total and reported separately, never hidden. |
-| `standalone` | Nothing requires it; it is its own reason. A bed. A fridge. |
-| `closed` | Done or dropped. |
-
-Move the foundations job from `idea` to `planned`/`next` and the digger,
-the muck away, the breaker and the compactor all appear together. Drop
-it and they all go. **That is the whole mechanism for "the list adapts
-when the plans change", and it only works because nothing is stored.**
-So when a plan moves, move the JOB and let the list follow; never
-hand-edit a total. `shopping_totals` splits buy from hire (hire is never
-owned), reports `dormant_cost` so parked money is visible, and reports
-`unconfirmed_cost` so a total made of drafted estimates says so on its
-own face.
-
-**Quantities come from `npm run takeoff`, never from a cell.** The
-geometry is the authority; a number in `stock_targets.quantity_needed`
-is only its shadow, and a shadow goes stale the moment a wall moves. So
-whenever the extension, the garden or the room plan changes: re-run the
-takeoff, diff it against the stored targets, and reconcile the
-difference DELIBERATELY - with the basis rewritten to match. Every
-takeoff line carries its own working in words and is `drafted` however
-precise the geometry underneath it, because the rates are trade
-convention and nobody measured them at this house.
-
-**A stockpile is a spec, a count and a reason - in that order.**
-`stock_targets` exists because four thousand reclaimed bricks is not a
-purchase: it is a quantity you count toward over two years, acquired
-many times at different prices, and the running total is the sum of
-`stock_acquisitions` and is NEVER stored on the target. Four rules:
-
-- **A spec you cannot hold a listing up against is not a spec.**
-  "Reclaimed brick" fails. "Imperial 9 x 4 3/8 x 2 5/8in, soft red,
-  sand-struck, circa 1880" passes. `reject_if` does the other half of
-  the job. Without both, a stockpile becomes a pile of things that
-  nearly match, and you cannot build a wall out of nearly.
-- **Breakage is a negative haul, not a deletion.** "Twelve turned out to
-  be wirecut" is a fact worth keeping.
-- **Collecting against an unidentified spec is the expensive mistake.**
-  A target whose material has not been seen in the flesh stays `idea`,
-  not `collecting`, however confident the quantity is.
-- **Some things get worse by being bought early.** A sanitaryware set
-  bought before the bathroom is designed is a set that may not fit.
-  Where that is true, say so in `notes` and leave the status at `idea`.
-
-**Relationships are rows in `knowledge_links`, never a new column.**
-Thirteen typed kinds. `requires_material` is what turns a job into a
-shopping list; `matches_style` is what keeps fittings consistent across
-rooms. Links close (`valid_to`), never delete. A link you write is
-`proposed` until the owner confirms it.
+**`docs/DECISIONS.md` has all of it**, including the demand-state table,
+the four stockpile rules and why the roadmap is one set of rows read
+three ways.
 
 ## Review sessions
 
-The owner opens a chat and says **"I wish to review this"** - the
-roadmap, the shopping list, the stockpile, the monthly budget. That is
-a defined session shape, not a conversation.
+The owner says **"I wish to review this"**. That is a defined session
+shape, not a conversation: ground first with `house_context()`, open by
+saying what is in front of you rather than with a question, work
+`review_queue` rather than the table, ask as CLICKABLE questions one row
+at a time, and close each row with `mark_reviewed(id, note)`.
 
-**Ground first, then ask.** `house_context()` now carries `shopping`,
-`stockpile` and `review` for exactly this. Open by saying what is in
-front of you in two or three lines: how many rows, what they total, how
-much of that total is unconfirmed, and what is dormant. Never open with
-a question.
+**Priority is never one of the questions** - it is computed, so a review
+changes the AXES and then runs `recompute_priorities()`. The single most
+valuable thing a review produces is `confidence` moving to `confirmed`.
 
-**Work `review_queue`, not the table.** A review over a hundred rows
-does not finish in one sitting, and a session that starts at the top of
-the same list every time asks about the same bedding forever and never
-reaches the far end. The queue is scored by money at stake, how long
-since anybody looked and whether the figure is trusted, and it EXCLUDES
-dormant purchases - a question about a digger in a year with no digging
-has no useful answer and is exactly what makes a review feel wasted.
-Each row's `gaps` array is its agenda. Work down `review_score`.
-
-**Close each row with `mark_reviewed(id, note)`.** It stamps
-`reviewed_at` and keeps the note as a `work_note`, so the row drops down
-the queue and the next session inherits the judgement instead of
-re-deriving it. A row asked about and not marked will come round again
-next month as though nobody ever answered.
-
-**Then walk the list, one row at a time, as CLICKABLE QUESTIONS.** Use
-the question tool with two to four concrete options - not free text, and
-not a wall of them. One row per question, the row named, its cost and
-its current values in the question so the answer can be given without
-scrolling back. Batch at most a handful of questions before writing what
-has been decided; a review that collects thirty answers and writes at
-the end is a review that loses them all when the session ends.
-
-What each answer changes, and it is always a COLUMN, never a score:
-
-| Asked | Writes |
-|---|---|
-| Needed at all? | `status` - or `dropped` WITH a resolution. |
-| When in the project? | `phase`, and `horizon` if it moved. |
-| How much reward? | `benefit_type`, and the room's `room_weight` if the room itself is wrong. |
-| How much effort? | `effort`, `duration_min_minutes` / `duration_max_minutes`. |
-| Manual labour? | `physical_demand`, `two_person_job`. |
-| Easy or hard? | `skill_level`, `performed_by`. |
-| Expensive or not? | `cost_best` / `cost_expected` / `cost_worst`, and `cost_confidence`. |
-
-**Priority is never one of them.** It is computed from room weight,
-theme weight and benefit weight, so a review changes the AXES and then
-runs `recompute_priorities(household_id)`. Anybody typing a priority has
-misunderstood the system.
-
-**Confirming is the point.** The single most valuable thing a review
-produces is `confidence` moving from `drafted` to `confirmed` on figures
-the owner has actually checked, because that is what lets a figure drive
-an allocation. Ask for it explicitly. Never infer it from enthusiasm.
-
-**Values fluctuate with the project, and the review is where that is
-caught.** A digger is high effort and high cost when there is digging
-and absent when there is not; a hedge is low cost and high reward in
-November and neither in June. If a row's values no longer match what the
-project is, the answer is to change them, not to note the discrepancy.
-
-**End by writing, re-reading and saying what changed** - counts, the new
-totals, and what is still unconfirmed. Then `docs/STATE.md` and `npm
-test` as usual.
+**`docs/REVIEW.md` is the full protocol**, including which column each
+answer writes.
 
 ## Testing
 
@@ -315,169 +209,41 @@ test` as usual.
 The SQL gate needs a local Postgres; without one it SKIPS loudly rather
 than passing quietly.
 
-## The building model
+## The building model, and the House page
 
-**Stages and variants.** A STAGE is a structural state of the house - as
-bought, after the extension - and owns levels, walls, openings, rooms,
-stairs, roof, chimneys and features. A VARIANT is a furniture
-arrangement belonging to one stage and owns nothing structural. Every
-stage has an `empty` variant, so "no furniture" is a real thing you can
-inspect and fork rather than a rendering flag.
+A STAGE is a structural state of the house and owns the geometry; a
+VARIANT is a furniture arrangement belonging to one stage. A fork is a
+copy, not a delta, and `stageDiff()` computes the difference so a
+narrative that disagrees with the geometry gets caught. The geometry is
+repo content under `data/buildings/`; Supabase holds only the rows a
+`work_item` can point at.
 
-**A fork is a copy.** A new stage or variant carries `derivedFrom` and a
-`changes` narrative, but its geometry is its own: there is no delta to
-merge. The narrative is for people; the geometric difference is COMPUTED
-by `stageDiff()`, so if somebody writes "adds a bedroom" and the geometry
-does not, the diff says so.
+Two things never to get wrong: **the 3D frame is right-handed** - plan
+`(x, y)` maps to world `(x, h, y)`, and negating that last term renders
+a perfect mirror that still looks right from the garden - and **nothing
+in the model is measured**, so every figure carries the drawing it came
+from and the Survey view reports the residual rather than absorbing it.
 
-**The geometry is repo content, the registry is not.** Walls and rooms
-live in `data/buildings/<id>/` because they are drawing data with nothing
-private in them, they must be unit-testable from disk with no auth, and
-git is a better version history than a table. Supabase holds only
-`building_stages` and `building_changes` - the rows a `work_item` can
-point at through a `realises` link, so the roadmap can say which jobs
-turn one model into the other. The quantities on a change are measured by
-`stageDiff()`, never typed, and they are `drafted`: they price nothing.
-
-**Walls are gridlines, rooms are derived.** The spec names a centreline
-and a thickness per wall; a room names the four lines that bound it and
-its rectangle is computed from their inner faces. A room therefore cannot
-drift from its own walls. `tools/build-building.mjs` does that arithmetic
-and writes the JSON the site reads; the geometry gate re-runs it and
-fails if the committed output has drifted.
-
-**The 3D frame is right-handed, and that is not cosmetic.** Plan space
-runs x east and y NORTH TO SOUTH; the model maps plan `(x, y)` to world
-`(x, h, y)` in `model3d/geom.js`. Negating that last term makes `+Z`
-north, which is LEFT-handed, and a left-handed frame does not fail
-loudly - it renders a perfect mirror of the house, and from the garden
-side the mirror and the viewpoint cancel out so it still looks right.
-That shipped once. `tests/unit/model3d.test.mjs` pins it in arithmetic,
-and the 3D view carries a compass for the same reason.
-
-**Nothing in the model is measured.** Every figure is read off a drawing
-or derived from one, and each carries the document it came from in
-`sources` and `statedDimensions`. The Survey view compares every stated
-figure against what the geometry computes and reports the difference in
-millimetres. A residual is never absorbed: where a drawing and the model
-disagree, both numbers stay on the page.
-
-## The House page
-
-Three views over one model, and a fourth over the figures behind it:
-**Plan** (SVG, drawn to scale), **3D** (orbit the house from named
-viewpoints), **Walk** (first person, eye height) and **Survey**.
-
-The walkthrough is phone-first. The left two fifths of the view is a
-movement stick that appears under the thumb wherever it lands; anywhere
-else looks, and DRAG RIGHT LOOKS RIGHT. There was a switch for the other
-convention; it is gone, because once this way round is right a switch is
-only a way to set it wrong. A keyboard gets pointer lock and WASD. Collision is against
-WALLS ONLY - furniture is walked through deliberately, so a sofa can
-never trap someone in a corner - and the stair is a ramp derived from
-the flight the model already carries, so which floor you are on follows
-your feet. The maths is pure and lives in `assets/js/engine/walk.js`; the
-input and the cameras are in `assets/js/core/planner/`.
-
-**The walkthrough shows the WHOLE building, every storey at once.** The
-orbit view shows one floor at a time and the walkthrough must not: a
-level filter that survives the mode switch leaves you climbing the
-stairs into an empty sky. `setMode` re-applies visibility for that
-reason. You can also stand outside on any of the four sides, and in any
-room on any floor, by name - `planner/places.js` is pure and tested.
-
-**A wall reaches the floor above, not its own ceiling.** The ground
-floor's ceiling is 2.40 and the first floor starts at 2.70; a wall built
-to the ceiling leaves a 300mm band of daylight round the whole building
-where the joists are.
-
-**Every room has a ceiling, and the two views want opposite things from
-it.** The orbit view looks DOWN into a storey, so a ceiling is a lid
-over everything it is there to show; the walkthrough is inside the room,
-where a missing ceiling is a roofless box. Same geometry, shown in one
-and not the other - `ceilingGroups` per level, switched by mode rather
-than by a preference.
-
-**An opening is joinery, not a hole.** A door gets a lined reveal and a
-leaf hung at the hinge the spec records, swinging the way it records,
-with stiles, rails and a handle; a window gets a cill, head, jambs and a
-mullion every 550mm. Without them a doorway is a dark slab and a window
-is a tinted rectangle with no scale - and the spec's `swing` field is a
-record nobody can check. `model3d/doors.js` owns all of it, and
-`tests/unit/doors.test.mjs` pins the hinge rule in arithmetic.
-
-Joinery took the model past 400 boxes, so `geom.js` shares ONE MATERIAL
-PER COLOUR. A material per mesh is a GPU state change per draw, and the
-walk step is scaled by frame time, so the cost showed up as walking that
-crawled rather than as a picture that stuttered.
-
-**The PLOT is a property of the site, not of a stage:** an extension
-changes the house, not the boundary. 17.60 x 40.00m, scaled off the
-handbook's site plan, with the house anchored by its west and south
-faces - the two a setting-out would work from - so the depth residual
-falls in the 27m rear garden rather than the 5m front. It is a
-switchable layer in all three views and OFF by default, because the plan
-has to zoom out to a fifth of its scale to fit it.
-
-**The HEDGE is on the boundary and is the only planting modelled**, at
-1.83m high and 0.78m deep. It earns its place because it is not a
-surface: it is six feet of solid green, so it decides what you can see
-from the garden and whether the west side is a path or a passage. Its
-depth is scaled off the site plan and agrees with the handbook's own two
-setback statements; its HEIGHT is the owner's figure and nothing else,
-recorded as `heightConfidence: 'confirmed'` rather than as an
-observation. The plan therefore dimensions each setback twice - to the
-line and clear of the hedge - because "2.7m to the boundary" and "1.9m
-you can walk down" are different answers to different questions.
-
-Nothing else inside the boundary is modelled: the source also colours in
-grass, shrubs, hardstanding and sheds, every one traced off an aerial to
-plus or minus a metre or two, and drawing those beside walls measured
-off a floor plan would dress an estimate as a survey. The hedge is NOT a
-collider either - the walkthrough stops against walls only, and the
-viewpoint that stands you in front of the house is further out than the
-front boundary, so a solid hedge would put you outside your own plot
-with a wall in the way.
-
-**The equipment register belongs to the household, not to a building.**
-Its `plan_x_m` / `plan_y_m` were authored against whatever building was
-modelled at the time, and they do not travel: a freezer at x 15.4 was in
-a garage this house does not have, and 15.4 is seven metres past its
-east wall. `place()` rejects a coordinate outside the building's
-envelope - `state: 'foreign'` - so nothing is drawn for it and no grid
-reference is computed. If its ROOM exists here it falls back to the room
-centre, marked `coordsFrom: 'other-building'`. A reference printed from
-a coordinate belonging to another house is a measurement that never
-happened.
-
-Every layer of the drawing can be switched off from one Display panel -
-room names, sizes, furniture, furniture names, equipment pins, door
-swings, dimensions, grid, the circulation overlay, roof, glazing, door
-leaves, ceilings and the plot boundary - and the choice is remembered. A toggle NEVER repaints the page: it would
-close the panel, lose the camera and, in the walkthrough, put you back at
-the front door.
+**`docs/BUILDING-MODEL.md` is the full reference** - stages, variants,
+the plot, the hedge, joinery, ceilings, the walkthrough and the
+equipment register. Read it before touching `model3d/`, `planner/` or
+`data/buildings/`. `docs/SOURCE-FIDELITY.md` is the contract for what
+the drawings actually show: **the drawings decide the layout, and the
+checkers only report.**
 
 ## Front end
 
 Zero build step. Semantic HTML, plain CSS, ES modules. No framework, no
-bundler.
+bundler. Every visual value comes from `assets/css/tokens.css`;
+mobile-first, `min-width` only, and **no layout transition between 600
+and 800px** because that is where iPad portrait sits. Targets 44px with
+a 24px absolute floor. `100%` not `100vw`, `dvh`/`svh` not `vh`.
+**No emojis anywhere** - not in the interface, docs, code comments or
+commit messages. Pages are generated by `npm run pages`: edit the
+template, not the HTML.
 
-- Every visual value comes from `assets/css/tokens.css`. Never a hex or
-  an off-scale space in component CSS.
-- Mobile-first. Breakpoints 480 / 768 / 1024 / 1280, `min-width` only.
-  **No layout transition may land between 600 and 800px** - that is
-  where iPad portrait sits.
-- Light and dark are both first-class and share one hue ladder.
-- Targets 44px, 24px absolute floor. Focus via `:focus-visible` using
-  `box-shadow: var(--focus-ring)` - never as `outline`, which is invalid
-  and silently removes the indicator.
-- `100%` not `100vw`; `dvh`/`svh` not `vh`; safe-area insets on anything
-  fixed, on all four sides, because the notch moves in landscape.
-- Controls resolve to at least 16px on mobile or iOS zooms on focus.
-- **No emojis anywhere.** Not in the interface, docs, code comments or
-  commit messages.
-- Pages are generated by `npm run pages` so the head and landmarks
-  cannot drift. Edit the template, not the HTML.
+The lint gate enforces most of this. **`docs/FRONTEND.md` has the rest
+and says why.**
 
 ## Layout
 

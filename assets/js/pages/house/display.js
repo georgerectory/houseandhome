@@ -10,6 +10,8 @@
 // offers a control that does something: there is no roof on a floor
 // plan, and no grid inside the walkthrough.
 
+import { getJSON, setJSON } from '../../core/prefs.js';
+
 const KEY = 'hh-house-display';
 
 export const LAYERS = [
@@ -38,20 +40,11 @@ const DEFAULTS = Object.fromEntries(LAYERS.map((l) => [l.id, l.on]));
 /** Read the remembered choices, falling back to the defaults for
  *  anything a previous version did not know about. */
 export function loadDisplay() {
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (!raw) return { ...DEFAULTS };
-    const saved = JSON.parse(raw);
-    return { ...DEFAULTS, ...Object.fromEntries(
-      Object.entries(saved).filter(([k]) => k in DEFAULTS),
-    ) };
-  } catch {
-    return { ...DEFAULTS };
-  }
+  return getJSON(KEY, DEFAULTS);
 }
 
 export function saveDisplay(state) {
-  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { /* private mode */ }
+  setJSON(KEY, state);
 }
 
 /** The layers worth offering for the view on screen. */

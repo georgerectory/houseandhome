@@ -524,6 +524,46 @@ fieldset[role="group"] {
 }
 .ck-count { color: var(--ink-faint); font-size: var(--text-sm); }
 
+/* The handbook, as rows.
+   -----------------------
+   The body text arrives laid out as the PDF laid it out - one table
+   cell per line - so it is pre-wrapped rather than re-flowed. `pre-wrap`
+   keeps the line breaks that carry the table's meaning; `anywhere`
+   stops a long unbroken figure pushing the page sideways, which is the
+   one thing the front-end gate will not forgive. */
+.doc-part { margin-block-end: var(--space-8); }
+
+.doc-sec { margin-block: var(--space-8); }
+.doc-sec__head { margin-block-end: var(--space-2); }
+.doc-sec__head h3 { margin: 0; }
+.doc-sec__part {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--ink-faint);
+  margin: 0 0 var(--space-1);
+}
+.doc-sec__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-block: var(--space-2) 0;
+}
+.doc-sec__lede {
+  font-size: var(--text-lg);
+  color: var(--ink-muted);
+  margin-block: var(--space-2);
+}
+.doc-sec__body {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--ink);
+  border-inline-start: 2px solid var(--rule);
+  padding-inline-start: var(--space-4);
+}
+
 .ck-section { margin-block: var(--space-8); }
 .ck-title {
   display: flex;

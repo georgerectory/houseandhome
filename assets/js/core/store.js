@@ -28,7 +28,7 @@ async function loadLive() {
   if (!session) { location.replace('login.html'); return null; }
 
   const [rooms, items, bills, assets, storage, inventory, settings, prices,
-    carried, accounts, shopping, totals, stock, review, links] = await Promise.all([
+    carried, accounts, shopping, totals, stock, review, links, docs] = await Promise.all([
     sb.from('rooms').select('*'),
     sb.from('work_items').select('*').order('priority'),
     sb.from('bills').select('*').eq('is_active', true),
@@ -55,6 +55,10 @@ async function loadLive() {
     // The edges. Without them the client cannot see why anything is on
     // the list, which is what made the view necessary in the first place.
     sb.from('knowledge_links').select('*').is('valid_to', null),
+    // THE DOCUMENT. Sections in reading order, so plan.html can render
+    // the handbook rather than linking to a PDF that nothing can query
+    // and nothing keeps in step.
+    sb.from('document_sections').select('*').order('sort_order'),
   ]);
   const { data: pot, error: potError } = await sb.from('pots')
     .select('*').eq('is_active', true).maybeSingle();
@@ -65,7 +69,7 @@ async function loadLive() {
   // it knows, so a broken read is raised rather than swallowed.
   const failed = Object.entries({
     rooms, items, bills, assets, storage, inventory, settings, prices, carried,
-    accounts, shopping, totals, stock, review, links, pot: { error: potError },
+    accounts, shopping, totals, stock, review, links, docs, pot: { error: potError },
   }).filter(([, r]) => r?.error).map(([name, r]) => `${name}: ${r.error.message}`);
   if (failed.length) {
     throw new Error(`Could not read the database - ${failed.join('; ')}`);
@@ -118,6 +122,7 @@ async function loadLive() {
     stock_plan: stock.data ?? [],
     review_queue: review.data ?? [],
     knowledge_links: links.data ?? [],
+    document_sections: docs.data ?? [],
   };
   return cache;
 }

@@ -8,6 +8,28 @@ this file is only what is not yet finished. Keep it under 40 lines.
 
 Nothing. All seven gates green.
 
+**The handbook is rows now, not a PDF.** All 54 pages of the plan and
+project handbook are in `document_sections`, `document_figures` and
+`document_claims`: 53 sections and 69,837 characters of body text, which
+`plan.html` renders in page order as the document itself. Thirteen of
+the 30 figures carry `replaced_by_view: 'house.html'` rather than a
+bitmap, because this system COMPUTES those drawings and a stored copy
+would go stale the moment a wall moved. The file itself is not stored;
+a sha256 says whether the copy somebody is holding is the one ingested.
+
+**Nine claims point at the job they price**, which is the only reason
+the claims table exists, and the joins immediately disagree with us:
+the handbook patches the roof for £800 where making it watertight under
+a full restoration is £7,500, and replasters the front rooms and hall
+for £2,500 where replastering throughout is £11,000. Both figures stay
+on the page. The handbook is a different scope, not a cheaper quote.
+
+**The money parser read a range as its first number.** `£72-115k` came
+out as £72.00, because the multiplier sits after the SECOND number and
+was dropped - three orders of magnitude out, in the one table whose job
+is to be trustworthy enough to price a job. `tools/ingest-document.mjs`
+now applies the suffix to both ends and emits each end as its own claim.
+
 **The standing scope is a full restoration, stripped back to brick.**
 Recorded as a decision row. It makes the internal wall face a quantity -
 241 m2 of wall, 77 m2 of ceiling - and everything else follows: four

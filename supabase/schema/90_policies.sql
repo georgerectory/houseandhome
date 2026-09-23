@@ -33,6 +33,7 @@ begin
     'recipes','recipe_ingredients',
     'stock_targets','stock_acquisitions',
     'income_sources','quotes','payment_schedule',
+    'source_documents','document_sections','document_figures','document_claims',
     'house_facts','decisions','palettes','contractors','invoices','scheduled_events',
     'estimate_outcomes','learned_factors','learning_runs','insight_messages'
   ] loop
@@ -102,6 +103,7 @@ begin
     'recipes','recipe_ingredients',
     'stock_targets','stock_acquisitions',
     'income_sources','quotes','payment_schedule',
+    'source_documents','document_sections','document_figures','document_claims',
     'house_facts','decisions','palettes','contractors','invoices','scheduled_events',
     'estimate_outcomes','learned_factors','learning_runs','insight_messages'
   ] loop

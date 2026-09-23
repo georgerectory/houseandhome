@@ -295,6 +295,23 @@ const data = {
   rooms, items, bills, assets,
   shopping_list, shopping_totals, knowledge_links,
   stock_plan: [], review_queue: [],
+  // Two sections, because the front-end gate forces demo mode: without
+  // them plan.html renders its document half empty and the gate passes
+  // a page nobody could read.
+  document_sections: [
+    {
+      id: uid('doc', 0), part: 'PART A · 1', title: 'The whole plan in 30 seconds',
+      lede: 'Buy well, fix it, win consent, then decide whether to build.',
+      body: 'STEP\nWHEN\nWHAT HAPPENS\nWin the house\nSep - Dec 2026\nViewing, offer, survey, solicitor\nBuy and move in\nJan 2027\nDeposit and mortgage',
+      page_from: 3, page_to: 3, sort_order: 30, confidence: 'researched',
+    },
+    {
+      id: uid('doc', 1), part: 'PART B · 9 COSTS', title: 'Detailed cost plan',
+      lede: 'Who does the work matters more than the design.',
+      body: 'Item\nOptimistic\nBase\nAdverse\nPurchase price\n255k\n265k\n280k\nContingency on works\n7%\n10%\n15%',
+      page_from: 41, page_to: 41, sort_order: 410, confidence: 'researched',
+    },
+  ],
   storage: [
     { id: uid('store', 0), name: 'Loft boxes', kind: 'box', room_key: 'loft', label_code: 'L-01' },
     { id: uid('store', 1), name: 'Garage rack', kind: 'rack', room_key: 'garage', label_code: 'G-01' },

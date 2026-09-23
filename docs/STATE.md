@@ -24,6 +24,32 @@ a full restoration is £7,500, and replasters the front rooms and hall
 for £2,500 where replastering throughout is £11,000. Both figures stay
 on the page. The handbook is a different scope, not a cheaper quote.
 
+**Furniture has parts now, not one box each.** A bed, a sofa, a WC and
+a fridge were the same gesture at different sizes, so a room read as a
+car park. `model3d/furniture-parts.js` gives each of 23 kinds its real
+parts - a sofa is a plinth, two arms, a seat and a back; a WC is a pan,
+a lid and a cistern - in a local frame where v runs front to back, so a
+shape is written once and placed correctly in all four orientations. It
+is pure, so it is tested from disk with no browser, and every part is
+asserted to stay inside the rectangle the floor plan draws: that is the
+1:1 guarantee, and an arm sticking out past its own rect would make the
+plan's clearance a different number from the one you can walk through.
+
+**The reported defects are reported, not silently corrected.** The
+drawings decide the layout (docs/SOURCE-FIDELITY.md), so the survey now
+names what is wrong instead of moving it: the downstairs WC pan is
+0.39 x 0.52 where a close-coupled pan and cistern is 0.37 x 0.68 - and
+the other two WCs in the same model are 0.40 x 0.70, so that one is
+internally inconsistent - and seven internal doors give under 0.68m
+clear against the 0.75m Part M looks for. The narrowest, the downstairs
+WC door, gives 0.54m.
+
+**The lounge is furnished in its own variant.** The study draws nothing
+there but the stove, so `post-extension--lived-in` holds the seating and
+`--as-drawn` stays exactly as drawn. Everything in it is placed off the
+room's own geometry - clear of the hall door at the south end of the
+west wall and the kitchen-diner door at x 6.12-6.92.
+
 **The specification is a page now, organised like a shop.** `palettes`
 grew from paint-shaped into the whole specification - timber, lighting,
 metalwork, tile, stone, textile, plaster - and every row carries `spec`

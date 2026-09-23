@@ -56,6 +56,14 @@
      "summary": "Every piece of furniture the design study draws, in the room and the position it draws it, and nothing else. The living room is empty but for its stove, because that is how the study leaves it.",
      "furnitureCount": 44,
      "file": "variants/post-extension--as-drawn.json"
+    },
+    {
+     "id": "post-extension--lived-in",
+     "name": "Furnished, and lived in",
+     "derivedFrom": "post-extension--as-drawn",
+     "summary": "Everything the study draws, plus a furnished living room. The study leaves that room empty but for its stove, so the seating here is INFERRED from the room rather than read off a drawing, and it is kept in its own variant for that reason.",
+     "furnitureCount": 48,
+     "file": "variants/post-extension--lived-in.json"
     }
    ]
   }

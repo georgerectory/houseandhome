@@ -801,3 +801,42 @@ export const variants = [
     ],
   },
 ];
+
+// --- A furnished living room -----------------------------------------
+//
+// A SEPARATE VARIANT, and that is the whole point. The design study
+// draws no furniture in the living room, and docs/SOURCE-FIDELITY.md
+// makes the drawing the authority: adding a sofa to
+// `post-extension--as-drawn` would quietly make that variant a mixture
+// of what was drawn and what I thought, which is precisely the mistake
+// that file was written after.
+//
+// So the drawn variant stays exactly as drawn and this one says openly
+// that it is furnished by inference. Everything here is placed off the
+// room's own geometry - the stove and chimney breast on the east wall,
+// the hall door at the south end of the west wall, the kitchen-diner
+// door at x 6.12-6.92 in the north wall - so the seating faces the fire
+// and nothing stands in a doorway.
+const asDrawn = variants.find((v) => v.id === 'post-extension--as-drawn');
+
+variants.push({
+  id: 'post-extension--lived-in',
+  stage: 'post-extension',
+  name: 'Furnished, and lived in',
+  derivedFrom: 'post-extension--as-drawn',
+  summary: 'Everything the study draws, plus a furnished living room. The study leaves that room empty but for its stove, so the seating here is INFERRED from the room rather than read off a drawing, and it is kept in its own variant for that reason.',
+  changes: [
+    'A 2.0m sofa down the west wall facing the stove, clear of the hall door at the south end of that wall.',
+    'A coffee table between the sofa and the hearth.',
+    'An armchair in the south-east corner, turned back into the room.',
+    'A low media unit against the north wall, stopped short of the kitchen-diner door at x 6.12-6.92.',
+    'Nothing else changes: every other room is exactly as the study draws it.',
+  ],
+  furniture: [
+    ...asDrawn.furniture,
+    F('lv-sofa', 'ground', 'living', 'sofa', 'Sofa', [4.68, 4.45, 5.58, 6.45], { height: 0.82, facing: 'e' }),
+    F('lv-coffee', 'ground', 'living', 'table', 'Coffee table', [5.85, 5.10, 6.75, 5.70], { height: 0.42, facing: 'n' }),
+    F('lv-armchair', 'ground', 'living', 'sofa', 'Armchair', [6.35, 6.55, 7.20, 7.30], { height: 0.85, facing: 'n' }),
+    F('lv-media', 'ground', 'living', 'shelf', 'Media unit', [4.75, 3.66, 5.95, 4.06], { height: 1.10, facing: 's' }),
+  ],
+});

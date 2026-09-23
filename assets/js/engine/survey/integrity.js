@@ -204,8 +204,17 @@ export function auditIntegrity(building, opts = {}) {
         `${o.id} runs off the end of ${wall.id} (${round(o.at)} +/- ${round(o.width / 2)} on a ${round(len)}m wall)`,
         { level: wall.level });
     }
-    if (o.type === 'door' && o.width < 0.6 && o.leaf !== 'cased') {
-      add('warning', 'door-narrow', `${o.id} is only ${round(o.width)}m wide`, { level: wall.level });
+    // A leaf's CLEAR width is narrower than the structural opening: the
+    // frame takes about 20mm a side and the open leaf eats another 10.
+    // 0.75m is what Part M looks for in new work, and it is also about
+    // the width a wardrobe carcass or a mattress needs to turn through.
+    if (o.type === 'door' && o.leaf !== 'cased' && o.leaf !== 'double' && o.width > 0) {
+      const clear = o.width - 0.05;
+      if (clear < 0.68) {
+        add('warning', 'door-narrow',
+          `${o.id} is ${round(o.width)}m, about ${round(clear)}m clear: under the 0.75m Part M looks for, and tight for a wardrobe or a mattress`,
+          { level: wall.level });
+      }
     }
     const head = o.head ?? (o.type === 'door' ? building.defaults?.doorHeight : building.defaults?.windowHead);
     const ceil = (levels(building).find((l) => l.id === wall.level)?.ceilingHeight) ?? 2.4;
@@ -296,8 +305,56 @@ export function auditIntegrity(building, opts = {}) {
     }
   }
 
+  // --- Is it the size the thing actually is? --------------------------
+  //
+  // A WARNING, never an error, and never a correction. The drawings
+  // decide the layout (docs/SOURCE-FIDELITY.md); a checker that moved
+  // furniture until the numbers came out green is exactly the mistake
+  // that file exists to prevent. So this reports and stops.
+  //
+  // It earns its place because it catches the two things a plan drawn at
+  // small scale gets wrong silently: a fitting drawn as a symbol rather
+  // than at its real size, and a doorway too narrow to carry furniture
+  // through once the frame and the stops are in.
+  for (const f of furniture) {
+    const band = PLAUSIBLE[f.kind];
+    if (!band) continue;
+    const w = Math.abs(f.rect[2] - f.rect[0]);
+    const d = Math.abs(f.rect[3] - f.rect[1]);
+    // Either orientation: a bath is 1.7 x 0.7 whichever way it is turned.
+    const long = Math.max(w, d);
+    const short = Math.min(w, d);
+    const [minShort, minLong, why] = band;
+    if (short < minShort - 0.02 || long < minLong - 0.02) {
+      add('warning', 'furniture-implausible',
+        `${f.name} is ${round(short)} x ${round(long)}m, smaller than a ${f.kind} is: ${why}`,
+        { level: f.level });
+    }
+  }
+
   return out;
 }
+
+/**
+ * The smallest a thing can be and still be that thing: [short, long, why].
+ *
+ * These are the dimensions of ordinary products, not of this house. A
+ * close-coupled WC is nearly 0.70 deep because the cistern sits behind
+ * the pan, so a 0.52 pan on a plan is a symbol rather than a fitting -
+ * and a room drawn to fit the symbol is a room the real thing will not
+ * go into.
+ */
+const PLAUSIBLE = {
+  wc: [0.34, 0.62, 'a close-coupled pan and cistern is about 0.37 x 0.68'],
+  basin: [0.28, 0.34, 'a small basin is about 0.35 x 0.45'],
+  bath: [0.68, 1.5, 'a standard bath is 1.70 x 0.70'],
+  shower: [0.75, 0.75, 'an 800mm tray is the smallest that is usable'],
+  bed: [0.88, 1.88, 'a single mattress is 0.90 x 1.90'],
+  fridge: [0.54, 0.54, 'a slot for a fridge is 0.60 wide'],
+  washer: [0.58, 0.58, 'a washing machine needs a 0.60 slot'],
+  dishwasher: [0.58, 0.58, 'a dishwasher needs a 0.60 slot'],
+  oven: [0.55, 0.55, 'a built-under oven needs a 0.60 slot'],
+};
 
 export const integritySummary = (findings) => ({
   errors: findings.filter((f) => f.severity === 'error').length,

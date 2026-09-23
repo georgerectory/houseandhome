@@ -45,6 +45,11 @@ export const PAGES = [
     lede: 'What to buy, grouped into trips, with what each run costs.',
   },
   {
+    href: 'theme.html',
+    label: 'Theme',
+    lede: 'What to buy and what to reject: paint, timber, lighting, ironmongery and finishes.',
+  },
+  {
     href: 'house.html',
     label: 'House',
     lede: 'The floor plan, what sits where on it, and the equipment register.',

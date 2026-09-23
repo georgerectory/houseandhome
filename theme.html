@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Theme — House &amp; Home</title>
+<meta name="description" content="What to buy and what to reject: paint, timber, lighting, ironmongery and finishes.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/roadmap.css">
+<link rel="stylesheet" href="assets/css/floorplan.css">
+<link rel="stylesheet" href="assets/css/house.css">
+<script>
+/* Apply the stored theme before first paint: doing it in the module
+   would flash the wrong theme while the module loads. */
+try { var t = localStorage.getItem('hh-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+</head>
+<body>
+<main id="main" class="page">
+  <h1>Theme</h1>
+  <p class="lede">What to buy and what to reject: paint, timber, lighting, ironmongery and finishes.</p>
+  <div data-page-root aria-live="polite"></div>
+</main>
+<script type="module" src="assets/js/pages/theme.js"></script>
+</body>
+</html>

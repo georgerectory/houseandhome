@@ -24,6 +24,21 @@ a full restoration is £7,500, and replasters the front rooms and hall
 for £2,500 where replastering throughout is £11,000. Both figures stay
 on the page. The handbook is a different scope, not a cheaper quote.
 
+**The specification is a page now, organised like a shop.** `palettes`
+grew from paint-shaped into the whole specification - timber, lighting,
+metalwork, tile, stone, textile, plaster - and every row carries `spec`
+and `reject_if`, borrowed from `stock_targets` for the same reason: a
+spec you cannot hold a product up against is not a spec, and half the
+job is naming what disqualifies a thing. 17 rows, all shoppable, all
+drafted. `theme.html` leads with Buy and Reject because it is read on a
+phone in an aisle; the reasoning sits underneath.
+
+The rule that matters most there is the paint one. The standing scope
+strips every internal face to the brick and puts lime back, and a solid
+wall with no cavity and no damp-proof course manages water by letting it
+evaporate inwards. A vinyl emulsion over that undoes the entire
+replastering job, silently, over years.
+
 **The money parser read a range as its first number.** `£72-115k` came
 out as £72.00, because the multiplier sits after the SECOND number and
 was dropped - three orders of magnitude out, in the one table whose job

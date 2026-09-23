@@ -295,6 +295,28 @@ const data = {
   rooms, items, bills, assets,
   shopping_list, shopping_totals, knowledge_links,
   stock_plan: [], review_queue: [],
+  // The specification. Two rows so the demo page shows a row that leads
+  // with what to reject and a row carrying the two lighting numbers.
+  theme_book: [
+    {
+      id: uid('theme', 0), category: 'paint', surface: 'wall',
+      name: 'Wall paint on lime plaster',
+      spec: 'Limewash, clay paint or mineral silicate. Vapour-open, matt.',
+      reject_if: 'Any vinyl or acrylic emulsion. Anything sold as wipeable.',
+      rationale: 'A solid wall dries inwards, and a paint film that does not breathe undoes the replastering.',
+      status: 'idea', confidence: 'drafted', sort_order: 10,
+      is_shoppable: true, is_trusted: false, hex: null, kelvin: null, cri: null,
+    },
+    {
+      id: uid('theme', 1), category: 'lighting', surface: 'lighting',
+      name: 'Living and bedroom lamps',
+      spec: '2700K, CRI 90 or above, dimmable, trailing-edge compatible.',
+      reject_if: 'Anything at or above 3000K in a living room. CRI below 90.',
+      rationale: 'At CRI 80 the red in the brick goes grey.',
+      status: 'idea', confidence: 'drafted', sort_order: 90,
+      is_shoppable: true, is_trusted: false, hex: null, kelvin: 2700, cri: 90,
+    },
+  ],
   // Two sections, because the front-end gate forces demo mode: without
   // them plan.html renders its document half empty and the gate passes
   // a page nobody could read.

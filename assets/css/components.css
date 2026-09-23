@@ -524,6 +524,61 @@ fieldset[role="group"] {
 }
 .ck-count { color: var(--ink-faint); font-size: var(--text-sm); }
 
+/* The specification.
+   -----------------
+   Buy and Reject lead, because this page is read on a phone in an aisle
+   and the reasoning is what was read once at home. Reject is given its
+   own colour: on a lime-plastered solid wall the wrong paint is not a
+   taste question, and the row has to be able to say so at a glance. */
+.spec {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+  margin-block: var(--space-4);
+  background: var(--paper-raised);
+}
+.spec__name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+}
+.spec__swatch {
+  inline-size: var(--space-6);
+  block-size: var(--space-6);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--rule);
+  background: var(--swatch, var(--paper));
+  flex: none;
+}
+.spec__meta,
+.spec__light {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-block: var(--space-2);
+}
+.spec__tag {
+  display: inline-block;
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--ink-faint);
+  margin-inline-end: var(--space-2);
+}
+.spec__buy,
+.spec__reject {
+  margin-block: var(--space-2);
+  padding-inline-start: var(--space-3);
+  border-inline-start: 2px solid var(--rule);
+}
+.spec__reject { border-inline-start-color: var(--alert); }
+.spec__why {
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+  margin-block: var(--space-2) 0;
+}
+
 /* The handbook, as rows.
    -----------------------
    The body text arrives laid out as the PDF laid it out - one table

@@ -6,16 +6,15 @@ this file is only what is not yet finished. Keep it under 40 lines.
 
 ## In progress
 
-**A second candidate: P-002, 1 Walnut Tree Cottages, Wickham.** Added as
-a `properties` row only (guide £385k, owner aiming for about £350k). No
-geometry, stages or work items yet: the owner asked to talk through
-design options before anything is modelled. Open questions put to the owner:
-whether ~1,200 sq ft or the doubled width is the real target (the
-brochure already says 1,119 sq ft GIA, including the store and
-conservatory); a full-restoration scope like P-001's or a clean-up; what
-fuel the range cooker runs on; and the plot width west of the house. When
-a direction is chosen, `data/buildings/1-walnut-tree-cottages/` gets
-`as-bought`, `kitchen-extension` and `side-wing` stages.
+**A second candidate: P-002, 1 Walnut Tree Cottages, Wickham.** A
+`properties` row and one `decisions` row: option 2 (a west side wing, front
+door central), capped by the owner at 1,400 sq ft GIA and a finished value of
+about 475k. Read off the agent's plan: the ground floor is about 1.3m deeper
+than the first floor, so the kitchen's rear strip is the earlier single-storey
+extension and the low beam carries the old rear wall. That strip also holds
+the sink run and the range cooker. No geometry yet. Open questions: whether
+475k is the value after the wing, comparable sales, and whether the rear
+extension survives the cap.
 
 **The handbook is rows now, not a PDF.** All 54 pages of the plan and
 project handbook are in `document_sections`, `document_figures` and

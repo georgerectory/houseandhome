@@ -247,6 +247,20 @@ test('plaster is lime and the finish is its own material', () => {
     'the 3mm finish weighs more than the 20mm backing behind it');
 });
 
+test('a cavity wall gets gypsum, and says what would turn it back into lime', () => {
+  const lines = plasterTakeoff(asBought, { walls: 'cavity' });
+  const under = lines.find((l) => l.key === 'gypsum-undercoat');
+  const finish = lines.find((l) => l.key === 'gypsum-finish');
+  assert.ok(under && finish, 'a cavity wall should order gypsum');
+  assert.ok(!lines.some((l) => /lime/i.test(l.label)), 'lime ordered for a cavity wall');
+  assert.match(under.basis, /solid wall, this becomes lime/i,
+    'the order has to say which observation would change it');
+  assert.ok(finish.quantity < under.quantity);
+  // With no construction stated the takeoff assumes solid: ordering
+  // gypsum for a solid wall ruins it, ordering lime for a cavity wastes money.
+  assert.ok(plasterTakeoff(asBought).some((l) => l.key === 'lime-plaster'));
+});
+
 test('beads are counted off the openings, not off a rate per square metre', () => {
   const bead = beadM(asBought, property);
   const n = asBought.openings.length;
@@ -298,7 +312,8 @@ test('underfloor heating takes a room off the radiator count', () => {
 test('the whole restoration comes out in one call, and every line shows its working', () => {
   const lines = restorationTakeoff(asBought, property);
   const keys = lines.map((l) => l.key);
-  for (const k of ['strip-waste', 'skip', 'lime-plaster', 'plaster-bead',
+  const plaster = property.walls?.construction === 'cavity' ? 'gypsum-undercoat' : 'lime-plaster';
+  for (const k of ['strip-waste', 'skip', plaster, 'plaster-bead',
     'ceiling-board', 'electrical-points', 'pipe', 'radiator']) {
     assert.ok(keys.includes(k), `${k} is missing from the restoration takeoff`);
   }

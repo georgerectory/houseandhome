@@ -19,9 +19,32 @@ the result. There is no form on it and no button that changes anything.
 **The repository is public; the data is not.** Everything real lives in
 Supabase behind row-level security.
 
+## The active property
+
+**P-001, 48 Ameysford Road, Ferndown BH22 9QA - active, a candidate. No
+offer made.** Built in the 1950s (owner, 24 Sep 2026); walls cavity
+expected, not yet seen.
+
+The system is property-agnostic. Five scopes: **USER** (the household,
+`property_id` null), **BRIEF** (what a house is looked for against),
+**TEMPLATE** (`work_item_templates`, `work_phases`), **LIBRARY**
+(`price_references`, dated and region-tagged) and **PROPERTY** (one
+building, `property_id` set). A rate carries to every house; a quantity
+belongs to one.
+
+"The house", "the budget", "the roadmap" mean the active property. "My
+bills", "my savings", "my tools" are USER. "Across the houses" is
+`property_compare`, the only read of an archived property. **Never read
+the property archive unless asked for a cross-property comparison.
+Purged properties do not exist.** Lifecycle commands, the five scopes
+and the rules behind them: `docs/RENOVATION-SYSTEM.md`.
+
 **The standing scope is a FULL RESTORATION.** Every internal face comes
 back to the brick, the house is replumbed and rewired, and it is made
-watertight before anything goes back on. Not a redecoration with the
+watertight before anything goes back on. The house is 1950s, so the
+plaster that goes back is gypsum on a cavity wall, lime only if the brick
+bond shows solid - `walls.construction` in the building spec decides,
+and the takeoff follows it. Not a redecoration with the
 worst bits fixed. This is the assumption behind every quantity, total
 and sequence in this system, and it is recorded as a `decision` row so
 it can be argued with rather than inherited silently.
@@ -34,9 +57,9 @@ Two things follow from it, and neither is optional:
   note tagged `review:scope-conflict` - and let the owner decide. Do not
   quietly drop somebody else's job, and do not quietly do both.
 - **The internal wall face is a quantity, not an impression.** 241 m2 of
-  wall and 77 m2 of ceiling on this house: four skips out and 10.6
-  tonnes of lime plaster back. `npm run takeoff` derives it from the
-  geometry. Nothing about it is typed.
+  wall and 77 m2 of ceiling on this house. `npm run takeoff` derives the
+  materials from the geometry and `--sql` writes them to
+  `property_quantities`. Nothing about it is typed.
 
 ## Where the rest lives
 
@@ -47,6 +70,8 @@ when the work touches it:
 | File | When to read it |
 |---|---|
 | `docs/STATE.md` | Always, straight after this. What is in flight. |
+| `docs/RENOVATION-SYSTEM.md` | Anything touching properties, the lifecycle, scopes, the template or the library. |
+| `docs/properties/<ref>/` | One property's specifics. Archived ones move to `docs/properties-archive/`. |
 | `docs/DECISIONS.md` | Priority, money, the roadmap, the shopping list, quantities, stockpiles, links. |
 | `docs/REVIEW.md` | A review session. |
 | `docs/BUILDING-MODEL.md` | Anything under `model3d/`, `planner/` or `data/buildings/`. |
@@ -70,7 +95,11 @@ when the work touches it:
    deliberate cleanup opts in with
    `set local house.allow_work_item_delete = 'on';`. This governs ROWS
    only - a dead column or an unused file should be removed, because
-   leaving it means two mechanisms for one job.
+   leaving it means two mechanisms for one job. **The one named
+   exception is `purge_property()`**: on the owner's explicit instruction
+   naming the property, with its address typed, a property and
+   everything it owns is deleted. It is irreversible and never run on
+   Claude's own initiative.
 4. **Unconfirmed data never drives a decision.** See below.
 5. **`npm test` is green before every commit.**
 
@@ -90,6 +119,10 @@ in this file still binds, and three things in particular:
   Standing permission to run SQL is not permission to retire a row the
   owner wrote; it is permission to run the statement that closes it
   once they have said so.
+- **A money figure never changes silently.** Set
+  `house.change_why` (and `house.change_source`) before changing a cost,
+  amount or balance; the trigger refuses otherwise and writes OLD, NEW,
+  WHY and SOURCE to `change_log`.
 - **Verify by re-reading.** A write that was not read back did not
   happen. This matters more under standing permission, not less,
   because nobody is reading the statement before it runs.

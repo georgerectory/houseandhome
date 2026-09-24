@@ -18,6 +18,13 @@
 //   node tools/takeoff.mjs                 the default building
 //   node tools/takeoff.mjs --json          machine-readable
 //   node tools/takeoff.mjs --building <id>
+//   node tools/takeoff.mjs --sql           upsert into property_quantities
+//
+// --sql prints the statements that write this takeoff into
+// property_quantities for the property whose building_key is this
+// building. It is the ONLY way a quantity gets into that table: a
+// quantity typed into a cell is a shadow that goes stale when a wall
+// moves, so the table is overwritten from the geometry, never edited.
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import {
@@ -32,6 +39,7 @@ const flag = (name, fallback) => {
   return i === -1 ? fallback : args[i + 1];
 };
 const asJson = args.includes('--json');
+const asSql = args.includes('--sql');
 
 const id = flag('building', '48-ameysford-road');
 const dir = join('data', 'buildings', id);
@@ -51,9 +59,14 @@ const post = existsSync(join(dir, 'stages/post-extension.json'))
 const UFH_ROOMS = ['kitchen-diner', 'ensuite'];
 
 const sections = [];
-const add = (title, note, lines) => {
-  if (lines.length) sections.push({ title, note, lines });
+const add = (title, note, lines, prefix = '') => {
+  if (lines.length) sections.push({ title, note, lines, prefix });
 };
+
+// The wall build-up the building states. The extension's primary
+// brickwork section follows it, and the other construction is shown as
+// the alternative - an open decision until the brick bond is seen.
+const walls = property.walls?.construction ?? 'solid';
 
 add('Restoration: strip back to brick', 
   `${floorAreaM2(asBought).toFixed(1)} m2 of floor, `
@@ -63,16 +76,16 @@ add('Restoration: strip back to brick',
 
 if (post) {
   const diff = stageDiff(asBought, post);
-  add('Extension: brickwork (solid 9in, matching the original)',
-    `${diff.newExternalWallPlanM.toFixed(2)}m of new outer wall on plan, `
-    + `${newWallFaceM2(diff, property).toFixed(1)} m2 of face.`,
-    brickTakeoff(diff, property, { construction: 'solid9' }));
-  add('Extension: brickwork if built as a cavity wall instead',
-    'An open decision. The same wall, one skin of brick and block behind.',
-    brickTakeoff(diff, property, { construction: 'cavity' }));
+  const face = `${diff.newExternalWallPlanM.toFixed(2)}m of new outer wall on plan, `
+    + `${newWallFaceM2(diff, property).toFixed(1)} m2 of face.`;
+  const solid = ['Extension: brickwork, solid 9in', brickTakeoff(diff, property, { construction: 'solid9' }), 'ext-solid:'];
+  const cavity = ['Extension: brickwork, cavity (brick outer, block inner)', brickTakeoff(diff, property, { construction: 'cavity' }), 'ext-cavity:'];
+  const [first, second] = walls === 'cavity' ? [cavity, solid] : [solid, cavity];
+  add(`${first[0]} - matching the ${walls} original`, face, first[1], first[2]);
+  add(`${second[0]} - the alternative`, 'An open decision until the original walls are seen.', second[1], second[2]);
   add('Extension: underfloor heating',
     `Rooms: ${UFH_ROOMS.join(', ')}.`,
-    ufhTakeoff(post, UFH_ROOMS));
+    ufhTakeoff(post, UFH_ROOMS), 'ufh:');
 }
 
 // Garden quantities are sized off the owner's intent, not off the
@@ -83,10 +96,32 @@ const GRAVEL_M2 = Number(flag('gravel', 18));
 add('Garden: patio',
   `Assumes ${PATIO_M2} m2 of 600x600 slabs. NOT measured off the model - `
   + 'there is no paved area in the geometry. Change it with --patio.',
-  pavingTakeoff({ areaM2: PATIO_M2, slabW: 0.6, slabH: 0.6 }));
+  pavingTakeoff({ areaM2: PATIO_M2, slabW: 0.6, slabH: 0.6 }), 'garden:');
 add('Garden: gravel path',
   `Assumes ${GRAVEL_M2} m2 at 50mm. Change it with --gravel.`,
-  gravelTakeoff({ areaM2: GRAVEL_M2 }));
+  gravelTakeoff({ areaM2: GRAVEL_M2 }), 'garden:');
+
+if (asSql) {
+  const q = (v) => `'${String(v).replace(/'/g, "''")}'`;
+  const rows = sections.flatMap((s) => s.lines.map((l) =>
+    `(${q(s.prefix + l.key)}, ${q(l.label)}, ${Number(l.quantity)}, ${q(l.unit)}, ${q(l.basis)})`));
+  console.log(`-- property_quantities for ${id}, from npm run takeoff. Overwrites; never edit by hand.
+insert into public.property_quantities (household_id, property_id, package_key, label, quantity, unit, basis, source, confidence)
+select p.household_id, p.id, v.k, v.label, v.qty, v.unit, v.basis, 'takeoff', 'drafted'
+  from public.properties p,
+       (values
+${rows.join(',\n')}
+       ) v(k, label, qty, unit, basis)
+ where p.building_key = ${q(id)}
+on conflict (property_id, package_key) do update
+   set label = excluded.label, quantity = excluded.quantity, unit = excluded.unit,
+       basis = excluded.basis, source = 'takeoff', confidence = 'drafted';
+-- Lines this takeoff no longer produces are stale shadows of an old geometry.
+delete from public.property_quantities q using public.properties p
+ where q.property_id = p.id and p.building_key = ${q(id)} and q.source = 'takeoff'
+   and q.package_key not in (${sections.flatMap((s) => s.lines.map((l) => q(s.prefix + l.key))).join(', ')});`);
+  process.exit(0);
+}
 
 if (asJson) {
   console.log(JSON.stringify({ building: id, sections }, null, 2));

@@ -751,6 +751,21 @@ begin
   -- SET NULL, so a rate learned there is still a rate.
   delete from public.properties where id = v_p.id;
 
+  -- The rows that survive can still NAME it: "make P-004 active" is in
+  -- the history of the property that was demoted. A purged property
+  -- does not exist, so the name is redacted wherever it was written.
+  update public.change_log
+     set why = replace(replace(why, v_p.ref, '[purged]'), v_p.name, '[purged]'),
+         old_value = replace(replace(old_value, v_p.ref, '[purged]'), v_p.name, '[purged]'),
+         new_value = replace(replace(new_value, v_p.ref, '[purged]'), v_p.name, '[purged]')
+   where household_id = p_household_id
+     and (why like '%' || v_p.ref || '%' or why like '%' || v_p.name || '%'
+          or old_value like '%' || v_p.ref || '%' or new_value like '%' || v_p.ref || '%');
+  update public.properties
+     set status_reason = replace(replace(status_reason, v_p.ref, '[purged]'), v_p.name, '[purged]')
+   where household_id = p_household_id
+     and (status_reason like '%' || v_p.ref || '%' or status_reason like '%' || v_p.name || '%');
+
   return v_out;
 end;
 $$;

@@ -75,19 +75,36 @@ export function internalFaceM2(stage) {
 }
 
 /**
- * Lime plaster to put the house back, after it has been taken to
- * brick.
+ * Plaster to put the house back, after it has been taken to brick.
  *
- * LIME, not gypsum, and this is the takeoff where that matters most.
- * Gypsum on a solid brick wall holds water against the brick and the
- * damp reappears a metre up; it is also what most quotes will assume
- * unless the order says otherwise. The order says otherwise.
+ * THE WALL DECIDES THE MATERIAL. On a SOLID brick wall it is lime:
+ * gypsum holds water against the brick and the damp reappears a metre
+ * up, and it is what most quotes assume unless the order says
+ * otherwise. On a CAVITY wall the cavity is the moisture break, lime
+ * buys nothing, and gypsum is correct. `opts.walls` is the building's
+ * stated construction; with none stated the takeoff assumes solid,
+ * because ordering lime for a cavity wall wastes money while ordering
+ * gypsum for a solid one ruins the wall.
  */
 export function plasterTakeoff(stage, opts = {}) {
   const faceM2 = opts.faceM2 ?? internalFaceM2(stage);
   if (!faceM2) return [];
   const wastage = opts.wastagePct ?? 10;
   const withWaste = faceM2 * (1 + wastage / 100);
+  if (opts.walls === 'cavity') {
+    return [
+      line('gypsum-undercoat', 'Gypsum bonding or browning undercoat',
+        withWaste * RATES.gypsumUndercoatTonnesPerM2, 'tonne',
+        `${round(faceM2, 1)} m2 of internal face plus ${wastage}% wastage, `
+        + `at ${RATES.gypsumUndercoatTonnesPerM2} t/m2 for an 11mm undercoat. `
+        + 'Gypsum because the walls are cavity: the cavity is the moisture break. '
+        + 'If the brick bond shows solid wall, this becomes lime.', { dp: 2 }),
+      line('gypsum-finish', 'Gypsum multi-finish skim',
+        withWaste * RATES.gypsumFinishTonnesPerM2, 'tonne',
+        `${round(withWaste, 1)} m2 at a 2mm skim, `
+        + `${RATES.gypsumFinishTonnesPerM2} t/m2.`, { dp: 2 }),
+    ];
+  }
   const tonnes = withWaste * RATES.limePlasterTonnesPerM2At20mm;
   return [
     line('lime-plaster', 'Lime plaster, premixed haired', tonnes, 'tonne',
@@ -115,7 +132,8 @@ export function plasterSundriesTakeoff(stage, building) {
     out.push(line('plaster-bead', 'Stainless angle bead', bead * 1.1, 'm',
       `${(stage?.openings ?? []).length} openings: two jambs and a head each, `
       + 'doorways counted on both faces, plus 10% for cuts. Stainless rather than '
-      + 'galvanised, because lime eats galvanising.'));
+      + 'galvanised: lime eats galvanising, and a stainless bead costs little more '
+      + 'under gypsum.'));
   }
   if (ceil) {
     out.push(line('ceiling-board', 'Plasterboard, 12.5mm', ceil * 1.12, 'm2',
@@ -228,7 +246,7 @@ export function restorationTakeoff(stage, building, opts = {}) {
   const faceM2 = internalFaceM2(stage);
   return [
     ...stripWasteTakeoff(stage, { faceM2, ...opts }),
-    ...plasterTakeoff(stage, { faceM2, ...opts }),
+    ...plasterTakeoff(stage, { faceM2, walls: building?.walls?.construction, ...opts }),
     ...plasterSundriesTakeoff(stage, building),
     ...electricalTakeoff(stage),
     ...plumbingTakeoff(stage, opts),

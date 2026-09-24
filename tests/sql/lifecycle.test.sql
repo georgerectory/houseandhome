@@ -200,7 +200,9 @@ begin
     + (select count(*) from properties where id = v)
     + (select count(*) from knowledge_links where from_id not in (select id from work_items))
     + (select count(*) from work_notes where body = 'Cob needs lime')
-    + (select count(*) from change_log where entity_id = v);
+    + (select count(*) from change_log where entity_id = v)
+    + (select count(*) from change_log where why like '%P-TEST%' or why like '%Test Cottage%')
+    + (select count(*) from properties where status_reason like '%P-TEST%');
   if leftovers <> 0 then
     perform fail('lifecycle: purge', leftovers||' reference(s) to the purged property survived');
   end if;

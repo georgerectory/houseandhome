@@ -127,3 +127,21 @@ key or the page renders empty and the gate fails.
 **security_invoker** — the setting every view must carry. Postgres views
 default to definer semantics, and this repository is public and ships an
 anon key, so a view without it is readable by anyone holding that key.
+
+**Active property.** The one property that is "the house": status
+active, committed or owned. `active_property_id()` returns it, and every
+default view shows it plus USER rows.
+
+**Scope.** Which of USER, BRIEF, TEMPLATE, LIBRARY or PROPERTY a row
+belongs to. Not a column: a row with a `property_id` is PROPERTY, a row
+without one is USER.
+
+**P-number.** A property's stable handle (P-001). It is issued by a
+counter, so a purged property leaves a gap rather than a reused number.
+
+**Purge.** The one deliberate delete: `purge_property()` removes a
+non-current property and everything it owns, redacts its name elsewhere,
+and keeps library rates and kit. Irreversible.
+
+**Funding stream.** Where a row's money comes from: pot, mortgage,
+advance, build_finance or income. Only pot rows compete for deposits.

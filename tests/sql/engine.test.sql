@@ -11,8 +11,8 @@ begin raise exception 'FAIL % : %', t, d; end $$;
 insert into households (id, name) values
   ('11111111-1111-1111-1111-111111111111', 'Test House');
 
-insert into properties (id, household_id, name, status, is_active) values
-  ('22222222-2222-2222-2222-222222222222','11111111-1111-1111-1111-111111111111','Test Property','owned',true);
+insert into properties (id, household_id, name, status) values
+  ('22222222-2222-2222-2222-222222222222','11111111-1111-1111-1111-111111111111','Test Property','owned');
 
 insert into rooms (id, household_id, property_id, key, name, room_type, room_weight) values
   ('33333333-3333-3333-3333-333333333331','11111111-1111-1111-1111-111111111111','22222222-2222-2222-2222-222222222222','bathroom','Bathroom','bathroom',5),
@@ -216,17 +216,21 @@ declare j uuid; m uuid; hallway_switch uuid; found int;
 begin
   select id into j from work_items where title='Item 2';
   insert into work_items (id, household_id, room_id, title, kind, trade, theme, benefit_type,
-                          house_benefit, benefit_status, cost_expected, cost_confidence)
+                          house_benefit, benefit_status, cost_expected, cost_confidence,
+                          cost_source, cost_source_date)
   values ('77777777-0000-0000-0000-000000000001','11111111-1111-1111-1111-111111111111',
           '33333333-3333-3333-3333-333333333331','Bathroom light switch','purchase','electrical',
-          'systems_tech','safety','Needed for the bathroom rewire','drafted',12,'researched')
+          'systems_tech','safety','Needed for the bathroom rewire','drafted',12,'researched',
+          'screwfix listing', '2026-09-20')
   returning id into m;
 
   insert into work_items (id, household_id, room_id, title, kind, trade, theme, benefit_type,
-                          house_benefit, benefit_status, cost_expected, cost_confidence)
+                          house_benefit, benefit_status, cost_expected, cost_confidence,
+                          cost_source, cost_source_date)
   values ('77777777-0000-0000-0000-000000000002','11111111-1111-1111-1111-111111111111',
           '33333333-3333-3333-3333-333333333332','Hallway light switch','purchase','electrical',
-          'systems_tech','comfort','Matching switch elsewhere','drafted',12,'researched')
+          'systems_tech','comfort','Matching switch elsewhere','drafted',12,'researched',
+          'screwfix listing', '2026-09-20')
   returning id into hallway_switch;
 
   insert into knowledge_links (household_id, from_type, from_id, to_type, to_id, kind, quantity, confidence)

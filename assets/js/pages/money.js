@@ -4,7 +4,7 @@
 // and the dashboard's table all come from the same allocate() call on
 // the same rows, so two pages can never disagree about the same money.
 import { requireAuth } from '../core/auth.js';
-import { mountShell, render, confidenceBanner } from '../core/shell.js';
+import { mountShell, showProperty, render, confidenceBanner } from '../core/shell.js';
 import { load } from '../core/store.js';
 import { fundable, totalOutstanding, confidenceSummary, houseFunds } from '../engine/selectors.js';
 import { emptyState } from '../core/page.js';
@@ -32,6 +32,7 @@ if (!user) throw new Error('redirecting to login');
 mountShell('money.html', { user });
 
 const d = await load();
+showProperty(d.property);
 const queue = fundable(d);
 const monthly = d.pot?.monthly_contribution ?? 0;
 const opts = { decay: d.allocation_settings?.decay, floorShare: d.allocation_settings?.floor_share };

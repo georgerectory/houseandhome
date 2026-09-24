@@ -38,6 +38,9 @@ create trigger house_facts_updated_at before update on public.house_facts
 create table if not exists public.decisions (
   id             uuid primary key default gen_random_uuid(),
   household_id   uuid not null references public.households (id) on delete cascade,
+  -- A decision of principle (strip everything, DIY-heavy) is USER scope
+  -- and follows the household; a decision about a building is PROPERTY.
+  property_id    uuid references public.properties (id) on delete cascade,
   room_id        uuid references public.rooms (id) on delete set null,
   title          text not null,
   decided        text not null,
@@ -134,6 +137,7 @@ create trigger invoices_updated_at before update on public.invoices
 create table if not exists public.scheduled_events (
   id           uuid primary key default gen_random_uuid(),
   household_id uuid not null references public.households (id) on delete cascade,
+  property_id  uuid references public.properties (id) on delete cascade,
   work_item_id uuid references public.work_items (id) on delete set null,
   contractor_id uuid references public.contractors (id) on delete set null,
   asset_id     uuid references public.assets (id) on delete set null,

@@ -35,7 +35,9 @@ begin
     'income_sources','quotes','payment_schedule',
     'source_documents','document_sections','document_figures','document_claims',
     'house_facts','decisions','palettes','contractors','invoices','scheduled_events',
-    'estimate_outcomes','learned_factors','learning_runs','insight_messages'
+    'estimate_outcomes','learned_factors','learning_runs','insight_messages',
+    'property_ref_counters','work_phases','change_log','property_quantities',
+    'contradictions','gate_conditions','income_lines','monthly_actuals','salvage_items'
   ] loop
     execute format('alter table public.%I enable row level security', t);
     execute format('alter table public.%I force row level security', t);
@@ -51,7 +53,7 @@ declare t text;
 begin
   foreach t in array array[
     'confidence_levels','trades','themes','benefit_types',
-    'link_entity_types','link_kinds'
+    'link_entity_types','link_kinds','work_phases'
   ] loop
     execute format('drop policy if exists %I on public.%I', t || '_read', t);
     execute format(
@@ -105,7 +107,9 @@ begin
     'income_sources','quotes','payment_schedule',
     'source_documents','document_sections','document_figures','document_claims',
     'house_facts','decisions','palettes','contractors','invoices','scheduled_events',
-    'estimate_outcomes','learned_factors','learning_runs','insight_messages'
+    'estimate_outcomes','learned_factors','learning_runs','insight_messages',
+    'change_log','property_quantities','contradictions','gate_conditions',
+    'income_lines','monthly_actuals','salvage_items'
   ] loop
     execute format('drop policy if exists %I on public.%I', t || '_read', t);
     execute format(
@@ -177,3 +181,17 @@ grant execute on function public.allocation_preview(uuid, numeric) to authentica
 grant execute on function public.run_deposit_allocation(uuid) to authenticated;
 grant execute on function public.recompute_priorities(uuid) to authenticated;
 grant execute on function public.reconcile_allocated_balances(uuid) to authenticated;
+
+-- The ref counter is written only by the SECURITY DEFINER trigger that
+-- issues P-numbers. Members may read it; nobody writes it directly.
+drop policy if exists property_ref_counters_read on public.property_ref_counters;
+create policy property_ref_counters_read on public.property_ref_counters
+  for select to authenticated using (public.is_household_member(household_id));
+revoke insert, update on public.property_ref_counters from authenticated;
+
+-- The default-scope helpers are read by every view, so a signed-in
+-- member needs them. Both are SECURITY INVOKER: they see only what the
+-- caller's own policies let them see.
+grant execute on function public.active_property_id(uuid) to authenticated;
+grant execute on function public.in_default_scope(uuid, uuid) to authenticated;
+

@@ -142,9 +142,14 @@ create or replace view public.v_funding_queue with (security_invoker = on) as
          w.cost_confidence,
          w.fully_funded_at is not null as is_funded
     from public.work_items w
-   where w.is_fundable
+   -- F.11.3: only the pot competes for deposits. Borrowing-funded work
+   -- is a drawdown, and a candidate house's jobs are nobody's to fund.
+   where w.funding_stream = 'pot'
+     and public.in_default_scope(w.household_id, w.property_id)
      and w.status not in ('done','dropped')
-     and coalesce(w.cost_expected, w.cost_best, w.cost_worst) is not null;
+     -- Something to aim at. A zero-cost row (a standing rule, a phone
+     -- call) has nothing to save for and must not take a share.
+     and coalesce(w.cost_expected, w.cost_best, w.cost_worst) > 0;
 
 -- ---------------------------------------------------------------
 -- allocation_preview: what the next deposit of p_amount would do.
@@ -253,6 +258,7 @@ declare
   v_amount numeric;
   v_done timestamptz;
   v_conf text;
+  v_contribution numeric;
   n integer := 0;
 begin
   select d.household_id, d.amount, d.allocated_at
@@ -268,10 +274,19 @@ begin
       hint = 'Allocations are append-only. Record a correcting deposit rather than re-running this one.';
   end if;
 
-  select p.contribution_confidence into v_conf
+  select p.contribution_confidence, p.monthly_contribution into v_conf, v_contribution
     from public.pots p where p.household_id = v_hh and p.is_active;
 
-  if v_conf is not null and not exists (
+  -- No pot, or a pot with no contribution figure, is not permission to
+  -- allocate: it is the absence of the figure the refusal below exists
+  -- to protect. The first cut only refused a pot it could see.
+  if not found or v_contribution is null then
+    raise exception using errcode = 'check_violation',
+      message = 'there is no active pot with a monthly contribution to allocate against',
+      hint = 'Set and confirm the monthly contribution before allocating real money.';
+  end if;
+
+  if not exists (
        select 1 from public.confidence_levels c
         where c.key = v_conf and c.is_trusted) then
     raise exception using errcode = 'check_violation',
@@ -346,6 +361,7 @@ set search_path = public
 as $$
 declare
   v_hh uuid := public.current_household();
+  v_prop uuid;
   v_room uuid;
   v_out jsonb;
 begin
@@ -353,18 +369,39 @@ begin
     return jsonb_build_object('error', 'no household for the current user');
   end if;
 
+  -- "The house" is the active property. A room key is resolved inside
+  -- it, so two properties that both have a `kitchen` cannot be confused.
+  v_prop := public.active_property_id(v_hh);
+
   if p_room_key is not null then
     select id into v_room from public.rooms
-     where household_id = v_hh and key = p_room_key limit 1;
+     where household_id = v_hh and key = p_room_key
+       and public.in_default_scope(household_id, property_id)
+     order by (property_id is null) limit 1;
     if v_room is null then
       return jsonb_build_object('error', format('no room with key %L', p_room_key),
         'known_rooms', (select coalesce(jsonb_agg(key order by key), '[]'::jsonb)
-                          from public.rooms where household_id = v_hh));
+                          from public.rooms where household_id = v_hh
+                           and public.in_default_scope(household_id, property_id)));
     end if;
   end if;
 
   select jsonb_strip_nulls(jsonb_build_object(
     'scope', coalesce(p_room_key, 'whole house'),
+    -- WHICH house, and what else exists. Candidates are named so a
+    -- session knows they are there; archived ones are counted, never
+    -- described - they are read only for a comparison.
+    'property', (select jsonb_build_object('ref', p.ref, 'name', p.name,
+                    'status', p.status, 'address', p.address_line, 'postcode', p.postcode,
+                    'offer_status', p.offer_status, 'guide_price', p.guide_price,
+                    'walk_away_price', p.walk_away_price)
+                   from public.properties p where p.id = v_prop),
+    'candidates', (select coalesce(jsonb_agg(jsonb_build_object('ref', p.ref, 'name', p.name)
+                    order by p.ref), '[]'::jsonb)
+                   from public.properties p
+                  where p.household_id = v_hh and p.status = 'candidate'),
+    'archived_count', (select count(*) from public.properties p
+                  where p.household_id = v_hh and p.status = 'archived'),
     'room', (select to_jsonb(r) - 'household_id' from public.rooms r where r.id = v_room),
     'features', (select coalesce(jsonb_agg(jsonb_build_object(
                     'type', f.feature_type, 'quantity', f.quantity,
@@ -381,6 +418,7 @@ begin
                    from public.work_items w
                   where w.household_id = v_hh
                     and w.status not in ('done','dropped')
+                    and public.in_default_scope(w.household_id, w.property_id)
                     and (v_room is null or w.room_id = v_room)),
     'completed_work', (select coalesce(jsonb_agg(jsonb_build_object(
                     'title', w.title, 'resolved_at', w.resolved_at,
@@ -388,6 +426,7 @@ begin
                     order by w.resolved_at desc), '[]'::jsonb)
                    from public.work_items w
                   where w.household_id = v_hh and w.status = 'done'
+                    and public.in_default_scope(w.household_id, w.property_id)
                     and (v_room is null or w.room_id = v_room)),
     'assets', (select coalesce(jsonb_agg(jsonb_build_object(
                     'name', a.name, 'make', a.make, 'model', a.model,
@@ -405,6 +444,7 @@ begin
                     'decided_on', d.decided_on) order by d.decided_on desc), '[]'::jsonb)
                    from public.decisions d
                   where d.household_id = v_hh and d.status = 'active'
+                    and public.in_default_scope(d.household_id, d.property_id)
                     and (v_room is null or d.room_id = v_room)),
     'palettes', (select coalesce(jsonb_agg(jsonb_build_object(
                     'name', p.name, 'surface', p.surface, 'brand', p.brand,
@@ -416,7 +456,9 @@ begin
                     'fact', h.fact, 'detail', h.detail, 'category', h.category,
                     'confidence', h.confidence) order by h.category), '[]'::jsonb)
                    from public.house_facts h
-                  where h.household_id = v_hh and (v_room is null or h.room_id = v_room)),
+                  where h.household_id = v_hh
+                    and public.in_default_scope(h.household_id, h.property_id)
+                    and (v_room is null or h.room_id = v_room)),
     -- THE SHOPPING LIST, as money rather than as rows. A cold session
     -- that does not know what is already on the list will add a second
     -- dust extractor, and a cold session that does not know what is
@@ -468,7 +510,8 @@ begin
         from public.work_items w
        where w.household_id = v_hh
          and w.status not in ('done','dropped')
-         and w.cost_confidence in ('carried_over','drafted')
+         and public.in_default_scope(w.household_id, w.property_id)
+         and w.cost_confidence in ('carried_over','drafted','researched')
          and (v_room is null or w.room_id = v_room))
   )) into v_out;
 

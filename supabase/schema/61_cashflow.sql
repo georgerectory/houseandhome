@@ -300,6 +300,9 @@ billed as (
     from public.bills b
     join public.confidence_levels cl on cl.key = b.confidence
    where b.is_active
+     -- Housing bills of the active property only: a candidate's council
+     -- tax is not a bill anybody is paying.
+     and public.in_default_scope(b.household_id, b.property_id)
    group by b.household_id
 ),
 subbed as (

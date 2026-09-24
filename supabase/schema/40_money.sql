@@ -138,6 +138,11 @@ create trigger allocations_apply after insert on public.allocations
 create table if not exists public.bills (
   id           uuid primary key default gen_random_uuid(),
   household_id uuid not null references public.households (id) on delete cascade,
+  -- Housing bills (council tax, water, energy, insurance, the mortgage)
+  -- belong to one building and are PROPERTY scope; the phone and the
+  -- car are USER and follow the household wherever it lives. Switching
+  -- the active property is what recomputes the housing side.
+  property_id  uuid references public.properties (id) on delete cascade,
   name         text not null,
   provider     text,
   category     text not null default 'other'
@@ -158,9 +163,15 @@ create table if not exists public.bills (
     check (cost_class in ('running','setup','renovation','discretionary')),
   confidence   text not null default 'drafted' references public.confidence_levels (key),
   confirmed_at timestamptz,
+  -- A bill has a life: rent stops at completion, a renovation insurance
+  -- premium runs only while the works do. These dates are what make the
+  -- savings regimes a derivation rather than a typed table.
+  starts_on    date,
+  ends_on      date,
   notes        text,
   created_at   timestamptz not null default now(),
-  updated_at   timestamptz not null default now()
+  updated_at   timestamptz not null default now(),
+  constraint bills_dates check (starts_on is null or ends_on is null or starts_on <= ends_on)
 );
 
 create index if not exists bills_household_idx
@@ -231,7 +242,17 @@ create table if not exists public.price_references (
   item_label   text not null,
   channel      text not null
     check (channel in ('amazon','marketplace','reclamation','trade_counter',
-      'high_street','online','second_hand','other')),
+      'high_street','online','second_hand','benchmark','trade_quote','other')),
+  -- THE LIBRARY. A rate carries over to every house; a quantity never
+  -- does. package_key joins a rate to property_quantities; region says
+  -- where it was true (null means UK-wide) and captured_on says when.
+  package_key  text,
+  region       text,
+  vat_status   text check (vat_status is null or vat_status in ('inc_vat','ex_vat','zero_rated','reduced_5','unknown')),
+  supersedes   uuid references public.price_references (id) on delete set null,
+  -- Provenance only. A rate learned on a house that was not bought is
+  -- still a true rate, so a purge unlinks it rather than deleting it.
+  researched_during_property_id uuid references public.properties (id) on delete set null,
   price_low    numeric(12,2),
   price_typical numeric(12,2),
   price_high   numeric(12,2),

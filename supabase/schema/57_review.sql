@@ -140,7 +140,13 @@ select
     case when w.cost_expected    is null then 'cost' end,
     case when w.cost_confidence in ('drafted','carried_over','researched')
                                       then 'cost unconfirmed' end,
-    case when w.reviewed_at      is null then 'never reviewed' end
+    case when w.reviewed_at      is null then 'never reviewed' end,
+    -- F.11.7: anything that takes the kitchen or bathroom out of service
+    -- has to be timed against the lender's valuation visits.
+    case when w.habitability_impact then 'habitability' end,
+    -- F.11.8: a reduced VAT rate with its deadline inside 90 days.
+    case when w.vat_deadline is not null
+          and w.vat_deadline <= current_date + 90 then 'vat deadline' end
   ], null)                                      as gaps,
   -- The score. Higher is asked about sooner.
   (
@@ -160,6 +166,7 @@ from public.work_items w
 left join public.rooms r on r.id = w.room_id
 left join public.shopping_list s on s.id = w.id
 where w.status not in ('done','dropped')
+  and public.in_default_scope(w.household_id, w.property_id)
   -- A purchase nothing needs yet is not a useful question. Non-purchase
   -- work has no demand state and is always in scope.
   and (s.id is null or s.demand_state in ('live','standalone'));

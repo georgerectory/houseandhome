@@ -13,7 +13,7 @@
 // the empty variant rather than a rendering flag, so the empty house is
 // a real thing you can look at, check and fork.
 import { requireAuth } from '../core/auth.js';
-import { mountShell, render, confidenceBanner } from '../core/shell.js';
+import { mountShell, showProperty, render, confidenceBanner } from '../core/shell.js';
 import { load } from '../core/store.js';
 import { openItems, confidenceSummary } from '../engine/selectors.js';
 import { emptyState } from '../core/page.js';
@@ -33,6 +33,7 @@ if (!user) throw new Error('redirecting to login');
 mountShell('house.html', { user });
 
 const d = await load();
+showProperty(d.property);
 
 const KEY = { level: 'hh-house-level', view: 'hh-house-view', stage: 'hh-house-stage', variant: 'hh-house-variant' };
 const display = loadDisplay();

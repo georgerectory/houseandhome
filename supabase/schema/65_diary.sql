@@ -35,6 +35,7 @@ select
   (select count(*) from public.work_items w
     where w.milestone_id = m.id and w.status not in ('done', 'dropped')) as open_items
 from public.milestones m
+where public.in_default_scope(m.household_id, m.property_id)
 union all
 select
   'event'                           as source,
@@ -50,7 +51,8 @@ select
   e.household_id,
   0                                 as open_items
 from public.scheduled_events e
-where e.status <> 'cancelled';
+where e.status <> 'cancelled'
+  and public.in_default_scope(e.household_id, e.property_id);
 
 comment on view public.whats_next is
   'Milestones and scheduled events as one diary, with days_until computed once. A milestone is a date the plan has to hit; an event is a date somebody else set.';

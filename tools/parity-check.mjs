@@ -115,7 +115,7 @@ for (const c of CASES) {
     return { id, rank: Number(rank), amount: Number(amount) };
   }) : [];
 
-  const order = psql(`select id from work_items where household_id='11111111-1111-1111-1111-111111111111' and is_fundable and status not in ('done','dropped') order by priority, id;`);
+  const order = psql(`select id from work_items where household_id='11111111-1111-1111-1111-111111111111' and funding_stream = 'pot' and status not in ('done','dropped') order by priority, id;`);
   const ids = order ? order.split('\n') : [];
   const jsRows = allocate(ids.map((id) => ({ id, targetCost: 1000, allocatedBalance: 0 })), c.amount);
 

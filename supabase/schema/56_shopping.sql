@@ -140,9 +140,13 @@ left join (
     and l.from_type = 'work_item'
     and l.to_type = 'work_item'
     and j.status not in ('dropped')
+    -- Demand only counts from a job in the default scope. A tool that
+    -- only a candidate's job needs is not needed by THIS house.
+    and public.in_default_scope(j.household_id, j.property_id)
   group by l.to_id
 ) d on d.to_id = w.id
-where w.kind = 'purchase';
+where w.kind = 'purchase'
+  and public.in_default_scope(w.household_id, w.property_id);
 
 comment on view public.shopping_list is
   'Purchases with the demand behind them. demand_state is live, dormant, standalone or closed; cost_in_scope is zero for anything not yet needed, so a total over this view is what the project actually owes now.';

@@ -27,11 +27,24 @@ async function loadLive() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { location.replace('login.html'); return null; }
 
+  // THE HOUSE. Exactly one property is active, committed or owned, and
+  // every default view shows it plus the household's own rows. The views
+  // filter in Postgres (in_default_scope); the base tables are filtered
+  // here by the same rule, so a candidate being worked up alongside
+  // never leaks into the roadmap, the budget or the shopping list.
+  const { data: property, error: propertyError } = await sb.from('properties')
+    .select('id, ref, name, status, address_line, postcode, offer_status, guide_price, walk_away_price')
+    .in('status', ['active', 'committed', 'owned']).maybeSingle();
+  if (propertyError) throw new Error(`Could not read the database - properties: ${propertyError.message}`);
+  const scoped = (q) => (property
+    ? q.or(`property_id.is.null,property_id.eq.${property.id}`)
+    : q.is('property_id', null));
+
   const [rooms, items, bills, assets, storage, inventory, settings, prices,
     carried, accounts, shopping, totals, stock, review, links, docs, theme, ready, diary] = await Promise.all([
-    sb.from('rooms').select('*'),
-    sb.from('work_items').select('*').order('priority'),
-    sb.from('bills').select('*').eq('is_active', true),
+    scoped(sb.from('rooms').select('*')),
+    scoped(sb.from('work_items').select('*')).order('priority'),
+    scoped(sb.from('bills').select('*').eq('is_active', true)),
     sb.from('assets').select('*'),
     sb.from('storage_locations').select('*'),
     sb.from('inventory_items').select('*'),
@@ -58,7 +71,7 @@ async function loadLive() {
     // THE DOCUMENT. Sections in reading order, so plan.html can render
     // the handbook rather than linking to a PDF that nothing can query
     // and nothing keeps in step.
-    sb.from('document_sections').select('*').order('sort_order'),
+    scoped(sb.from('document_sections').select('*')).order('sort_order'),
     sb.from('theme_book').select('*').order('sort_order'),
     // WHY each job cannot be started yet, derived from the same edges
     // that drive the shopping list. The roadmap says what matters most;
@@ -97,6 +110,7 @@ async function loadLive() {
 
   cache = {
     meta: { generated: new Date().toISOString().slice(0, 10), note: 'Live data.' },
+    property: property ?? null,
     pot: pot ?? null,
     rooms: rooms.data ?? [],
     items: (items.data ?? []).map(withRoom),

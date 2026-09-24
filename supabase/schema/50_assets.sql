@@ -22,6 +22,12 @@ create table if not exists public.assets (
   id            uuid primary key default gen_random_uuid(),
   household_id  uuid not null references public.households (id) on delete cascade,
   room_id       uuid references public.rooms (id) on delete set null,
+  -- USER scope: owned kit follows the household to every house and is
+  -- netted off every shopping list. This is provenance only, so a purge
+  -- of the house it was bought for unlinks it rather than deleting it.
+  acquired_for_property_id uuid references public.properties (id) on delete set null,
+  residual_value numeric(12,2) check (residual_value is null or residual_value >= 0),
+  disposed_on   date,
   name          text not null,
   -- Short stable handle used by work_items.tools_required, so a job can
   -- say it needs a 'drill' without knowing which drill.
@@ -115,6 +121,9 @@ create table if not exists public.inventory_items (
   household_id  uuid not null references public.households (id) on delete cascade,
   storage_location_id uuid references public.storage_locations (id) on delete set null,
   asset_id      uuid references public.assets (id) on delete set null,
+  acquired_for_property_id uuid references public.properties (id) on delete set null,
+  residual_value numeric(12,2) check (residual_value is null or residual_value >= 0),
+  disposed_on   date,
   name          text not null,
   tool_key      text,
   category      text not null default 'other'

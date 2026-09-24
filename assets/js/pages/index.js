@@ -1,7 +1,7 @@
 // Dashboard. Answers one question in the first viewport: what should I
 // do next, and where do things stand.
 import { requireAuth } from '../core/auth.js';
-import { mountShell, render, confidenceBanner } from '../core/shell.js';
+import { mountShell, showProperty, render, confidenceBanner } from '../core/shell.js';
 import { load, isDemo } from '../core/store.js';
 import { openItems, byHorizon, fundable, totalOutstanding, confidenceSummary } from '../engine/selectors.js';
 import { itemCard, emptyState } from '../core/page.js';
@@ -16,6 +16,7 @@ if (!user) throw new Error('redirecting to login');
 mountShell('index.html', { user });
 
 const d = await load();
+showProperty(d.property);
 const conf = confidenceSummary(d);
 const now = byHorizon(d, 'now');
 const queue = fundable(d);

@@ -11,7 +11,7 @@
 // then get wrong somewhere; "what paint may touch lime plaster anywhere
 // in this house" is a rule that answers itself every time.
 import { requireAuth } from '../core/auth.js';
-import { mountShell, render } from '../core/shell.js';
+import { mountShell, showProperty, render } from '../core/shell.js';
 import { load } from '../core/store.js';
 import { emptyState } from '../core/page.js';
 import { escape } from '../core/format.js';
@@ -22,6 +22,7 @@ if (!user) throw new Error('redirecting to login');
 mountShell('theme.html', { user });
 
 const d = await load();
+showProperty(d.property);
 const rows = (d.theme_book ?? []).slice()
   .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
 

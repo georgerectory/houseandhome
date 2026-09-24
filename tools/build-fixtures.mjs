@@ -298,7 +298,9 @@ const data = {
     note: 'Demo dataset. Every row is drafted and unconfirmed: no figure here has been checked, and the interface must present all of it as provisional.',
   },
   household: { id: 'demo', name: 'House & Home' },
-  property: null,
+  // The one active property. Demo mode names the same house the geometry
+  // under data/buildings/ draws, so the header reads the same either way.
+  property: { ref: 'P-001', name: '48 Ameysford Road', status: 'active', offer_status: 'none' },
   pot: { name: 'House pot', monthly_contribution: 400, contribution_confidence: 'drafted', unallocated_balance: 0 },
   allocation_settings: { decay: 0.85, floor_share: 0.10 },
   rooms, items, bills, assets,

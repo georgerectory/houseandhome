@@ -6,7 +6,16 @@ this file is only what is not yet finished. Keep it under 40 lines.
 
 ## In progress
 
-Nothing. All seven gates green.
+**A second candidate: P-002, 1 Walnut Tree Cottages, Wickham.** Added as
+a `properties` row only (guide £385k, owner aiming for about £350k). No
+geometry, stages or work items yet: the owner asked to talk through
+design options before anything is modelled. Open questions put to the owner:
+whether ~1,200 sq ft or the doubled width is the real target (the
+brochure already says 1,119 sq ft GIA, including the store and
+conservatory); a full-restoration scope like P-001's or a clean-up; what
+fuel the range cooker runs on; and the plot width west of the house. When
+a direction is chosen, `data/buildings/1-walnut-tree-cottages/` gets
+`as-bought`, `kitchen-extension` and `side-wing` stages.
 
 **The handbook is rows now, not a PDF.** All 54 pages of the plan and
 project handbook are in `document_sections`, `document_figures` and

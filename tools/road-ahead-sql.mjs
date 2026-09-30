@@ -18,6 +18,13 @@ const uuid = (hh) => {
   return `'${hh}'::uuid`;
 };
 
+// A range swung 10% either side carries the float's noise (3500 x 1.1 is
+// 3850.0000000000005). The swing itself is computed from the exact value;
+// the range is only recorded, so it is recorded as a person would write it.
+const tidy = (v) => (typeof v === 'number' ? Number(v.toPrecision(12))
+  : Array.isArray(v) ? v.map(tidy)
+    : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, tidy(x)])) : v);
+
 /**
  * One sensitivity snapshot: every finite swing of every answer, in one
  * statement, so the rows share their run_at and the calibration queue
@@ -35,7 +42,7 @@ export function sensitivitySql(household, snapshots, engineVersion, scenario = '
     for (const r of rows) {
       if (!Number.isFinite(r.swing)) { skipped.push(`${output}: ${r.key} leaves no answer at one end of its range`); continue; }
       if (r.swing <= 0) continue;
-      values.push(`  (${uuid(household)}, ${lit(scenario)}, ${lit(output)}, ${lit(r.key)}, ${js(r.low)}, ${js(r.high)}, `
+      values.push(`  (${uuid(household)}, ${lit(scenario)}, ${lit(output)}, ${lit(r.key)}, ${js(tidy(r.low))}, ${js(tidy(r.high))}, `
         + `${num(r.at_low)}, ${num(r.at_high)}, ${num(r.swing)}, ${lit(engineVersion)})`);
     }
   }

@@ -36,6 +36,18 @@ test('a sensitivity snapshot is one statement; a missing answer is reported, not
   assert.throws(() => sensitivitySql('not-a-household', snapshots, 'x'), /not a household id/);
 });
 
+test('a swung range is recorded without the float\'s noise', () => {
+  const hh = '11111111-1111-1111-1111-111111111111';
+  const noisy = [{ output: 'R1 forever budget', rows: [
+    { key: 'spend', low: 1300 * 0.9, high: 1300 * 1.1, at_low: 1, at_high: 2, swing: 1 },
+    { key: 'path', low: { 2027: 0.07 * 0.9 }, high: [2027, 4], at_low: 1, at_high: 3, swing: 2 },
+  ] }];
+  assert.equal(1300 * 1.1, 1430.0000000000002, 'the noise this guards against');
+  const { sql } = sensitivitySql(hh, noisy, 'x');
+  assert.match(sql, /'1170'::jsonb, '1430'::jsonb/);
+  assert.match(sql, /'\{"2027":0.063\}'::jsonb, '\[2027,4\]'::jsonb/, 'maps and months too');
+});
+
 test('an accepted run needs the owner\'s words', () => {
   const hh = '11111111-1111-1111-1111-111111111111';
   const runs = [{ road_code: 'R1', scenario_key: 'base', summary: { forever_today: 1 } }];

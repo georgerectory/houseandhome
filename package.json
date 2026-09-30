@@ -17,7 +17,7 @@
     "lint": "node tools/lint-frontend.mjs",
     "test:secrets": "node tools/check-secrets.mjs",
     "screenshots": "node tools/check-frontend.mjs --screenshots",
-    "fixtures": "node tools/build-fixtures.mjs",
+    "fixtures": "node tools/build-fixtures.mjs && node tools/build-road-fixture.mjs",
     "pages": "node tools/build-pages.mjs",
     "takeoff": "node tools/takeoff.mjs"
   },

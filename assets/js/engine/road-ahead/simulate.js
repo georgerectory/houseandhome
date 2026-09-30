@@ -25,7 +25,7 @@ import {
   pmtN, sdlt, salary, netPay, growthIndex, endgameMaxLoan,
 } from './money.js';
 
-const STAGE_DEFAULTS = Object.freeze({
+export const STAGE_DEFAULTS = Object.freeze({
   dep: 0.10, capPrice: 900000, floorPrice: 100000, priceStep: 1000,
   foreverReserve: 10000, bills: 560, wm: 12,
 });

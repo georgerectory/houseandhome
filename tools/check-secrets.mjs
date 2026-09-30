@@ -48,13 +48,15 @@ if (files === null) {
   //    checked wherever the private kit extract is present - which is
   //    exactly where they could leak from. The values are read from it
   //    at check time; nothing here names them.
-  //    One file is spared the NUMBER markers only: the golden master is
-  //    generated from invented inputs by tools/road-ahead-golden.py (which
-  //    is itself checked), and its prices are found by stepping down a
-  //    thousand at a time, so a round number there matching one of the
-  //    owner's is chance, not a leak. Names and places still apply to it.
+  //    Two generated files are spared the NUMBER markers only. The golden
+  //    master comes from invented inputs by tools/road-ahead-golden.py, and
+  //    Road Ahead's demo fixture from the golden master's listings by
+  //    tools/build-road-fixture.mjs; both generators are themselves checked.
+  //    Their figures are rounded to a thousand, so one matching the owner's
+  //    is chance, not a leak, and editing a figure because it matched
+  //    would only point at it. Names and places still apply to both.
   const EXTRACT = 'data/road-ahead/kit-extract.json';
-  const INVENTED = new Set(['tests/fixtures/road-ahead-golden.json']);
+  const INVENTED = new Set(['tests/fixtures/road-ahead-golden.json', 'data/fixtures/road-ahead.json']);
   if (existsSync(EXTRACT)) {
     let markers = { numbers: [], words: [] };
     try { markers = privateMarkers(JSON.parse(readFileSync(EXTRACT, 'utf8'))); } catch { /* an unreadable extract is the checksum gate's to report */ }

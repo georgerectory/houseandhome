@@ -17,6 +17,8 @@
 // numeric, which has no negative zero, so the database can only ever
 // return 0. They are the same pound.
 import { appraise, appraisalSettings, buildParams } from '../assets/js/engine/road-ahead/index.js';
+import { listingInputs } from '../assets/js/engine/road-ahead/page/model.js';
+import { ROAD_SHAPE } from '../assets/js/core/road-shape.js';
 
 /** A small seeded generator (mulberry32), so every run draws the same cases. */
 function seeded(seed) {
@@ -187,11 +189,70 @@ function settingsParity(psql, HH) {
 }
 
 /**
- * Run both Road Ahead cases against the parity database.
+ * The page assembles a listing's inputs from its register row
+ * (listingInputs() in page/model.js); ra_assess() takes them from
+ * ra_listing_inputs(). The two must agree on every row: the listing's
+ * own facts under its latest appraisal with figures, nulls dropped, and
+ * the owner's current walk-away judgement.
+ */
+function inputsParity(psql, HH) {
+  const L = (code, mins, fee, pct) => `('${HH}', '${code}', 'Invented ${code}', ${mins}, ${fee}, ${pct}, 'watch')`;
+  psql(`delete from ra_judgements where household_id = '${HH}';
+        delete from ra_appraisals where household_id = '${HH}';
+        delete from ra_listings where household_id = '${HH}';
+        insert into ra_listings (household_id, code, name, minutes_from_home, fee, fee_pct, status) values
+          ${[L('L91', 40, 1200, 0), L('L92', 15, 0, 0.045), L('L93', 'null', 900, 0), L('L94', 25, 0, 0)].join(',\n')};
+        insert into ra_appraisals (household_id, listing_id, appraised_on, authored_by, protocol, inputs, fits, override_grade, override_reason, narrative)
+        select '${HH}', l.id, a.on_date::date, 'claude_code', 'road-ahead-1', a.inputs::jsonb, a.fits::jsonb, a.grade, a.reason, a.narrative::jsonb
+          from (values
+            ('L91', '2026-09-01', ${dollar({ likely_buy: 280000, fin_lo: 350000, fin_hi: 370000, works: 30000, fee: null, mins: 25 })}::text, '[["H1", 2], ["H3", 3]]', null, null, null),
+            ('L92', '2026-09-02', ${dollar({ likely_buy: 250000, fin_lo: 320000, fin_hi: 340000, works: 20000, pct: 0.05 })}::text, '[]', 'Strong (keep)', 'Invented: kept longer', null),
+            ('L94', '2026-08-01', ${dollar({ likely_buy: 200000, fin_lo: 260000, fin_hi: 270000, works: 15000 })}::text, '[["H4", 1]]', null, null, null),
+            ('L94', '2026-09-10', '{}', '[]', null, null, '{"rooms": "a write-up with no figures"}')
+          ) a(code, on_date, inputs, fits, grade, reason, narrative)
+          join ra_listings l on l.household_id = '${HH}' and l.code = a.code;
+        insert into ra_judgements (household_id, listing_id, field, value, reason, kind, said_on)
+        select '${HH}', l.id, j.field, j.value::jsonb, j.reason, j.kind, j.said_on::date
+          from (values
+            ('L91', 'premium', '5000', 'Invented: liked it', 'emotional', '2026-09-03'),
+            ('L91', 'walk_away', '330000', 'Invented: said a figure', 'personal', '2026-09-05'),
+            ('L92', 'walk_away', '270000', 'Invented', 'strategic', '2026-09-04'),
+            ('L93', 'fit', '3', 'Invented: not a walk-away', 'strategic', '2026-09-04')
+          ) j(code, field, value, reason, kind, said_on)
+          join ra_listings l on l.household_id = '${HH}' and l.code = j.code;`);
+  const cols = ROAD_SHAPE.register.join(', ');
+  const rows = JSON.parse(psql(`select coalesce(json_agg(r order by r.code), '[]') from
+    (select ${cols} from ra_register where household_id = '${HH}') r;`));
+  const sql = JSON.parse(psql(`select json_object_agg(code, ra_listing_inputs('${HH}', code)) from ra_listings
+    where household_id = '${HH}';`));
+  let diffs = 0;
+  for (const row of rows) {
+    // SQL answers a listing without figures with its facts alone, which
+    // ra_assess cannot run; the page answers it with null. Both mean
+    // "nothing to assess".
+    const want = sql[row.code]?.likely_buy == null ? null : sql[row.code];
+    const d = differences(listingInputs(row), want);
+    if (d.length) {
+      diffs += 1;
+      console.log(`  ${row.code}: ${d.slice(0, 4).join('; ')}`);
+    }
+  }
+  const covered = rows.length === 4 && sql.L91?.judgement?.walk_away === 330000 && sql.L94?.likely_buy === 200000
+    && sql.L92?.override_grade === 'Strong (keep)' && !('fee' in (sql.L91 ?? {}));
+  if (diffs === 0 && covered) {
+    console.log(`PASS parity: Road Ahead listing inputs (${rows.length} listings) - the page reads ra_register as ra_listing_inputs() does`);
+    return 0;
+  }
+  console.log(`FAIL parity: Road Ahead listing inputs - ${diffs} listing(s) differ, covered=${covered}`);
+  return 1;
+}
+
+/**
+ * Run the Road Ahead cases against the parity database.
  * @param {(sql: string) => string} psql
  * @param {string} HH the parity household
  * @returns {{cases: number, failures: number}}
  */
 export function roadAheadParity(psql, HH) {
-  return { cases: 2, failures: assessorParity(psql) + settingsParity(psql, HH) };
+  return { cases: 3, failures: assessorParity(psql) + settingsParity(psql, HH) + inputsParity(psql, HH) };
 }

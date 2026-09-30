@@ -17,7 +17,8 @@
 // question is only ever "could this be pushed".
 
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+import { privateMarkers } from './road-ahead-lib.mjs';
 
 const failures = [];
 
@@ -36,11 +37,35 @@ const files = tracked();
 if (files === null) {
   console.log('Secrets: not a git checkout, nothing to check.');
 } else {
-  // 1. Carried-over blobs.
-  const blobs = files.filter((f) => /^data\/carried\/.+/.test(f) && !f.endsWith('README.md'));
+  // 1. Carried-over blobs, and Road Ahead's kit extract and exports.
+  const blobs = files.filter((f) => /^data\/(carried|road-ahead)\/.+/.test(f) && !f.endsWith('README.md'));
   for (const f of blobs) {
-    failures.push(`${f} is TRACKED BY GIT. Carried-over extracts are private and this repository is public.\n`
+    failures.push(`${f} is TRACKED BY GIT. Extracts are private and this repository is public.\n`
       + `     Remove it with: git rm --cached "${f}"`);
+  }
+
+  // 3. The owner's names, home village, salary and mortgage in principle,
+  //    checked wherever the private kit extract is present - which is
+  //    exactly where they could leak from. The values are read from it
+  //    at check time; nothing here names them.
+  //    One file is spared the NUMBER markers only: the golden master is
+  //    generated from invented inputs by tools/road-ahead-golden.py (which
+  //    is itself checked), and its prices are found by stepping down a
+  //    thousand at a time, so a round number there matching one of the
+  //    owner's is chance, not a leak. Names and places still apply to it.
+  const EXTRACT = 'data/road-ahead/kit-extract.json';
+  const INVENTED = new Set(['tests/fixtures/road-ahead-golden.json']);
+  if (existsSync(EXTRACT)) {
+    let markers = { numbers: [], words: [] };
+    try { markers = privateMarkers(JSON.parse(readFileSync(EXTRACT, 'utf8'))); } catch { /* an unreadable extract is the checksum gate's to report */ }
+    for (const f of files) {
+      let src;
+      try { src = readFileSync(f, 'utf8'); } catch { continue; }
+      if (src.includes('\0')) continue;
+      const apply = INVENTED.has(f) ? markers.words : [...markers.numbers, ...markers.words];
+      const hits = apply.filter((re) => re.test(src)).length;
+      if (hits) failures.push(`${f} contains ${hits} of the owner's private markers (names, home village, salary or mortgage in principle).`);
+    }
   }
 
   // 2. Anything that looks like a service_role key or a JWT carrying
@@ -70,5 +95,6 @@ if (files === null) {
     console.log(`Secrets: ${failures.length} problem(s) in ${files.length} tracked files`);
     process.exit(1);
   }
-  console.log(`Secrets: ${files.length} tracked files, no private data and no privileged key`);
+  const privateNote = existsSync('data/road-ahead/kit-extract.json') ? ', none of the owner\'s private markers' : '';
+  console.log(`Secrets: ${files.length} tracked files, no private data and no privileged key${privateNote}`);
 }

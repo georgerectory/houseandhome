@@ -1,6 +1,7 @@
 node_modules/
 .DS_Store
 *.log
+__pycache__/
 # Local-only Supabase override (a different project ref for development).
 # The committed client holds the anon key only, which RLS makes safe to ship.
 assets/js/core/config.local.js
@@ -12,6 +13,11 @@ node_modules/
 # Only the README and this rule are tracked.
 data/carried/*
 !data/carried/README.md
+
+# Road Ahead's kit extract and database exports: salary, savings, the
+# mortgage in principle, the owner's plans. Only the README is tracked.
+data/road-ahead/*
+!data/road-ahead/README.md
 
 # The source drawings a building model was measured from. The repo is
 # public, these are somebody else's copyright, and they identify the

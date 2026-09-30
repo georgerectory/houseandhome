@@ -227,23 +227,25 @@ answer writes.
 
 ## Testing
 
-`npm test` runs seven gates. All must pass.
+`npm test` runs eight gates. All must pass.
 
 | Gate | What it proves |
 |---|---|
-| `npm run test:secrets` | Nothing private is tracked by a public repository: no carried-over extract, no service_role key, no JWT, no source drawing. |
+| `npm run test:secrets` | Nothing private is tracked by a public repository: no carried-over or Road Ahead extract, no service_role key, no JWT, no source drawing - and, wherever the private kit extract is present, not the owner's surname, home village, salary or mortgage in principle. |
 | `npm run lint` | No `100vw`, raw `vh`, `max-width` layout query, breakpoint in the 600-800 iPad band, inline style, emoji or hard-coded hex. |
-| `npm run test:unit` | The allocation, priority and geometry engines behave as stated. |
+| `npm run test:unit` | The allocation, priority and geometry engines behave as stated, and Road Ahead's engine matches the Rectory kit's own Python on invented inputs (the golden master). |
 | `npm run test:geometry` | Every stage of every building IS a building - rooms that do not overlap, a shell that closes, a floor with something under it - and agrees with the drawings it was measured from. |
 | `npm run test:sql` | The schema applies to a real Postgres; guards, triggers and RLS isolation all hold. |
 | `npm run test:parity` | The JS engine and the SQL engine agree to the micro-pound. |
 | `npm run test:frontend` | Real Chromium, six viewports, both themes: no horizontal scroll, no overflow, no target under 24px, no console errors, landmarks present. |
+| `npm run test:checksums` | Road Ahead's engine reproduces every figure the Rectory kit published, exactly, on the owner's private inputs. |
 
 `npm run screenshots` writes the same renders to `tests/screenshots/`
 (gitignored) when you want to look at something.
 
-The SQL gate needs a local Postgres; without one it SKIPS loudly rather
-than passing quietly.
+The SQL gate needs a local Postgres, and the checksum gate the private
+kit extract in `data/road-ahead/`; without them they SKIP loudly rather
+than passing quietly. CI never has the extract.
 
 ## The building model, and the House page
 

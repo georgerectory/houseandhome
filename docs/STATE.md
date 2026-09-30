@@ -6,35 +6,35 @@ this file is only what is not yet finished. Keep it under 40 lines.
 
 ## In progress: Road Ahead
 
-Road Ahead replaces the Road to the Rectory PDF and kit (v5.0) with a tab
-and a decision engine: the Golden Egg auction track, the House 1 roads,
-the forever home, the listings register, auctions, decisions and every
-variable. It meets the project system at one promote step. **The build
-plan is private** (it carries personal figures): read `source_documents`
-titled 'Road Ahead build plan' through the connector before building.
+The Rectory PDF and kit (v5.0) become a tab and an engine. **The plan
+is private**: read `source_documents` 'Road Ahead build plan' before
+building. Phase 0 archived P-001 and P-002; no house is active.
 
-**Phase 0 is done (30 Sep 2026).** The lifecycle and P-002 branches are
-merged and the live schema is the repository (eight equal digests from
-`tools/schema-fingerprint.sql`). Fixed on the way: seven tables whose
-live policy allowed delete, two functions behind the repo, and stock
-views that fresh installs built without their review columns. P-001 and
-P-002 are archived (G-K09, G-K11); no house is active.
+**Phase 1 is done (30 Sep 2026).** The engine is `engine/road-ahead/`,
+ported from the kit's Python and proven twice: `npm run test:checksums`
+reproduces all 15,732 figures the kit published on the owner's inputs
+(the kit's 43 tests included), and a committed golden master proves it
+in CI on invented ones. Private inputs: `data/road-ahead/` (gitignored),
+built by `tools/road-ahead-kit.mjs`. The owner's judgement sits beside the maths (`appraise().judgement`,
+with its reason and its cost) and a calibration agenda ranks what to
+confirm first (`node tools/road-ahead.mjs agenda`);
+`docs/road-ahead/CALIBRATION.md` is how the model stays accurate and
+grows. No owner figure is typed anywhere in the repository: the kit's
+inline ones are located structurally, and the privacy guard reads its
+markers from the private extract.
 
 ## Next steps
 
-1. **Phase 1:** the kit extract, the engine port, the golden master and
-   the checksum gate.
-2. **Phase 2 opens with the 21 October fast lane:** the Pearsons lots on
-   the Dashboard before T-14, Wednesday 7 October.
-3. **Listing 93774177 becomes L29** once the owner pastes its text and
+1. **Phase 2, the 21 October fast lane first:** the Pearsons lots on the
+   Dashboard before T-14, Wednesday 7 October; then the tables, the seed
+   from `data/road-ahead/kit-extract.json`, and `ra_assess` in SQL.
+2. **Listing 93774177 becomes L29** once the owner pastes its text and
    floor plan: Rightmove is blocked from this environment.
-4. Owed: a review of the four household contradictions, `regime-b-savings` first.
+3. Owed: a review of the four household contradictions, `regime-b-savings` first.
 
 ## Known and deliberately left
 
-- `check-frontend.mjs` and `pages/house.js` exceed 400 lines; splitting
-  cohesive files is churn with real risk.
-- Twelve live tables order columns differently from a fresh install; no
-  view sees it, so the fingerprint ignores position. P-001's seven open
-  contradictions stay open with it, for a restore. Still open: the
-  allocation curve, learning thresholds; CI cannot reach supabase.co.
+- `check-frontend.mjs` and `pages/house.js` exceed 400 lines (cohesive).
+  Twelve live tables order columns unlike a fresh install; no view sees
+  it. P-001's open contradictions stay with it, for a restore. Still
+  open: the allocation curve, learning thresholds; CI cannot reach Supabase.

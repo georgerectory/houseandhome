@@ -8,10 +8,13 @@
 //   sql       the schema, guards and policies, on a real Postgres
 //   frontend  the actual pages, in a real browser, at six viewports
 //             in both themes
+//   checksums Road Ahead's engine reproduces every figure the Rectory
+//             kit published, on the owner's private inputs
 //
-// The SQL and parity gates need a local Postgres. Where there is none
-// they SKIP loudly rather than passing quietly: a gate that reports
-// success when it did not run is worse than no gate.
+// The SQL and parity gates need a local Postgres, and the checksum gate
+// needs the private kit extract. Where either is missing they SKIP
+// loudly rather than passing quietly: a gate that reports success when
+// it did not run is worse than no gate.
 import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 
@@ -43,6 +46,14 @@ if (hasPg) {
 }
 
 results.push(run('Front end (real browser)', 'node', ['tools/check-frontend.mjs']));
+
+if (existsSync('data/road-ahead/kit-extract.json')) {
+  results.push(run('Road Ahead checksums (private inputs)', 'node', ['tools/road-ahead-checksums.mjs']));
+} else {
+  console.log('\n=== Road Ahead checksums\nSKIPPED: no private kit extract here (data/road-ahead/). '
+    + 'The golden master in the unit gate still proves the engine on invented inputs.');
+  results.push({ label: 'Road Ahead checksums', ok: true, skipped: true });
+}
 
 console.log('\n=====================================');
 for (const r of results) {

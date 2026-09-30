@@ -2,7 +2,7 @@
 
 One live house. Many drafts. Nothing lost. One house in the end.
 
-This is the system half of Luke's Plan File v6.0 (23 Sep 2026), aligned to
+This is the system half of the owner's Plan File v6.0 (23 Sep 2026), aligned to
 what this repository and its database actually do. The personal half -
 income, balances, borrowing, the savings identity's figures - is not
 here, because this repository is public. Those figures live in Supabase

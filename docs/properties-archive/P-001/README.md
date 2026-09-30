@@ -1,6 +1,17 @@
+# ARCHIVED 2026-09-30 - too small, too much work
+
+Closed by the owner after viewing (Road to the Rectory decision G-K09,
+27 Sep 2026) and archived on their instruction on 30 Sep 2026. Nothing
+was deleted: the property row, its work items, milestones, geometry and
+change log all remain, out of every default view. The 49 library rates
+and the 65-line template learned on it were promoted when it was loaded,
+so they carry to the next house. Restore with
+`set_property_status(household, 'P-001', 'candidate', reason)`.
+
 # P-001 - 48 Ameysford Road
 
-Status: **active** - the current favourite, a candidate. No offer made.
+Status when archived: **active** - the favourite at the time, a
+candidate. No offer made.
 
 Everything in this folder belongs to P-001 and is archived with it (moved
 to `docs/properties-archive/`) or purged with it (deleted). The system

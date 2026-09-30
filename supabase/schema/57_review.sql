@@ -30,10 +30,8 @@ alter table public.work_items
 comment on column public.work_items.reviewed_at is
   'When this row was last put to the owner in a review session. Null means never asked, which is what the review queue sorts on first.';
 
-alter table public.stock_targets
-  add column if not exists reviewed_at timestamptz;
-alter table public.stock_targets
-  add column if not exists review_note text;
+-- stock_targets carries the same two columns, declared on the table in
+-- 55_stock.sql so that stock_status (t.*) includes them.
 
 create index if not exists work_items_reviewed_idx
   on public.work_items (household_id, reviewed_at nulls first)

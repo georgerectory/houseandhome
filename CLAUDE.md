@@ -21,9 +21,13 @@ Supabase behind row-level security.
 
 ## The active property
 
-**P-001, 48 Ameysford Road, Ferndown BH22 9QA - active, a candidate. No
-offer made.** Built in the 1950s (owner, 24 Sep 2026); walls cavity
-expected, not yet seen.
+**None.** P-001 (48 Ameysford Road) and P-002 (1 Walnut Tree Cottages)
+were archived on 30 Sep 2026 on the owner's instruction; the owner had
+closed both on 27 Sep (Road to the Rectory decisions G-K09 and G-K11).
+The next house comes through Road Ahead, which is being built (see
+`docs/STATE.md`): a listing is assessed there, promoted to a property,
+and becomes "the house" only through `make_active()`. Until then every
+default view shows only the household's own rows.
 
 The system is property-agnostic. Five scopes: **USER** (the household,
 `property_id` null), **BRIEF** (what a house is looked for against),
@@ -41,13 +45,13 @@ and the rules behind them: `docs/RENOVATION-SYSTEM.md`.
 
 **The standing scope is a FULL RESTORATION.** Every internal face comes
 back to the brick, the house is replumbed and rewired, and it is made
-watertight before anything goes back on. The house is 1950s, so the
-plaster that goes back is gypsum on a cavity wall, lime only if the brick
-bond shows solid - `walls.construction` in the building spec decides,
-and the takeoff follows it. Not a redecoration with the
-worst bits fixed. This is the assumption behind every quantity, total
-and sequence in this system, and it is recorded as a `decision` row so
-it can be argued with rather than inherited silently.
+watertight before anything goes back on. The plaster that goes back
+follows the walls - gypsum on a cavity wall, lime on solid brick - and
+`walls.construction` in the building spec decides, so the takeoff
+follows it. Not a redecoration with the worst bits fixed. This is the
+assumption behind every quantity, total and sequence in this system, and
+it is recorded as a `decision` row so it can be argued with rather than
+inherited silently.
 
 Two things follow from it, and neither is optional:
 
@@ -56,10 +60,9 @@ Two things follow from it, and neither is optional:
   an existing row conflicts with the strip, SAY SO on the row - a `risk`
   note tagged `review:scope-conflict` - and let the owner decide. Do not
   quietly drop somebody else's job, and do not quietly do both.
-- **The internal wall face is a quantity, not an impression.** 241 m2 of
-  wall and 77 m2 of ceiling on this house. `npm run takeoff` derives the
-  materials from the geometry and `--sql` writes them to
-  `property_quantities`. Nothing about it is typed.
+- **The internal wall face is a quantity, not an impression.**
+  `npm run takeoff` derives the materials from the geometry and `--sql`
+  writes them to `property_quantities`. Nothing about it is typed.
 
 ## Where the rest lives
 
@@ -339,6 +342,12 @@ functions. Two `authenticated`-executable ones are expected and correct -
 `is_household_member()` and `current_household()` - because every RLS
 policy calls the first, and both only ever read the caller's own
 `auth.uid()`.
+
+Then prove the live database is the repository: run
+`tools/schema-fingerprint.sql` through the connector and
+`npm run schema:fingerprint` locally, and require the eight digests to
+match. A schema change applied live and not committed, or committed and
+not applied, shows up there and nowhere else.
 
 The test suite forces demo mode by setting `globalThis.__HH_CONFIG__`
 before the modules load, so it never touches the live database.

@@ -243,6 +243,14 @@ create table if not exists public.price_references (
   channel      text not null
     check (channel in ('amazon','marketplace','reclamation','trade_counter',
       'high_street','online','second_hand','benchmark','trade_quote','other')),
+  price_low    numeric(12,2),
+  price_typical numeric(12,2),
+  price_high   numeric(12,2),
+  unit         text not null default 'each',
+  source_note  text,
+  captured_on  date not null default current_date,
+  confidence   text not null default 'researched' references public.confidence_levels (key),
+  created_at   timestamptz not null default now(),
   -- THE LIBRARY. A rate carries over to every house; a quantity never
   -- does. package_key joins a rate to property_quantities; region says
   -- where it was true (null means UK-wide) and captured_on says when.
@@ -252,15 +260,7 @@ create table if not exists public.price_references (
   supersedes   uuid references public.price_references (id) on delete set null,
   -- Provenance only. A rate learned on a house that was not bought is
   -- still a true rate, so a purge unlinks it rather than deleting it.
-  researched_during_property_id uuid references public.properties (id) on delete set null,
-  price_low    numeric(12,2),
-  price_typical numeric(12,2),
-  price_high   numeric(12,2),
-  unit         text not null default 'each',
-  source_note  text,
-  captured_on  date not null default current_date,
-  confidence   text not null default 'researched' references public.confidence_levels (key),
-  created_at   timestamptz not null default now()
+  researched_during_property_id uuid references public.properties (id) on delete set null
 );
 
 create index if not exists price_references_item_idx on public.price_references (work_item_id);

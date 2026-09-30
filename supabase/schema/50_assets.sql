@@ -33,9 +33,9 @@ create table if not exists public.assets (
   -- say it needs a 'drill' without knowing which drill.
   tool_key      text,
   category      text not null default 'other'
-    check (category in ('heating','plumbing','electrical','appliance','power_tool',
-      'hand_tool','garden_machine','network','security','av','vehicle','other',
-      'climate')),
+    check (category in ('heating','climate','plumbing','electrical','appliance',
+      'power_tool','hand_tool','garden_machine','network','security','av','vehicle',
+      'other')),
   make          text,
   model         text,
   serial_number text,

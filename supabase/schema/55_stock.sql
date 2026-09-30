@@ -114,6 +114,12 @@ create table if not exists public.stock_targets (
   confirmed_at  timestamptz,
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now(),
+  -- The review mark (57_review.sql explains it). Declared here rather
+  -- than added there, because stock_status below selects t.* and a view
+  -- fixes its column list when it is created: added later, the columns
+  -- would exist on the table and be missing from the view.
+  reviewed_at   timestamptz,
+  review_note   text,
 
   -- A spec is the whole value of the row, so an empty one is refused.
   constraint stock_targets_spec_not_blank check (length(btrim(spec)) > 0),

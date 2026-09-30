@@ -9,6 +9,16 @@ this file is only what is not yet finished. Keep it under 40 lines.
 Nothing half-done. The system is property-agnostic, and P-001 is loaded
 from Plan v6.0 (23 Sep 2026).
 
+**A second candidate: P-002, 1 Walnut Tree Cottages, Wickham.** A
+`properties` row and one `decisions` row: option 2 (a west side wing, front
+door central), capped by the owner at 1,400 sq ft GIA and a finished value of
+about 475k. Read off the agent's plan: the ground floor is about 1.3m deeper
+than the first floor, so the kitchen's rear strip is the earlier single-storey
+extension and the low beam carries the old rear wall. That strip also holds
+the sink run and the range cooker. No geometry yet. Open questions: whether
+475k is the value after the wing, comparable sales, and whether the rear
+extension survives the cap.
+
 **One live house, many drafts.** `properties` has a lifecycle (candidate,
 active, committed, owned, sold, archived) and a P-number. Exactly one
 property is "the house", enforced by one partial unique index, and every

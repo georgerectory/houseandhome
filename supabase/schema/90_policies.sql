@@ -37,7 +37,11 @@ begin
     'house_facts','decisions','palettes','contractors','invoices','scheduled_events',
     'estimate_outcomes','learned_factors','learning_runs','insight_messages',
     'property_ref_counters','work_phases','change_log','property_quantities',
-    'contradictions','gate_conditions','income_lines','monthly_actuals','salvage_items'
+    'contradictions','gate_conditions','income_lines','monthly_actuals','salvage_items',
+    'ra_variables','ra_scenarios','ra_roads','ra_road_runs','ra_rules','ra_signals',
+    'ra_auction_houses','ra_auction_calendar','ra_listings','ra_appraisals','ra_judgements',
+    'ra_comparables','ra_auction_results','ra_playbook','ra_pipeline_template',
+    'ra_pipeline_steps','ra_evidence','ra_sensitivity'
   ] loop
     execute format('alter table public.%I enable row level security', t);
     execute format('alter table public.%I force row level security', t);
@@ -53,7 +57,7 @@ declare t text;
 begin
   foreach t in array array[
     'confidence_levels','trades','themes','benefit_types',
-    'link_entity_types','link_kinds','work_phases'
+    'link_entity_types','link_kinds','work_phases','ra_pipeline_template'
   ] loop
     execute format('drop policy if exists %I on public.%I', t || '_read', t);
     execute format(
@@ -109,7 +113,10 @@ begin
     'house_facts','decisions','palettes','contractors','invoices','scheduled_events',
     'estimate_outcomes','learned_factors','learning_runs','insight_messages',
     'change_log','property_quantities','contradictions','gate_conditions',
-    'income_lines','monthly_actuals','salvage_items'
+    'income_lines','monthly_actuals','salvage_items',
+    'ra_variables','ra_scenarios','ra_roads','ra_rules','ra_signals',
+    'ra_auction_houses','ra_auction_calendar','ra_listings','ra_comparables',
+    'ra_auction_results','ra_playbook','ra_pipeline_steps','ra_evidence'
   ] loop
     execute format('drop policy if exists %I on public.%I', t || '_read', t);
     execute format(
@@ -126,6 +133,28 @@ begin
       'create policy %I on public.%I for update to authenticated '
       || 'using (public.is_household_member(household_id)) '
       || 'with check (public.is_household_member(household_id))', t || '_update', t);
+  end loop;
+end $$;
+
+-- Road Ahead's append-only tables: members may read and add, never
+-- edit. An appraisal, a judgement, an accepted run or a sensitivity
+-- snapshot is superseded by a newer row; the old one stays as it was.
+-- The ra_append_only trigger (88_road_ahead.sql) refuses an edit from
+-- any role, the connector included; the missing policy and grant are
+-- the same rule said twice.
+do $$
+declare t text;
+begin
+  foreach t in array array['ra_road_runs','ra_appraisals','ra_judgements','ra_sensitivity'] loop
+    execute format('drop policy if exists %I on public.%I', t || '_read', t);
+    execute format(
+      'create policy %I on public.%I for select to authenticated '
+      || 'using (public.is_household_member(household_id))', t || '_read', t);
+
+    execute format('drop policy if exists %I on public.%I', t || '_insert', t);
+    execute format(
+      'create policy %I on public.%I for insert to authenticated '
+      || 'with check (public.is_household_member(household_id))', t || '_insert', t);
   end loop;
 end $$;
 
@@ -175,12 +204,23 @@ revoke execute on function public.current_household() from public, anon;
 grant execute on function public.is_household_member(uuid) to authenticated;
 grant execute on function public.current_household() to authenticated;
 
-grant execute on function public.house_context(text) to authenticated;
+grant execute on function public.house_context(text, uuid) to authenticated;
 grant execute on function public.find_tool(text) to authenticated;
 grant execute on function public.allocation_preview(uuid, numeric) to authenticated;
 grant execute on function public.run_deposit_allocation(uuid) to authenticated;
 grant execute on function public.recompute_priorities(uuid) to authenticated;
 grant execute on function public.reconcile_allocated_balances(uuid) to authenticated;
+
+-- Road Ahead's entry points. All SECURITY INVOKER: they read through the
+-- caller's own policies.
+grant execute on function public.road_ahead_context(uuid) to authenticated;
+grant execute on function public.road_ahead_agenda(uuid) to authenticated;
+grant execute on function public.road_ahead_export(uuid, text) to authenticated;
+grant execute on function public.road_ahead_inputs(uuid) to authenticated;
+grant execute on function public.ra_assess(uuid, text, text) to authenticated;
+grant execute on function public.ra_assess_inputs(uuid, jsonb, text) to authenticated;
+revoke update on public.ra_road_runs, public.ra_appraisals, public.ra_judgements,
+  public.ra_sensitivity from authenticated;
 
 -- The ref counter is written only by the SECURITY DEFINER trigger that
 -- issues P-numbers. Members may read it; nobody writes it directly.

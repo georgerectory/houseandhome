@@ -10,27 +10,26 @@ The Rectory PDF and kit (v5.0) become a tab and an engine. **The plan
 is private**: read `source_documents` 'Road Ahead build plan' before
 building. Phase 0 archived P-001 and P-002; no house is active.
 
-**Phase 1 is done (30 Sep 2026).** The engine is `engine/road-ahead/`,
-ported from the kit's Python and proven twice: `npm run test:checksums`
-reproduces all 15,732 figures the kit published on the owner's inputs
-(the kit's 43 tests included), and a committed golden master proves it
-in CI on invented ones. Private inputs: `data/road-ahead/` (gitignored),
-built by `tools/road-ahead-kit.mjs`. The owner's judgement sits beside the maths (`appraise().judgement`,
-with its reason and its cost) and a calibration agenda ranks what to
-confirm first (`node tools/road-ahead.mjs agenda`);
-`docs/road-ahead/CALIBRATION.md` is how the model stays accurate and
-grows. No owner figure is typed anywhere in the repository: the kit's
-inline ones are located structurally, and the privacy guard reads its
-markers from the private extract.
+**Phases 1 and 2 are done (30 Sep 2026).** The engine (`engine/road-ahead/`)
+reproduces all 15,773 figures the kit published (`npm run test:checksums`)
+and a committed golden master proves it in CI. The data is live
+(`88_road_ahead.sql`, `89_road_ahead_logic.sql`), seeded from the private
+extract by `tools/road-ahead-seed.mjs` and verified table by table against
+a local dry run: 63 listings, 111 variables, 13 scenarios (the frozen
+`kit-v5` among them), 72 road decisions, 89 signals. `ra_assess` matches
+the kit on all 25 register listings, `road_ahead_export()` passes the
+checksum gate, and the Pearsons countdown is on the Dashboard. Every Road
+Ahead session starts with `road_ahead_context('<household>')`; a sit-down
+follows `road_ahead_agenda` (`docs/road-ahead/CALIBRATION.md`).
 
 ## Next steps
 
-1. **Phase 2, the 21 October fast lane first:** the Pearsons lots on the
-   Dashboard before T-14, Wednesday 7 October; then the tables, the seed
-   from `data/road-ahead/kit-extract.json`, and `ra_assess` in SQL.
-2. **Listing 93774177 becomes L29** once the owner pastes its text and
+1. **Phase 3, the Road Ahead tab:** Now, the scenario bar, the register
+   and its card, the road map and ladders, Compare.
+2. **Nine kit contradictions** (`ra-` keys) await the owner, largest first
+   (`ra-forever-loan-cap`); then the household four, `regime-b-savings` first.
+3. **Listing 93774177 becomes L29** once the owner pastes its text and
    floor plan: Rightmove is blocked from this environment.
-3. Owed: a review of the four household contradictions, `regime-b-savings` first.
 
 ## Known and deliberately left
 

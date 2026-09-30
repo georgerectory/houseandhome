@@ -10,6 +10,10 @@ import { REGISTRY } from '../assets/js/engine/road-ahead/registry.js';
 import { buildParams, problems } from '../assets/js/engine/road-ahead/params.js';
 
 export const FORMAT = 'road-ahead-kit-extract/1';
+// What road_ahead_export() returns: the extract without its raw data
+// files (in Supabase those are rows) and with the monthly cash trace
+// kept for the base run only.
+export const EXPORT_FORMAT = 'road-ahead-export/1';
 
 /** Labels as the kit writes them, onto one variable. */
 function labelsOf(x) {
@@ -55,9 +59,12 @@ export function toVariables(dump) {
       const meta = labelsOf(x);
       if (!meta.evidence) Object.assign(meta, { evidence: 'ESTIMATE', source: meta.source ?? `data/assumptions.yaml ${group}` });
       put(key, dump.P0[key], meta);
-      // Sub-fields the loader lifts into keys of their own.
-      if (key === 'income.pay_rise_2027') put('income.pay_rise_month', dump.P0['income.pay_rise_month'], meta);
-      if (key === 'costs.household_contribution') put('costs.contribution_from', dump.P0['costs.contribution_from'], meta);
+      // Sub-fields the loader lifts into keys of their own. They are
+      // months: the parent's evidence and source carry over, its unit and
+      // range (pounds) do not.
+      const asMonth = { ...meta, unit: null, low: null, high: null };
+      if (key === 'income.pay_rise_2027') put('income.pay_rise_month', dump.P0['income.pay_rise_month'], asMonth);
+      if (key === 'costs.household_contribution') put('costs.contribution_from', dump.P0['costs.contribution_from'], asMonth);
     }
   }
   for (const [name, path] of Object.entries(A.market.scenarios)) {
@@ -157,8 +164,8 @@ export const valuesOf = (variables) => Object.fromEntries(Object.entries(variabl
  */
 export function validateExtract(x) {
   const out = [];
-  if (x?.format !== FORMAT) return [`not a Road Ahead kit extract (format ${x?.format})`];
-  for (const k of ['kit', 'variables', 'scenarios', 'roads', 'register', 'results', 'data']) {
+  if (x?.format !== FORMAT && x?.format !== EXPORT_FORMAT) return [`not a Road Ahead kit extract (format ${x?.format})`];
+  for (const k of ['kit', 'variables', 'scenarios', 'roads', 'register', 'results', ...(x.format === FORMAT ? ['data'] : [])]) {
     if (!x[k]) out.push(`missing ${k}`);
   }
   if (out.length) return out;

@@ -28,6 +28,28 @@ test('one day is one row: the event wins, the milestone lends its workload', () 
   assert.equal(out[0].open_items, 6, "and the milestone's pinned work is not lost");
 });
 
+test('an auction countdown row is never folded into a milestone or an event', () => {
+  // Three Pearsons lots share their countdown dates; whats_next has already
+  // folded them into one row per day, and the Dashboard must show it.
+  const out = upcoming([
+    row({ source: 'milestone', title: 'Checkpoint' }),
+    row({ source: 'pipeline', title: 'Pearsons 21 Oct: Viewing (lot 4, lot 11, lot 12)', open_items: 3 }),
+    row({ source: 'event', title: 'Open house' }),
+  ]);
+  assert.deepEqual(out.map((r) => r.source).sort(), ['event', 'pipeline']);
+  assert.equal(out.find((r) => r.source === 'pipeline').open_items, 3);
+});
+
+test('two events on one day are two things to be at', () => {
+  const out = upcoming([
+    row({ source: 'event', title: 'Viewing at ten' }),
+    row({ source: 'event', title: 'Viewing at two' }),
+    row({ source: 'milestone', title: 'From the plan', open_items: 4 }),
+  ]);
+  assert.deepEqual(out.map((r) => r.title), ['Viewing at ten', 'Viewing at two']);
+  assert.equal(out[0].open_items, 4, 'the milestone joins the first event of its day');
+});
+
 test('a milestone alone keeps its own detail', () => {
   const out = upcoming([row({ open_items: 2, description: 'The gate' })]);
   assert.equal(out[0].description, 'The gate');

@@ -93,8 +93,13 @@ export const helpSettings = (P) => ({
   min_months: P['help.min_months'],
 });
 
-/** The appraisal settings appraise() takes. */
-export const appraisalSettings = (P) => ({
+/**
+ * The appraisal settings appraise() takes. A scenario's own works factor
+ * is the optimistic one when it has one (Highly optimistic takes 0.7),
+ * and a scenario without local help prices the works as paid labour.
+ * ra_settings() in 89_road_ahead_logic.sql applies the same two rules.
+ */
+export const appraisalSettings = (P, scenario = {}) => ({
   cash_at_purchase: P['appraisal.cash_at_purchase'],
   buy_costs: P['appraisal.buy_costs'],
   day_one_kit: P['appraisal.day_one_kit'],
@@ -102,14 +107,14 @@ export const appraisalSettings = (P) => ({
   sell_pct: P['appraisal.sell_pct'],
   sell_fixed: P['appraisal.sell_fixed'],
   target_profit: P['appraisal.target_profit'],
-  works_factor: P['appraisal.works_factor'],
+  works_factor: scenario.works_factor ?? P['appraisal.works_factor'],
   walk_from: P['appraisal.walk_from'],
   walk_to: P['appraisal.walk_to'],
   walk_step: P['appraisal.walk_step'],
   stretch_below: P['appraisal.stretch_below'],
   near_minutes: P['help.near_minutes'],
-  help_near_cost: P['help.near.cost'],
-  help_far_cost: P['help.far.cost'],
+  help_near_cost: scenario.help === false ? 1 : P['help.near.cost'],
+  help_far_cost: scenario.help === false ? 1 : P['help.far.cost'],
   ceiling_hard: P['ceiling.hard'],
   verdict_strong: P['verdict.strong'],
   verdict_worth: P['verdict.worth'],

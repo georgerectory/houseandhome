@@ -3,16 +3,25 @@
 //   node tools/road-ahead.mjs roads   [--scenario <key>]      every road's headline
 //   node tools/road-ahead.mjs assess  <listing.json> [--scenario <key>]
 //   node tools/road-ahead.mjs sweep   [--from 250000 --to 420000 --step 5000 --dep 0.05]
-//   node tools/road-ahead.mjs agenda  [--road H1] [--listing <file>] [--top 10]
+//   node tools/road-ahead.mjs agenda  [--road H1] [--listing <file>] [--top 8]
+//                                     [--snapshot --household <uuid>]
 //                                                              what to confirm first
+//   node tools/road-ahead.mjs snapshot --household <uuid> --note "the owner's words"
+//                                                              accept today's road results
 //   node tools/road-ahead.mjs verify                           the checksum gate
 //   node tools/road-ahead.mjs docs                             write docs/road-ahead/VARIABLES.md
 //
-// The inputs are the owner's and PRIVATE: they come from the kit extract
-// in data/road-ahead/ (gitignored), or with --extract <file> from
-// another. Output goes to this terminal only. `docs` is the exception:
-// it writes the public variable reference, which lists keys, units and
-// meanings and never a value.
+// The inputs are the owner's and PRIVATE: the kit extract in
+// data/road-ahead/ (gitignored), or with --extract <file> another file -
+// most usefully `select road_ahead_inputs('<household>')` saved from the
+// live database, so the engine runs on today's figures. Output goes to
+// this terminal, except:
+//   * `docs` writes the public variable reference (keys, units and
+//     meanings, never a value);
+//   * `agenda --snapshot` and `snapshot` write SQL to data/road-ahead/out/
+//     (gitignored) for a session to run through the Supabase connector:
+//     the sensitivity rows the sit-down agenda ranks, and accepted road
+//     results the next change is measured against.
 //
 // A listing file for `assess` is JSON:
 //   { "name": "...", "likely_buy": 0, "fin_lo": 0, "fin_hi": 0, "works": 0,
@@ -30,9 +39,10 @@ import { fileURLToPath } from 'node:url';
 import {
   REGISTRY, buildParams, assertRunnable, helpSettings, appraisalSettings, runRoad, headline,
   highestSustainableBid, appraise, provenance, trustLine, DEPENDS,
-  sensitivity, rangesOf, calibrationAgenda, foreverBudget, walkAwayOf,
+  sensitivity, rangesOf, calibrationAgenda, combinedAgenda, foreverBudget, walkAwayOf,
 } from '../assets/js/engine/road-ahead/index.js';
 import { valuesOf } from './road-ahead-lib.mjs';
+import { sensitivitySql, runsSql } from './road-ahead-sql.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const [cmd, ...rest] = process.argv.slice(2);
@@ -50,7 +60,13 @@ function loadExtract() {
     console.error(`No private inputs at ${path}. Build them with: node tools/road-ahead-kit.mjs <kit zip>`);
     process.exit(1);
   }
-  return JSON.parse(readFileSync(path, 'utf8'));
+  const X = JSON.parse(readFileSync(path, 'utf8'));
+  const FORMATS = ['road-ahead-kit-extract/1', 'road-ahead-export/1', 'road-ahead-inputs/1'];
+  if (!FORMATS.includes(X.format)) {
+    console.error(`${path} is not Road Ahead inputs (format ${X.format}); expected one of ${FORMATS.join(', ')}`);
+    process.exit(1);
+  }
+  return X;
 }
 
 function scenarioOf(X) {
@@ -65,6 +81,30 @@ function scenarioOf(X) {
 
 const labelsOf = (X) => Object.fromEntries(Object.entries(X.variables)
   .map(([key, v]) => [key, { evidence: v.evidence, confidence: v.confidence ?? null }]));
+
+const LIVE = new Set(['chase', 'viewing', 'legal', 'survey', 'bid', 'offer']);
+/**
+ * The listings still being pursued, with the inputs the assessor takes:
+ * from road_ahead_inputs() as they stand, or from the kit's register,
+ * where a listing being chased or offer-tested is the live one.
+ */
+function liveListings(X) {
+  if (X.listings) return X.listings.filter((l) => LIVE.has(l.status) && l.inputs?.likely_buy != null);
+  return X.register.filter((r) => /^(Chase|Offer test)/.test(r.status))
+    .map((r) => ({ code: r.code, name: r.name, status: 'chase', inputs: r }));
+}
+
+const git = (args) => spawnSync('git', args, { cwd: ROOT, encoding: 'utf8' }).stdout.trim();
+// The commit the numbers came from, marked when the engine has changed since.
+const engineVersion = () => `road-ahead engine ${git(['rev-parse', '--short', 'HEAD']) || 'unknown'}`
+  + `${git(['status', '--porcelain', 'assets/js/engine/road-ahead']) ? ' with uncommitted changes' : ''}`;
+function writeOut(name, sql) {
+  const dir = join(ROOT, 'data', 'road-ahead', 'out');
+  mkdirSync(dir, { recursive: true });
+  const path = join(dir, name);
+  writeFileSync(path, `-- ${name}: written by tools/road-ahead.mjs. Private: run it through the Supabase connector.\n\n${sql}`);
+  return path;
+}
 
 function roads() {
   const X = loadExtract();
@@ -89,7 +129,7 @@ function assess() {
   const L = JSON.parse(readFileSync(resolve(file), 'utf8'));
   const [, s] = scenarioOf(X);
   const P = assertRunnable(buildParams(valuesOf(X.variables), s.overrides), 'appraisal');
-  const a = appraise(appraisalSettings(P), L);
+  const a = appraise(appraisalSettings(P, s), L);
   console.log(`${L.name ?? 'Listing'}: ${a.grade}; best road ${a.best_road}\n`);
   const rows = [
     ['Likely buy', money(L.likely_buy)], ['Finished value', `${money(L.fin_lo)} to ${money(L.fin_hi)}`],
@@ -110,26 +150,61 @@ function assess() {
 function agenda() {
   const X = loadExtract();
   const values = valuesOf(X.variables);
-  const top = Number(flag('top', 10));
+  const top = Number(flag('top', 8));
   const labels = labelsOf(X);
   const ranges = rangesOf(X.variables);
-  const code = flag('road', 'H1');
-  const road = X.roads.active.find((r) => r.code === code);
-  if (!road) { console.error(`No road ${code}.`); process.exit(1); }
-  console.log(`What to confirm first. Each input is swung across its range (its own low and high, or 10% either side);`);
-  console.log(`estimates that move the answer most come first. Swings are in pounds.\n`);
-  console.log(`${road.code} ${road.name}: the forever budget in today's money`);
-  for (const a of calibrationAgenda(sensitivity(foreverBudget(road, road.near), values, ranges), labels, { top })) {
-    console.log(`  ${a.key.padEnd(36)} ${a.why}`);
-  }
+  const only = flag('road');
+  const roads = X.roads.active.filter((r) => !only || r.code === only);
+  if (!roads.length) { console.error(`No road ${only}.`); process.exit(1); }
+  const outputs = [
+    ...roads.map((road) => [`${road.code} forever budget`, foreverBudget(road, road.near)]),
+    ...(only ? [] : liveListings(X).map((l) => [`${l.code} walk-away`, walkAwayOf(l.inputs)])),
+  ];
   const file = flag('listing');
   if (file) {
     const L = JSON.parse(readFileSync(resolve(file), 'utf8'));
-    console.log(`\n${L.name ?? 'Listing'}: the walk-away price`);
-    for (const a of calibrationAgenda(sensitivity(walkAwayOf(L), values, ranges), labels, { top })) {
-      console.log(`  ${a.key.padEnd(36)} ${a.why}`);
+    outputs.push([`${L.name ?? 'Listing'} walk-away`, walkAwayOf(L)]);
+  }
+  const snapshots = outputs.map(([output, fn]) => ({ output, rows: sensitivity(fn, values, ranges) }));
+  console.log(`What to confirm first. Each input is swung across its range (its own low and high, or 10% either side)`);
+  console.log(`and ranked by the most it moves any of ${outputs.length} answers, estimates first. Swings are in pounds.\n`);
+  for (const a of combinedAgenda(snapshots, labels, { top })) {
+    const state = a.confidence === 'confirmed' || a.confidence === 'actual' ? 'confirmed' : (a.evidence ?? 'unlabelled').toLowerCase();
+    console.log(`  ${a.key.padEnd(36)} up to ${Math.round(a.swing).toLocaleString('en-GB')} (${state}); moves ${a.moves.slice(0, 3).join(', ')}`
+      + `${a.moves.length > 3 ? ` and ${a.moves.length - 3} more` : ''}`);
+  }
+  if (rest.includes('--snapshot')) {
+    const { sql, rows, skipped } = sensitivitySql(flag('household'), snapshots, engineVersion());
+    for (const x of skipped) console.log(`  note: ${x}`);
+    const path = writeOut(`sensitivity-${new Date().toISOString().slice(0, 10)}.sql`, sql);
+    console.log(`\nwrote ${rows} sensitivity rows to ${path}: run it through the connector; road_ahead_agenda() then ranks them`);
+  }
+}
+
+function snapshot() {
+  if (!flag('note')?.trim()) {
+    console.error('An accepted run needs the owner\'s words: --note "..." (say what they accepted, and why).');
+    process.exit(2);
+  }
+  const X = loadExtract();
+  const values = valuesOf(X.variables);
+  const help = helpSettings(buildParams(values));
+  const version = engineVersion();
+  const runs = [];
+  for (const [key, s] of Object.entries(X.scenarios)) {
+    if (s.status && s.status !== 'active') continue;
+    const P = assertRunnable(buildParams(values, s.overrides), 'roads');
+    for (const road of X.roads.active) {
+      const h = headline(runRoad(road, road.near, P, { ...s, overrides: null }, help));
+      runs.push({ road_code: road.code, scenario_key: key, summary: {
+        forever_today: h.forever_today, forever_price: h.forever_price, forever_when: h.forever_when,
+        min_cash: h.min_cash, min_cash_when: h.min_cash_when, fa_used: h.fa_used, works_done: h.works_done,
+        works_left: h.works_left, profits: h.profits } });
     }
   }
+  const path = writeOut(`runs-${new Date().toISOString().slice(0, 10)}.sql`, runsSql(flag('household'), runs, version, flag('note')));
+  console.log(`wrote ${runs.length} accepted runs (${version}) to ${path}: run it through the connector;`);
+  console.log('road_ahead_agenda() then reports every forever budget that moved by £1k or more against the last accepted run.');
 }
 
 function sweep() {
@@ -185,11 +260,11 @@ function docs() {
 }
 
 const COMMANDS = {
-  roads, assess, sweep, agenda, docs,
+  roads, assess, sweep, agenda, snapshot, docs,
   verify: () => process.exit(spawnSync('node', [join(ROOT, 'tools', 'road-ahead-checksums.mjs'), ...rest], { stdio: 'inherit' }).status ?? 1),
 };
 if (!COMMANDS[cmd]) {
-  console.error('usage: node tools/road-ahead.mjs <roads|assess|sweep|agenda|verify|docs> [options]');
+  console.error('usage: node tools/road-ahead.mjs <roads|assess|sweep|agenda|snapshot|verify|docs> [options]');
   process.exit(2);
 }
 COMMANDS[cmd]();

@@ -11,7 +11,11 @@
 //
 // The inputs are PRIVATE, so this reads data/road-ahead/kit-extract.json
 // (gitignored) and SKIPS LOUDLY without it, as the SQL gate does without
-// Postgres. CI never has it; a session that does proves the port.
+// Postgres. CI never has it; a session that does proves the port. A
+// session without the kit proves it on the frozen copy in Supabase
+// instead: save `select road_ahead_export('<household>')` to a file in
+// data/road-ahead/ and pass the file. That copy keeps the monthly cash
+// trace for the base run only, so the other traces are not compared.
 // Mismatches name the field; values are printed only with --show, so a
 // log never carries a figure by accident.
 //
@@ -40,6 +44,7 @@ if (!existsSync(path)) {
 }
 
 const X = JSON.parse(readFileSync(path, 'utf8'));
+const BASE_TRACES_ONLY = X.traces === 'base';
 const invalid = validateExtract(X);
 if (invalid.length) {
   console.log(`FAIL  the extract is not valid:\n  ${invalid.join('\n  ')}`);
@@ -65,6 +70,7 @@ function same(got, want, at) {
     if (got === null || typeof got !== 'object') { misses.push({ at, got, want: 'an object' }); return; }
     const keys = new Set([...Object.keys(want), ...Object.keys(got)]);
     for (const k of keys) {
+      if (!(k in want) && k === 'trace' && BASE_TRACES_ONLY) continue;
       if (!(k in want)) misses.push({ at: `${at}.${k}`, got: got[k], want: '(absent)' });
       else if (!(k in got)) misses.push({ at: `${at}.${k}`, got: '(absent)', want: want[k] });
       else same(got[k], want[k], `${at}.${k}`);
@@ -90,7 +96,7 @@ const section = (name, fn) => {
 // ---------------------------------------------------------------
 // Roads under every variant (roads_v4.all_results).
 // ---------------------------------------------------------------
-section('roads: five roads x seven variants, traces included', () => {
+section(`roads: five roads x seven variants, ${BASE_TRACES_ONLY ? 'the base trace' : 'traces'} included`, () => {
   for (const road of X.roads.active) {
     const want = R.roads_v4[road.code];
     const r = withHelp(road, road.near, help);

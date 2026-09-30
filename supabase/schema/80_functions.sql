@@ -351,8 +351,16 @@ $$;
 -- immediately competent instead of guessing or asking.
 --
 -- Passing null returns the whole-house summary.
+--
+-- The household may be named. The Supabase connector runs with no
+-- signed-in user, so current_household() is null there and a session
+-- grounding through it passes its household explicitly:
+--   select house_context(null, '<household id>');
+-- This is SECURITY INVOKER, so a signed-in caller naming another
+-- household still sees only what their own policies allow: nothing.
 -- ---------------------------------------------------------------
-create or replace function public.house_context(p_room_key text default null)
+drop function if exists public.house_context(text);
+create or replace function public.house_context(p_room_key text default null, p_household uuid default null)
 returns jsonb
 language plpgsql
 stable
@@ -360,7 +368,7 @@ security invoker
 set search_path = public
 as $$
 declare
-  v_hh uuid := public.current_household();
+  v_hh uuid := coalesce(p_household, public.current_household());
   v_prop uuid;
   v_room uuid;
   v_out jsonb;
@@ -444,6 +452,9 @@ begin
                     'decided_on', d.decided_on) order by d.decided_on desc), '[]'::jsonb)
                    from public.decisions d
                   where d.household_id = v_hh and d.status = 'active'
+                    -- The house's decisions only; the road's are in
+                    -- road_ahead_context() (domain arrives in 88_road_ahead.sql).
+                    and d.domain = 'house'
                     and public.in_default_scope(d.household_id, d.property_id)
                     and (v_room is null or d.room_id = v_room)),
     'palettes', (select coalesce(jsonb_agg(jsonb_build_object(

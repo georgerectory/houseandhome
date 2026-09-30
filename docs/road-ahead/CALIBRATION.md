@@ -29,8 +29,25 @@ Four rules sit under all of it:
 | "Make the model more accurate" | Runs the calibration agenda and asks about the top inputs one at a time, confirming or correcting each | `ra_variables`, `change_log` |
 | "The model needs more detail here" | Grows the model, below | the registry, the engine, the tests, a `decision` |
 
-The tables arrive in Phase 2; until then the private kit extract in
-`data/road-ahead/` holds the inputs, and the command line runs on it.
+## Where it lives
+
+All of it is in Supabase, so a session in the chat app can work through
+the connector without running any code:
+
+| Call or table | For |
+|---|---|
+| `select road_ahead_context('<household>')` | Grounding, and the first call of any session: variables, scenarios, roads, rules, current decisions, open contradictions, the register, current judgements, the next dated actions. |
+| `select road_ahead_agenda('<household>')` | A sit-down, in the order below. |
+| `select ra_assess('<household>', 'L03', 'base')` | One listing's numbers on today's variables. `ra_assess_inputs('<household>', '<json>', 'base')` assesses before a listing row exists. |
+| `ra_signals` | The owner's words, and what they imply. |
+| `ra_judgements` | The owner's figure beside the maths. Append-only. |
+| `ra_variables` | Every figure, with its evidence label, confidence and range. A money figure changes only with `house.change_why` set. |
+| `ra_sensitivity` | What each input does to each answer; `ra_calibration_queue` ranks it. |
+| `decisions` (domain road) | A changed rule or road, or a change to the model's structure (topic Model). |
+
+A Claude Code session can also run the JavaScript engine on today's
+figures: save `select road_ahead_inputs('<household>')` to a file in
+`data/road-ahead/` (gitignored) and pass it with `--extract <file>`.
 
 ## The owner's judgement beside the maths
 
@@ -50,6 +67,18 @@ a judgement - a walk-away figure or a premium above the maths - and:
   or it is more than three months old, because a feeling about a house
   is worth checking against what has been learned since.
 
+A judgement is a row, never an edit. The value is a number: the
+walk-away itself, or the premium above the maths.
+
+    insert into ra_judgements (household_id, listing_id, field, value, reason, kind, signal_code)
+    values ('<household>',
+            (select id from ra_listings where household_id = '<household>' and code = 'L03'),
+            'premium', '10000', '<the owner''s words>', 'emotional', '<the signal''s code>');
+
+A change of mind is a new row whose `supersedes_id` names the old one;
+both stay. `ra_assess` then returns the judgement beside the maths, and
+so does the command line:
+
     node tools/road-ahead.mjs assess listing.json    shows both, and the cost
 
 ## The agenda for a sit-down
@@ -60,19 +89,28 @@ front of it rather than a question, in this order:
 1. **Dated actions** - auction countdowns, viewings, legal packs.
 2. **Contradictions** the model has found, one at a time.
 3. **The calibration agenda** - the inputs that move the answer most
-   while still being estimates:
+   while still being estimates. Each input is swung across its range
+   (its own low and high, or 10% either side) and ranked by how far it
+   moves any road's forever budget or a live listing's walk-away, with a
+   confirmed figure weighted at a tenth. Each input appears once, at its
+   largest effect, top eight: five questions that move the answer by
+   tens of thousands beat fifty that move it by hundreds.
 
-       node tools/road-ahead.mjs agenda --road H1 [--listing listing.json]
+   The swings come from the engine, so a Claude Code session refreshes
+   them whenever the figures change:
 
-   Each input is swung across its range (its own low and high, or 10%
-   either side) and ranked by how far it moves the forever budget or the
-   walk-away, weighted towards what is unconfirmed. Five questions that
-   move the answer by tens of thousands beat fifty that move it by
-   hundreds.
+       node tools/road-ahead.mjs agenda --extract <inputs file> --snapshot --household <uuid>
+
+   which prints the agenda and writes `data/road-ahead/out/sensitivity-<date>.sql`
+   to run through the connector. `road_ahead_agenda` then ranks from the
+   latest snapshot.
 4. **Judgements to revisit.**
 5. **Signals not yet reflected** in a rule, a road or a fit criterion.
-6. **What moved since last time** - every figure that shifted by £1k or
-   more, and why.
+6. **What moved since last time** - every road result that shifted by
+   £1k or more between accepted runs, and why. A run is accepted with
+   the owner's words attached:
+
+       node tools/road-ahead.mjs snapshot --extract <inputs file> --household <uuid> --note "<the owner's words>"
 
 Each answer is written as it is given and read back. Priority is not a
 question; nor is any figure the maths derives.

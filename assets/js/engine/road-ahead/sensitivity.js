@@ -89,6 +89,36 @@ export function calibrationAgenda(rows, labels, { top = 10, confirmedWeight = 0.
     .slice(0, top);
 }
 
+/**
+ * One agenda across several answers: each input once, at its largest
+ * weighted swing, with every answer it moves. The same aggregation as
+ * the calibrate list of road_ahead_agenda() in 89_road_ahead_logic.sql.
+ * @param {Array<{output:string, rows:ReturnType<typeof sensitivity>}>} snapshots
+ * @param {Object<string, {evidence?:string, confidence?:string}>} labels
+ * @param {{top?:number, confirmedWeight?:number}} [opts]
+ * @returns {Array<{key:string, score:number, swing:number, moves:string[],
+ *                  confidence:string|null, evidence:string|null}>}
+ */
+export function combinedAgenda(snapshots, labels, { top = 8, confirmedWeight = 0.1 } = {}) {
+  const byKey = new Map();
+  for (const { output, rows } of snapshots) {
+    for (const r of rows) {
+      if (!Number.isFinite(r.swing) || r.swing <= 0) continue;
+      const l = labels[r.key] ?? {};
+      const score = r.swing * (TRUSTED.has(l.confidence) ? confirmedWeight : 1);
+      const held = byKey.get(r.key) ?? { key: r.key, score: 0, swing: 0, moves: [], confidence: l.confidence ?? null, evidence: l.evidence ?? null };
+      held.moves.push({ output, score });
+      held.score = Math.max(held.score, score);
+      held.swing = Math.max(held.swing, r.swing);
+      byKey.set(r.key, held);
+    }
+  }
+  return [...byKey.values()]
+    .map((h) => ({ ...h, moves: h.moves.sort((a, b) => b.score - a.score).map((m) => m.output) }))
+    .sort((a, b) => b.score - a.score || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0))
+    .slice(0, top);
+}
+
 // The road outputs apply local help from P itself, so swinging a help
 // factor is measured like any other input.
 const asRun = (road, near, P, scenario) => {

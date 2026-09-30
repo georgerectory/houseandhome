@@ -77,9 +77,9 @@ async function loadLive() {
     // that drive the shopping list. The roadmap says what matters most;
     // this says what is actually doable.
     sb.from('work_item_readiness').select('*'),
-    // The diary. Milestones and events in one list, with days_until
-    // already counted - see 65_diary.sql for why that is not the page's
-    // job.
+    // The diary. Milestones, events and the auction countdown in one
+    // list, with days_until already counted - see whats_next in
+    // 89_road_ahead_logic.sql for why that is not the page's job.
     sb.from('whats_next').select('*').order('days_until'),
   ]);
   const { data: pot, error: potError } = await sb.from('pots')

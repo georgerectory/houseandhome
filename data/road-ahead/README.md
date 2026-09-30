@@ -14,9 +14,23 @@ principle, the owner's plans and every figure the Rectory kit published.
 from the objects its Python ran on (see `tools/road-ahead-kit.py`), with
 every variable labelled twice: the kit's evidence label and the portal's
 confidence (STATED is confirmed, VERIFIED researched, ESTIMATE and CHECK
-drafted, per the owner's answer of 30 Sep 2026). Once the Road Ahead
-tables exist the database holds the same inputs, and an export from it
-lands here too.
+drafted, per the owner's answer of 30 Sep 2026).
+
+The database now holds the same inputs, and three more things land here:
+
+    node tools/road-ahead-seed.mjs --household <uuid>
+        seed/: the first load of Supabase from the extract, as SQL files
+        to run through the connector in order, and 99_verify.sql with
+        expected.json to prove the load. Idempotent; it never overwrites
+        a row that exists.
+    select road_ahead_inputs('<household>')     saved as a .json file
+        today's figures, for any command above with --extract <file>
+    select road_ahead_export('<household>')     saved as a .json file
+        the frozen kit-v5 scenario, which the checksum gate accepts in
+        place of the extract: node tools/road-ahead-checksums.mjs <file>
+
+`out/` is where `agenda --snapshot` and `snapshot` write the SQL that
+records a sensitivity run or an accepted road result.
 
 Two gates depend on this directory, and neither may be removed:
 

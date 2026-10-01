@@ -37,7 +37,7 @@ import { spawnSync } from 'node:child_process';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  REGISTRY, buildParams, assertRunnable, helpSettings, appraisalSettings, runRoad, headline,
+  REGISTRY, buildParams, assertRunnable, helpSettings, appraisalSettings, runRoad, headline, focusRoad,
   highestSustainableBid, appraise, provenance, trustLine, DEPENDS,
   sensitivity, rangesOf, calibrationAgenda, combinedAgenda, foreverBudget, walkAwayOf,
 } from '../assets/js/engine/road-ahead/index.js';
@@ -138,6 +138,21 @@ function assess() {
     ['Walk-away (optimistic)', money(a.walk_away_opt)], ['Bid limit', money(a.bid_limit)], ['Cash left', money(a.cash_left)],
   ];
   for (const [label, v] of rows) console.log(`  ${label.padEnd(48)} ${v}`);
+  // Focus road: the listing as House 1 on its best road, against the
+  // road's own typical House 1, as the page's card shows it.
+  const road = X.roads.active.find((r) => r.code === a.best_road && r.stages.some((st) => st.kind === 'buy'));
+  if (road) {
+    const help = helpSettings(P);
+    const run = (r) => headline(runRoad(r, road.near, P, { ...s, overrides: null }, help));
+    const own = run(road);
+    const mine = run(focusRoad(road, { name: L.name, likely_buy: L.likely_buy, works: L.works, fin_lo: L.fin_lo,
+      fin_hi: L.fin_hi, fee: L.fee ?? 0, pct: L.pct ?? 0 }));
+    const diff = (mine.forever_today ?? 0) - (own.forever_today ?? 0);
+    console.log(`\n  As House 1 on ${road.code}: the forever home is ${k(mine.forever_today)} in today's money`
+      + `${mine.forever_when ? ` from ${mine.forever_when}` : ''}, ${k(Math.abs(diff))} ${diff >= 0 ? 'more' : 'less'} than`
+      + ` the road's own House 1 gives; the cash is lowest at ${k(mine.min_cash)}${mine.min_cash_when ? ` in ${mine.min_cash_when}` : ''}.`);
+    for (const f of mine.flags) console.log(`    FLAG ${f}`);
+  }
   const j = a.judgement;
   if (j) {
     console.log(`\n  Your judgement (${j.kind}): walk away at ${money(j.walk_away)}, ${money(j.difference)} from the maths - "${j.reason}"`);

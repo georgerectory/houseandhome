@@ -23,7 +23,7 @@ Four rules sit under all of it:
 | The owner says | Claude does | Where it lands |
 |---|---|---|
 | "My situation has changed" - pay, savings, rent, timing | Changes the variable with its reason; what the owner states is confirmed, dated; re-runs the roads and reports every figure that moved by £1k or more | `ra_variables`, `change_log` |
-| "I found a property" | Runs the assessment protocol: the hard rules, dated comparables, the kit's method; writes the appraisal with its sources and labels | `ra_listings`, `ra_appraisals` |
+| "I found a property" | Runs the assessment protocol (`ASSESS_PROPERTY.md`): the hard rules, dated comparables, the kit's method; writes the appraisal with its sources and labels | `ra_listings`, `ra_appraisals` |
 | "I like this, or I don't, because ..." (a house or a road) | Records the words as a signal with what they imply, linked to the house or road; where they change a rule, a fit criterion or a road, puts that change to the owner as a clickable question and records the decision | `ra_signals`, `knowledge_links`, `decisions` |
 | "I'd pay more for this one, or less, because ..." | Records a judgement beside the maths: the figure or the premium, the reason and its kind - emotional, personal, strategic, or new information | `ra_judgements`; `appraise()` returns it beside the maths |
 | "Make the model more accurate" | Runs the calibration agenda and asks about the top inputs one at a time, confirming or correcting each | `ra_variables`, `change_log` |

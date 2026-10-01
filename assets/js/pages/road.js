@@ -13,13 +13,14 @@ import { escape } from '../core/format.js';
 import { readState, writeState, control, parseValue, showValue, CONTROLS } from '../engine/road-ahead/page/state.js';
 import { resolve, currentValues, defaultScenario } from '../engine/road-ahead/page/resolve.js';
 import { runAll, registerRows, compare } from '../engine/road-ahead/page/model.js';
-import { scenarioMessage, judgementMessage } from '../engine/road-ahead/page/message.js';
+import { scenarioMessage, judgementMessage, assessMessage } from '../engine/road-ahead/page/message.js';
 import { nowHtml } from './road/now.js';
 import { barHtml, syncBar, syncSum, wireBar, copyMessage } from './road/bar.js';
 import { registerHtml } from './road/register.js';
 import { cardHtml } from './road/card.js';
 import { roadsHtml } from './road/roads.js';
 import { compareHtml } from './road/compare.js';
+import { assessHtml } from './road/assess.js';
 
 const user = await requireAuth();
 if (!user) throw new Error('redirecting to login');
@@ -38,13 +39,14 @@ let last = null;
 render('[data-page-root]', `
   ${isDemo() ? `<div class="notice" role="note"><span class="notice__title">Demo data</span>${escape(data.meta.note)}</div>` : ''}
   <nav class="rd-jump" aria-label="On this page">
-    <a href="#now">Now</a><a href="#register">Register</a><a href="#roads">Roads</a><a href="#compare">Compare</a>
+    <a href="#now">Now</a><a href="#register">Register</a><a href="#assess">Assess</a><a href="#roads">Roads</a><a href="#compare">Compare</a>
   </nav>
   <div data-rd="missing"></div>
   <section class="section rd-section" id="now" aria-labelledby="now-h"><h2 id="now-h">Now</h2><div data-rd="now"></div></section>
   <div class="rd-bar" data-rd="bar" role="region" aria-label="Scenario and what-ifs"></div>
   <section class="section rd-section" id="register" aria-labelledby="register-h"><h2 id="register-h">Register</h2>
     <div data-rd="card"></div><div data-rd="register"></div></section>
+  <section class="section rd-section" id="assess" aria-labelledby="assess-h"><h2 id="assess-h">Assess</h2><div data-rd="assess"></div></section>
   <section class="section rd-section" id="roads" aria-labelledby="roads-h"><h2 id="roads-h">Roads</h2><div data-rd="roads"></div></section>
   <section class="section rd-section" id="compare" aria-labelledby="compare-h"><h2 id="compare-h">Compare</h2><div data-rd="compare"></div></section>
 `);
@@ -78,7 +80,7 @@ function cardFor(rows, ctx, runs) {
 // A repaint replaces the register, the card and the roads. Whoever was
 // on a control keeps their place on its successor, and a money ladder
 // that was open stays open.
-const REFOCUS = ['data-sort', 'data-filter', 'data-listing', 'data-judge'];
+const REFOCUS = ['data-sort', 'data-filter', 'data-listing', 'data-judge', 'data-assess-text', 'data-assess-copy'];
 function focusKey() {
   const el = document.activeElement;
   if (!el?.closest('[data-rd]') || el.closest('[data-rd="bar"]')) return null;
@@ -98,12 +100,20 @@ function paint() {
   last = { ctx, runs, rows };
   render(host('register'), registerHtml(rows, state, ctx));
   render(host('card'), cardFor(rows, ctx, runs));
+  renderAssess(rows, ctx);
   render(host('roads'), roadsHtml(ctx, runs, data));
   render(host('compare'), compareHtml(ctx, runs, compare(data, state.values)));
   syncBar(host('bar'), state, current, ctx.row.name);
   syncSum(host('bar'), runs);
   for (const k of ladders) host('roads').querySelector(`details[data-keep="${CSS.escape(k)}"]`)?.setAttribute('open', '');
   if (keep) document.querySelector(keep)?.focus();
+}
+
+// The pasted text is the owner's typing: a repaint keeps it.
+function renderAssess(rows, ctx) {
+  const typed = host('assess').querySelector('[data-assess-text]')?.value ?? '';
+  render(host('assess'), assessHtml(rows, data, ctx));
+  host('assess').querySelector('[data-assess-text]').value = typed;
 }
 
 let queued = false;
@@ -161,6 +171,14 @@ host('register').addEventListener('click', (e) => {
   }
   const l = e.target.closest('[data-listing]');
   if (l) openCard(l.dataset.listing);
+});
+
+host('assess').addEventListener('click', (e) => {
+  const l = e.target.closest('[data-listing]');
+  if (l) openCard(l.dataset.listing);
+  if (e.target.closest('[data-assess-copy]')) {
+    copyMessage(host('bar'), assessMessage(host('assess').querySelector('[data-assess-text]').value), 'the listing for Claude to assess');
+  }
 });
 
 host('card').addEventListener('click', (e) => {

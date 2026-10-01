@@ -25,6 +25,8 @@ const at = (path) => fileURLToPath(new URL(`../${path}`, import.meta.url));
 export const FIXTURE_PATH = at('data/fixtures/road-ahead.json');
 const golden = JSON.parse(readFileSync(at('tests/fixtures/road-ahead-golden.json'), 'utf8'));
 const ON = '2026-09-30';
+// The listings with a full answer were appraised last, so the Assess section shows them.
+const EARLIER = '2026-09-23';
 const INVENTED = 'Invented for the demo';
 
 // --- Variables ------------------------------------------------------
@@ -172,17 +174,36 @@ const LISTINGS = [
     detached: true, beds: 4, guide_price: 275000, flag: 'Title is possessory: ask the lender', reaction: null }),
   L('L02', 'X07', { name: '2 Orchard Row, Brimley', postcode: 'AB3 4EF', status: 'chase', sale_method: 'auction',
     house_code: 'FBK', lot: '9', auction_on: '2026-10-21', property_type: 'Extended 3-bed detached bungalow',
-    detached: true, beds: 3, guide_price: 260000, flag: 'Guide looks low: expect a crowd' }),
+    detached: true, beds: 3, guide_price: 260000, flag: 'Guide looks low: expect a crowd', floor_area_m2: 118,
+    answer: {
+      verdict: 'Strong (stretch) for H3: sub-optimal, it leaves little cash for the works',
+      positives: ['A wide spread between the price it will take and its finished value',
+        'Single-storey work: quick, and within the help nearby', 'Three comparables sold on the same road'],
+      negatives: ['The guide is low, so the room will be busy', 'A flat-roofed extension to check'],
+      next_checks: ['The legal pack, for the extension\'s approvals', 'A roofer on the flat roof'],
+    } }),
   L('L03', 'X12', { name: 'The Old Forge, Fernwick', postcode: 'AB5 6GH', status: 'chase', sale_method: 'auction',
     house_code: 'FBK', lot: '3', auction_on: '2026-10-21', property_type: '4-bed character house on a large plot',
     detached: true, beds: 4, guide_price: 320000, reaction: 'The demo favourite',
-    flag: 'Likely to go well over guide' }),
+    flag: 'Likely to go well over guide', floor_area_m2: 164,
+    answer: {
+      verdict: 'Over budget for GE: sub-optimal, it is dearer than the ceiling allows',
+      positives: ['The largest plot on the register', 'Character that sells quickly once finished'],
+      negatives: ['Likely to go well over guide', 'The works are the biggest in the demo'],
+      next_checks: ['What the last three lots at this house went for against their guides'],
+    } }),
   L('L04', 'X04', { name: 'Hollins Farm Close, Oakhollow', postcode: 'AB7 8IJ', status: 'chase', sale_method: 'mmoa',
     property_type: '3-bed detached, renovation potential', detached: true, beds: 3, asking_price: 285000,
     flag: 'A 5% buyer fee on top' }),
   L('L05', 'X02', { name: 'Ivy Lodge, Netherfold', postcode: 'AB9 1KL', status: 'watch', sale_method: 'auction',
     house_code: 'CLV', lot: '21', auction_on: '2026-11-05', property_type: '3-bed detached cottage',
-    detached: true, beds: 3, guide_price: 230000, flag: 'An hour away: little help nearby' }),
+    detached: true, beds: 3, guide_price: 230000, flag: 'An hour away: little help nearby', floor_area_m2: 96,
+    answer: {
+      verdict: 'Strong for H3: optimal',
+      positives: ['Clears the target profit with room to spare', 'Leaves cash for the works after buying'],
+      negatives: ['An hour away, so little help nearby'],
+      next_checks: ['Whether the auction house takes a proxy bid', 'The drainage: the listing does not say'],
+    } }),
   L('L06', 'X03', { name: '12 Station Road, Brackenmere', postcode: 'AB2 3MN', status: 'watch', sale_method: 'mmoa',
     property_type: '1-bed semi', detached: false, beds: 1, asking_price: 125000, flag: 'One bedroom only' }),
   L('L07', 'X11', { name: 'Beech End, Wrenfield', postcode: 'AB4 5OP', status: 'watch', sale_method: 'private',
@@ -220,16 +241,20 @@ for (const x of LISTINGS) {
     postcode: x.postcode, links: [`https://example.org/demo/${x.code.toLowerCase()}`], source: INVENTED,
     house_code: x.house_code ?? null, lot: x.lot ?? null, auction_on: auction,
     auction_at: auction ? `${auction}T10:00:00+00:00` : null, sale_method: x.sale_method,
-    property_type: x.property_type, detached: x.detached, beds: x.beds, baths: null, floor_area_m2: null,
+    property_type: x.property_type, detached: x.detached, beds: x.beds, baths: null, floor_area_m2: x.floor_area_m2 ?? null,
     plot_acres: null, condition: null, minutes_from_home: src.mins, guide_price: x.guide_price ?? null,
     asking_price: x.asking_price ?? null, fee: src.fee, fee_pct: src.pct, purpose: 'candidate',
     status: x.status, status_reason: x.status_reason ?? null, reaction: x.reaction ?? null, flag: x.flag ?? null,
     category: null, notes: null, confidence: 'drafted', checked_on: ON,
-    appraised_on: ON, protocol: 'road-ahead-1', inputs, outputs: out, fits, verdict: out.grade,
+    appraised_on: x.answer ? ON : EARLIER, protocol: 'road-ahead-1', inputs, outputs: out, fits,
+    verdict: x.answer?.verdict ?? out.grade,
     override_grade, override_reason,
-    positives: [], negatives: [], red_flags: x.flag ? [x.flag] : [], next_checks: [],
+    positives: x.answer?.positives ?? [], negatives: x.answer?.negatives ?? [],
+    red_flags: x.flag ? [x.flag] : [], next_checks: x.answer?.next_checks ?? [],
     days_to_auction: auction ? dayDiff(auction, ON) : null,
     judgements: null, next_step: null, write_up_on: null, write_up_verdict: null,
+    sources: [{ what: 'Invented for the demo', on: ON }],
+    labels: { likely_buy: 'ESTIMATE', fin_lo: 'VERIFIED', fin_hi: 'VERIFIED', works: 'ESTIMATE', mins: 'STATED' },
   });
 }
 // Two rows with no appraisal: a benchmark and one still to be looked at.
@@ -239,13 +264,15 @@ register.push(
     property_type: '6-bed Georgian rectory', beds: 6, guide_price: null, asking_price: 895000, fee: 0, fee_pct: 0,
     minutes_from_home: 30, purpose: 'benchmark', status: 'watch', flag: null, reaction: 'What the forever home looks like',
     appraised_on: null, protocol: null, inputs: null, outputs: null, fits: [], verdict: null,
-    override_grade: null, override_reason: null, red_flags: [], days_to_auction: null },
+    override_grade: null, override_reason: null, red_flags: [], days_to_auction: null,
+    positives: [], negatives: [], next_checks: [], floor_area_m2: null, sources: null, labels: null },
   { ...register[0], id: 'demo-G02', code: 'G02', name: '7 Mill Lane, Brimley', address: '7 Mill Lane, Brimley, AB3 2BB',
     postcode: 'AB3 2BB', links: [], house_code: null, lot: null, auction_on: null, auction_at: null, sale_method: 'unknown',
     property_type: '3-bed detached', beds: 3, guide_price: null, asking_price: 299000, fee: 0, fee_pct: 0,
     minutes_from_home: 25, purpose: 'candidate', status: 'unreviewed', flag: null, reaction: null,
     appraised_on: null, protocol: null, inputs: null, outputs: null, fits: [], verdict: null,
-    override_grade: null, override_reason: null, red_flags: [], days_to_auction: null },
+    override_grade: null, override_reason: null, red_flags: [], days_to_auction: null,
+    positives: [], negatives: [], next_checks: [], floor_area_m2: null, sources: null, labels: null },
 );
 
 // The owner's judgement beside the maths, on the favourite.

@@ -2170,7 +2170,7 @@
    "notes": null,
    "confidence": "drafted",
    "checked_on": "2026-09-30",
-   "appraised_on": "2026-09-30",
+   "appraised_on": "2026-09-23",
    "protocol": "road-ahead-1",
    "inputs": {
     "likely_buy": 310000,
@@ -2226,7 +2226,20 @@
     "days_until": 0
    },
    "write_up_on": null,
-   "write_up_verdict": null
+   "write_up_verdict": null,
+   "sources": [
+    {
+     "what": "Invented for the demo",
+     "on": "2026-09-30"
+    }
+   ],
+   "labels": {
+    "likely_buy": "ESTIMATE",
+    "fin_lo": "VERIFIED",
+    "fin_hi": "VERIFIED",
+    "works": "ESTIMATE",
+    "mins": "STATED"
+   }
   },
   {
    "id": "demo-L02",
@@ -2248,7 +2261,7 @@
    "detached": true,
    "beds": 3,
    "baths": null,
-   "floor_area_m2": null,
+   "floor_area_m2": 118,
    "plot_acres": null,
    "condition": null,
    "minutes_from_home": 15,
@@ -2300,15 +2313,25 @@
      3
     ]
    ],
-   "verdict": "Strong (stretch)",
+   "verdict": "Strong (stretch) for H3: sub-optimal, it leaves little cash for the works",
    "override_grade": null,
    "override_reason": null,
-   "positives": [],
-   "negatives": [],
+   "positives": [
+    "A wide spread between the price it will take and its finished value",
+    "Single-storey work: quick, and within the help nearby",
+    "Three comparables sold on the same road"
+   ],
+   "negatives": [
+    "The guide is low, so the room will be busy",
+    "A flat-roofed extension to check"
+   ],
    "red_flags": [
     "Guide looks low: expect a crowd"
    ],
-   "next_checks": [],
+   "next_checks": [
+    "The legal pack, for the extension's approvals",
+    "A roofer on the flat roof"
+   ],
    "days_to_auction": 21,
    "judgements": null,
    "next_step": {
@@ -2317,7 +2340,20 @@
     "days_until": 0
    },
    "write_up_on": null,
-   "write_up_verdict": null
+   "write_up_verdict": null,
+   "sources": [
+    {
+     "what": "Invented for the demo",
+     "on": "2026-09-30"
+    }
+   ],
+   "labels": {
+    "likely_buy": "ESTIMATE",
+    "fin_lo": "VERIFIED",
+    "fin_hi": "VERIFIED",
+    "works": "ESTIMATE",
+    "mins": "STATED"
+   }
   },
   {
    "id": "demo-L03",
@@ -2339,7 +2375,7 @@
    "detached": true,
    "beds": 4,
    "baths": null,
-   "floor_area_m2": null,
+   "floor_area_m2": 164,
    "plot_acres": null,
    "condition": null,
    "minutes_from_home": 20,
@@ -2387,7 +2423,7 @@
      3
     ]
    ],
-   "verdict": "Over budget",
+   "verdict": "Over budget for GE: sub-optimal, it is dearer than the ceiling allows",
    "override_grade": null,
    "override_reason": null,
    "positives": [
@@ -2420,7 +2456,20 @@
     "days_until": 7
    },
    "write_up_on": null,
-   "write_up_verdict": null
+   "write_up_verdict": null,
+   "sources": [
+    {
+     "what": "Invented for the demo",
+     "on": "2026-09-30"
+    }
+   ],
+   "labels": {
+    "likely_buy": "ESTIMATE",
+    "fin_lo": "VERIFIED",
+    "fin_hi": "VERIFIED",
+    "works": "ESTIMATE",
+    "mins": "STATED"
+   }
   },
   {
    "id": "demo-L04",
@@ -2459,7 +2508,7 @@
    "notes": null,
    "confidence": "drafted",
    "checked_on": "2026-09-30",
-   "appraised_on": "2026-09-30",
+   "appraised_on": "2026-09-23",
    "protocol": "road-ahead-1",
    "inputs": {
     "likely_buy": 280000,
@@ -2507,7 +2556,20 @@
    "judgements": null,
    "next_step": null,
    "write_up_on": null,
-   "write_up_verdict": null
+   "write_up_verdict": null,
+   "sources": [
+    {
+     "what": "Invented for the demo",
+     "on": "2026-09-30"
+    }
+   ],
+   "labels": {
+    "likely_buy": "ESTIMATE",
+    "fin_lo": "VERIFIED",
+    "fin_hi": "VERIFIED",
+    "works": "ESTIMATE",
+    "mins": "STATED"
+   }
   },
   {
    "id": "demo-L05",
@@ -2529,7 +2591,7 @@
    "detached": true,
    "beds": 3,
    "baths": null,
-   "floor_area_m2": null,
+   "floor_area_m2": 96,
    "plot_acres": null,
    "condition": null,
    "minutes_from_home": 60,
@@ -2577,15 +2639,23 @@
      2
     ]
    ],
-   "verdict": "Strong",
+   "verdict": "Strong for H3: optimal",
    "override_grade": null,
    "override_reason": null,
-   "positives": [],
-   "negatives": [],
+   "positives": [
+    "Clears the target profit with room to spare",
+    "Leaves cash for the works after buying"
+   ],
+   "negatives": [
+    "An hour away, so little help nearby"
+   ],
    "red_flags": [
     "An hour away: little help nearby"
    ],
-   "next_checks": [],
+   "next_checks": [
+    "Whether the auction house takes a proxy bid",
+    "The drainage: the listing does not say"
+   ],
    "days_to_auction": 36,
    "judgements": null,
    "next_step": {
@@ -2594,7 +2664,20 @@
     "days_until": 36
    },
    "write_up_on": null,
-   "write_up_verdict": null
+   "write_up_verdict": null,
+   "sources": [
+    {
+     "what": "Invented for the demo",
+     "on": "2026-09-30"
+    }
+   ],
+   "labels": {
+    "likely_buy": "ESTIMATE",
+    "fin_lo": "VERIFIED",
+    "fin_hi": "VERIFIED",
+    "works": "ESTIMATE",
+    "mins": "STATED"
+   }
   },
   {
    "id": "demo-L06",
@@ -2633,7 +2716,7 @@
    "notes": null,
    "confidence": "drafted",
    "checked_on": "2026-09-30",
-   "appraised_on": "2026-09-30",
+   "appraised_on": "2026-09-23",
    "protocol": "road-ahead-1",
    "inputs": {
     "likely_buy": 120000,
@@ -2681,7 +2764,20 @@
    "judgements": null,
    "next_step": null,
    "write_up_on": null,
-   "write_up_verdict": null
+   "write_up_verdict": null,
+   "sources": [
+    {
+     "what": "Invented for the demo",
+     "on": "2026-09-30"
+    }
+   ],
+   "labels": {
+    "likely_buy": "ESTIMATE",
+    "fin_lo": "VERIFIED",
+    "fin_hi": "VERIFIED",
+    "works": "ESTIMATE",
+    "mins": "STATED"
+   }
   },
   {
    "id": "demo-L07",
@@ -2720,7 +2816,7 @@
    "notes": null,
    "confidence": "drafted",
    "checked_on": "2026-09-30",
-   "appraised_on": "2026-09-30",
+   "appraised_on": "2026-09-23",
    "protocol": "road-ahead-1",
    "inputs": {
     "likely_buy": 300000,
@@ -2764,7 +2860,20 @@
    "judgements": null,
    "next_step": null,
    "write_up_on": null,
-   "write_up_verdict": null
+   "write_up_verdict": null,
+   "sources": [
+    {
+     "what": "Invented for the demo",
+     "on": "2026-09-30"
+    }
+   ],
+   "labels": {
+    "likely_buy": "ESTIMATE",
+    "fin_lo": "VERIFIED",
+    "fin_hi": "VERIFIED",
+    "works": "ESTIMATE",
+    "mins": "STATED"
+   }
   },
   {
    "id": "demo-L08",
@@ -2803,7 +2912,7 @@
    "notes": null,
    "confidence": "drafted",
    "checked_on": "2026-09-30",
-   "appraised_on": "2026-09-30",
+   "appraised_on": "2026-09-23",
    "protocol": "road-ahead-1",
    "inputs": {
     "likely_buy": 330000,
@@ -2840,7 +2949,20 @@
    "judgements": null,
    "next_step": null,
    "write_up_on": null,
-   "write_up_verdict": null
+   "write_up_verdict": null,
+   "sources": [
+    {
+     "what": "Invented for the demo",
+     "on": "2026-09-30"
+    }
+   ],
+   "labels": {
+    "likely_buy": "ESTIMATE",
+    "fin_lo": "VERIFIED",
+    "fin_hi": "VERIFIED",
+    "works": "ESTIMATE",
+    "mins": "STATED"
+   }
   },
   {
    "id": "demo-L09",
@@ -2879,7 +3001,7 @@
    "notes": null,
    "confidence": "drafted",
    "checked_on": "2026-09-30",
-   "appraised_on": "2026-09-30",
+   "appraised_on": "2026-09-23",
    "protocol": "road-ahead-1",
    "inputs": {
     "likely_buy": 260000,
@@ -2921,7 +3043,20 @@
    "judgements": null,
    "next_step": null,
    "write_up_on": null,
-   "write_up_verdict": null
+   "write_up_verdict": null,
+   "sources": [
+    {
+     "what": "Invented for the demo",
+     "on": "2026-09-30"
+    }
+   ],
+   "labels": {
+    "likely_buy": "ESTIMATE",
+    "fin_lo": "VERIFIED",
+    "fin_hi": "VERIFIED",
+    "works": "ESTIMATE",
+    "mins": "STATED"
+   }
   },
   {
    "id": "demo-L10",
@@ -2960,7 +3095,7 @@
    "notes": null,
    "confidence": "drafted",
    "checked_on": "2026-09-30",
-   "appraised_on": "2026-09-30",
+   "appraised_on": "2026-09-23",
    "protocol": "road-ahead-1",
    "inputs": {
     "likely_buy": 420000,
@@ -3008,7 +3143,20 @@
     "days_until": 15
    },
    "write_up_on": null,
-   "write_up_verdict": null
+   "write_up_verdict": null,
+   "sources": [
+    {
+     "what": "Invented for the demo",
+     "on": "2026-09-30"
+    }
+   ],
+   "labels": {
+    "likely_buy": "ESTIMATE",
+    "fin_lo": "VERIFIED",
+    "fin_hi": "VERIFIED",
+    "works": "ESTIMATE",
+    "mins": "STATED"
+   }
   },
   {
    "id": "demo-L11",
@@ -3047,7 +3195,7 @@
    "notes": null,
    "confidence": "drafted",
    "checked_on": "2026-09-30",
-   "appraised_on": "2026-09-30",
+   "appraised_on": "2026-09-23",
    "protocol": "road-ahead-1",
    "inputs": {
     "likely_buy": 200000,
@@ -3089,7 +3237,20 @@
    "judgements": null,
    "next_step": null,
    "write_up_on": null,
-   "write_up_verdict": null
+   "write_up_verdict": null,
+   "sources": [
+    {
+     "what": "Invented for the demo",
+     "on": "2026-09-30"
+    }
+   ],
+   "labels": {
+    "likely_buy": "ESTIMATE",
+    "fin_lo": "VERIFIED",
+    "fin_hi": "VERIFIED",
+    "works": "ESTIMATE",
+    "mins": "STATED"
+   }
   },
   {
    "id": "demo-L12",
@@ -3128,7 +3289,7 @@
    "notes": null,
    "confidence": "drafted",
    "checked_on": "2026-09-30",
-   "appraised_on": "2026-09-30",
+   "appraised_on": "2026-09-23",
    "protocol": "road-ahead-1",
    "inputs": {
     "likely_buy": 355000,
@@ -3165,7 +3326,20 @@
    "judgements": null,
    "next_step": null,
    "write_up_on": null,
-   "write_up_verdict": null
+   "write_up_verdict": null,
+   "sources": [
+    {
+     "what": "Invented for the demo",
+     "on": "2026-09-30"
+    }
+   ],
+   "labels": {
+    "likely_buy": "ESTIMATE",
+    "fin_lo": "VERIFIED",
+    "fin_hi": "VERIFIED",
+    "works": "ESTIMATE",
+    "mins": "STATED"
+   }
   },
   {
    "id": "demo-G01",
@@ -3218,7 +3392,9 @@
    "judgements": null,
    "next_step": null,
    "write_up_on": null,
-   "write_up_verdict": null
+   "write_up_verdict": null,
+   "sources": null,
+   "labels": null
   },
   {
    "id": "demo-G02",
@@ -3271,7 +3447,9 @@
    "judgements": null,
    "next_step": null,
    "write_up_on": null,
-   "write_up_verdict": null
+   "write_up_verdict": null,
+   "sources": null,
+   "labels": null
   }
  ],
  "comparables": [

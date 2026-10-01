@@ -219,6 +219,7 @@ grant execute on function public.road_ahead_export(uuid, text) to authenticated;
 grant execute on function public.road_ahead_inputs(uuid) to authenticated;
 grant execute on function public.ra_assess(uuid, text, text) to authenticated;
 grant execute on function public.ra_assess_inputs(uuid, jsonb, text) to authenticated;
+grant execute on function public.ra_promote_listing(uuid, text, boolean) to authenticated;
 revoke update on public.ra_road_runs, public.ra_appraisals, public.ra_judgements,
   public.ra_sensitivity from authenticated;
 

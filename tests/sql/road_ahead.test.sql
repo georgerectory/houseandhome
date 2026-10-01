@@ -42,10 +42,14 @@ values
   ('aaaaaaaa-0000-0000-0000-0000000000a1', 'L03', 'Rope Walk', 'HX', '11', current_date + 21, 'auction', 25, 'chase'),
   ('aaaaaaaa-0000-0000-0000-0000000000a1', 'L04', 'Salt Store', 'HX', '30', current_date + 21, 'auction', 50, 'watch');
 
-insert into ra_appraisals (household_id, listing_id, appraised_on, authored_by, protocol, inputs, fits)
+insert into ra_appraisals (household_id, listing_id, appraised_on, authored_by, protocol, inputs, outputs, fits,
+                           sources, labels)
 select household_id, id, current_date - 1, 'claude_code', 'road-ahead-1',
        '{"likely_buy": 250000, "fin_lo": 330000, "fin_hi": 350000, "works": 40000}',
-       '[["H1", 2], ["H2", 3], ["H3", 3]]'
+       ra_assess_inputs(household_id, '{"likely_buy": 250000, "fin_lo": 330000, "fin_hi": 350000, "works": 40000}'),
+       '[["H1", 2], ["H2", 3], ["H3", 3]]',
+       '[{"what": "Invented for these tests", "on": "2026-09-30"}]',
+       '{"likely_buy": "ESTIMATE", "fin_lo": "ESTIMATE", "fin_hi": "ESTIMATE", "works": "ESTIMATE"}'
   from ra_listings where code = 'L01';
 
 -- ---------------------------------------------------------------
@@ -396,6 +400,99 @@ begin
     perform fail('agenda', 'what moved: ' || (ag -> 'moved')::text);
   end if;
   perform pass('road ahead: the sit-down agenda - dates, calibration, old judgements, unreflected signals, what moved');
+end $$;
+
+-- ---------------------------------------------------------------
+-- An appraisal by the protocol shows its working. Each refusal runs in
+-- its own block, so nothing it tried is left behind.
+-- ---------------------------------------------------------------
+do $$
+declare
+  hh uuid := 'aaaaaaaa-0000-0000-0000-0000000000a1';
+  l uuid := (select id from ra_listings where code = 'L04');
+  good_out jsonb := ra_assess_inputs('aaaaaaaa-0000-0000-0000-0000000000a1',
+                      '{"likely_buy": 200000, "fin_lo": 280000, "fin_hi": 300000, "works": 30000}');
+  bad record;
+begin
+  for bad in select * from (values
+      ('no sources',        '[]'::jsonb,                          '{"works": "ESTIMATE"}'::jsonb, good_out,        '{}'::text[]),
+      ('a source says nothing', '[{"on": "2026-09-01"}]',         '{"works": "ESTIMATE"}',        good_out,        '{}'),
+      ('no labels',         '[{"what": "a sold price"}]',         '{}',                           good_out,        '{}'),
+      ('a fifth label',     '[{"what": "a sold price"}]',         '{"works": "GUESS"}',           good_out,        '{}'),
+      ('no answer stored',  '[{"what": "a sold price"}]',         '{"works": "ESTIMATE"}',        null,            '{}'),
+      ('four positives',    '[{"what": "a sold price"}]',         '{"works": "ESTIMATE"}',        good_out,        '{a,b,c,d}')
+    ) v(why, sources, labels, outputs, positives)
+  loop
+    begin
+      insert into ra_appraisals (household_id, listing_id, appraised_on, authored_by, protocol, inputs, outputs,
+                                 sources, labels, positives)
+      values (hh, l, current_date, 'claude_chat', 'road-ahead-1', '{"likely_buy": 200000}', bad.outputs,
+              bad.sources, bad.labels, bad.positives);
+      perform fail('shows its working', format('an appraisal with %s was accepted', bad.why));
+    exception when check_violation then null;
+    end;
+  end loop;
+  -- The kit's own kinds are left as the kit wrote them; this one is kept
+  -- only inside its block.
+  begin
+    insert into ra_appraisals (household_id, listing_id, appraised_on, authored_by, protocol, narrative)
+    values (hh, l, current_date, 'kit', 'part-n', '{"rooms": "words only"}');
+    raise exception using errcode = 'P0001', message = 'undo';
+  exception when raise_exception then null;
+  end;
+  perform pass('road ahead: an appraisal by the protocol has sources, the kit''s labels, its answer and short lists');
+end $$;
+
+-- ---------------------------------------------------------------
+-- Promotion: a listing becomes a candidate project, once, and the house
+-- only when asked.
+-- ---------------------------------------------------------------
+do $$
+declare
+  hh uuid := 'aaaaaaaa-0000-0000-0000-0000000000a1';
+  p1 uuid;
+  p2 uuid;
+begin
+  p1 := ra_promote_listing(hh, 'L02');
+  if (select property_id from ra_listings where code = 'L02') is distinct from p1
+     or (select status from properties where id = p1) <> 'candidate'
+     or (select name from properties where id = p1) <> 'Quay Row'
+     or (select ref from properties where id = p1) !~ '^P-\d{3}$' then
+    perform fail('promote', 'the listing did not become a linked candidate property');
+  end if;
+  p2 := ra_promote_listing(hh, 'L02');
+  if p2 <> p1 or (select count(*) from properties where household_id = hh) <> 1 then
+    perform fail('promote', 'promoting twice made a second property');
+  end if;
+  if exists (select 1 from properties where household_id = hh and status = 'active') then
+    perform fail('promote', 'promotion made the property the house without being asked');
+  end if;
+  if coalesce(current_setting('house.change_why', true), '') <> '' then
+    perform fail('promote', 'the reason for the link was left set for whatever the session changes next');
+  end if;
+  if not exists (select 1 from change_log where entity_id = (select id from ra_listings where code = 'L02')
+                   and field = 'property_id' and why = 'L02 promoted to a project') then
+    perform fail('promote', 'the link was not logged with its reason');
+  end if;
+  begin
+    perform ra_promote_listing(hh, 'L99');
+    perform fail('promote', 'an unknown listing was promoted');
+  exception when raise_exception then null;
+  end;
+  update ra_listings set status = 'dropped', status_reason = 'Invented: too far' where code = 'L03';
+  begin
+    perform ra_promote_listing(hh, 'L03');
+    perform fail('promote', 'a dropped listing was promoted');
+  exception when check_violation then null;
+  end;
+  update ra_listings set status = 'chase', status_reason = null where code = 'L03';
+  -- One statement at a time: a read in the same statement as the call
+  -- would see the rows as they were before it.
+  p2 := ra_promote_listing(hh, 'L02', true);
+  if p2 <> p1 or (select status from properties where id = p1) <> 'active' then
+    perform fail('promote', 'asking for the house did not make it active');
+  end if;
+  perform pass('road ahead: a listing promotes once to a linked candidate, and becomes the house only when asked');
 end $$;
 
 -- ---------------------------------------------------------------

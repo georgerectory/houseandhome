@@ -2,10 +2,11 @@
 //
 // Measuring the default render proves the page draws; it does not prove
 // the what-ifs do anything. So this switches a scenario, moves a slider,
-// resets, copies, sorts, filters, opens and closes a card, opens a money
-// ladder and follows a shared link - and after each asks whether the
-// figures actually moved, whether the URL kept up and whether the page
-// still fits. Called once per viewport and theme by check-frontend.mjs.
+// resets, copies, sorts, filters, opens and closes a card, asks for an
+// assessment, opens a money ladder and follows a shared link - and after
+// each asks whether the figures actually moved, whether the URL kept up
+// and whether the page still fits. Called once per viewport and theme by
+// check-frontend.mjs.
 
 const wait = (page, ms = 180) => page.waitForTimeout(ms);
 
@@ -139,6 +140,35 @@ export async function driveRoad(page, { label, failures, errors, measure, url })
       if (shut.card) fail('Close left the card open');
       if (shut.focus !== code) fail(`Close sent focus to ${shut.focus ?? 'nothing'}, not back to ${code}`);
     }
+  }
+
+  // Assess: the latest answers, and a pasted listing copied for Claude
+  // with the protocol. What was pasted survives a repaint.
+  const PASTED = 'Invented: a 3-bed detached house, guide £250,000';
+  if (!(await page.locator('.rd-answer').count())) fail('Assess shows none of the latest answers');
+  await page.fill('[data-assess-text]', PASTED).catch(() => fail('could not paste into Assess'));
+  await tap('[data-assess-copy]', 'copy a listing for Claude to assess');
+  await wait(page, 200);
+  const asked = await page.evaluate(() => ({
+    status: document.querySelector('[data-status]')?.textContent ?? '',
+    box: !document.querySelector('[data-copy-box]')?.hidden,
+    text: document.querySelector('[data-copy-text]')?.value ?? '',
+  }));
+  if (!/^Copied/.test(asked.status) && !asked.box) fail('Copy for Claude to assess neither copied nor showed the message');
+  if (!asked.text.includes(PASTED) || !asked.text.includes('ASSESS_PROPERTY.md')) {
+    fail('the message to assess does not carry the pasted listing and the protocol');
+  }
+  if (await page.locator('[data-adjust-panel][open]').count()) await tap('.rd-adjust > summary', 'close Adjust');
+  await tap('[data-scenario="base"]', 'press the Base pill');
+  await wait(page);
+  if (await page.inputValue('[data-assess-text]').catch(() => '') !== PASTED) fail('a repaint lost the pasted listing');
+  const answered = await page.locator('.rd-answer [data-listing]').first().getAttribute('data-listing').catch(() => null);
+  if (answered && await tap(`.rd-answer [data-listing="${answered}"]`, `open ${answered} from its answer`)) {
+    await wait(page, 300);
+    const opened = await look(page);
+    if (!opened.search.includes(`l=${answered}`) || opened.card < 200) fail(`an answer did not open ${answered}`);
+    await tap('[data-close]', 'close the card');
+    await wait(page, 200);
   }
 
   // A road's money ladder is wide; it scrolls in its frame, not the page.

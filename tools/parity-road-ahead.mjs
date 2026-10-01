@@ -202,8 +202,16 @@ function inputsParity(psql, HH) {
         delete from ra_listings where household_id = '${HH}';
         insert into ra_listings (household_id, code, name, minutes_from_home, fee, fee_pct, status) values
           ${[L('L91', 40, 1200, 0), L('L92', 15, 0, 0.045), L('L93', 'null', 900, 0), L('L94', 25, 0, 0)].join(',\n')};
-        insert into ra_appraisals (household_id, listing_id, appraised_on, authored_by, protocol, inputs, fits, override_grade, override_reason, narrative)
-        select '${HH}', l.id, a.on_date::date, 'claude_code', 'road-ahead-1', a.inputs::jsonb, a.fits::jsonb, a.grade, a.reason, a.narrative::jsonb
+        -- Appraisals with figures show their working, as the protocol
+        -- requires; the write-up without figures is the kit's kind.
+        insert into ra_appraisals (household_id, listing_id, appraised_on, authored_by, protocol, inputs, outputs, fits,
+                                   override_grade, override_reason, narrative, sources, labels)
+        select '${HH}', l.id, a.on_date::date, 'claude_code',
+               case when a.inputs::jsonb ? 'likely_buy' then 'road-ahead-1' else 'part-n' end,
+               a.inputs::jsonb,
+               case when a.inputs::jsonb ? 'likely_buy' then ra_assess_inputs('${HH}', a.inputs::jsonb) end,
+               a.fits::jsonb, a.grade, a.reason, a.narrative::jsonb,
+               '[{"what": "Invented for the parity check"}]', '{"likely_buy": "ESTIMATE"}'
           from (values
             ('L91', '2026-09-01', ${dollar({ likely_buy: 280000, fin_lo: 350000, fin_hi: 370000, works: 30000, fee: null, mins: 25 })}::text, '[["H1", 2], ["H3", 3]]', null, null, null),
             ('L92', '2026-09-02', ${dollar({ likely_buy: 250000, fin_lo: 320000, fin_hi: 340000, works: 20000, pct: 0.05 })}::text, '[]', 'Strong (keep)', 'Invented: kept longer', null),

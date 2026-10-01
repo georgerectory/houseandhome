@@ -43,3 +43,22 @@ export function judgementMessage(listing, maths) {
     'Keep the computed figures as they are.',
   ].join('\n');
 }
+
+/**
+ * Ask Claude to assess a listing by the protocol. The listing's text is
+ * what the owner pasted: Claude cannot open the portals, and must not.
+ * @param {string} pasted
+ */
+export function assessMessage(pasted) {
+  const text = String(pasted ?? '').trim();
+  return [
+    'Please assess this listing for Road Ahead, following docs/road-ahead/ASSESS_PROPERTY.md.',
+    'Search the register for it first; if it is new, give it the next L-code.',
+    '',
+    'The listing, as I pasted it:',
+    text || '[paste the listing\'s text here]',
+    '',
+    'The floor plan is attached.',
+    'My first reaction: ____',
+  ].join('\n');
+}

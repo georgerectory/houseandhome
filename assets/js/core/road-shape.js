@@ -21,7 +21,7 @@ export const ROAD_SHAPE = Object.freeze({
     'status', 'status_reason', 'reaction', 'flag', 'category', 'notes', 'confidence', 'checked_on',
     'appraised_on', 'protocol', 'inputs', 'outputs', 'fits', 'verdict', 'override_grade', 'override_reason',
     'positives', 'negatives', 'red_flags', 'next_checks', 'days_to_auction', 'judgements', 'next_step',
-    'write_up_on', 'write_up_verdict'],
+    'write_up_on', 'write_up_verdict', 'sources', 'labels'],
   // listing_code is resolved from listing_id by the loader.
   comparables: ['listing_code', 'address', 'property_type', 'price', 'kind', 'when_text', 'on_date', 'source',
     'url', 'confidence'],

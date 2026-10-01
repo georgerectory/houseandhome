@@ -371,6 +371,35 @@ create table if not exists public.ra_appraisals (
 );
 create index if not exists ra_appraisals_listing on public.ra_appraisals (listing_id, appraised_on desc, created_at desc);
 
+-- An appraisal made by Road Ahead's protocol shows its working: every
+-- source says what it is, every figure carries one of the kit's four
+-- evidence labels, the computed answer is stored beside the inputs, and
+-- the lists stay as short as the answer format says. The kit's own
+-- appraisals (register-v5, part-n) are left as the kit wrote them.
+create or replace function public.ra_shows_working(p_sources jsonb, p_labels jsonb)
+returns boolean
+language sql
+immutable
+set search_path = public
+as $$
+  select case
+    when jsonb_typeof(p_sources) <> 'array' or jsonb_array_length(p_sources) = 0 then false
+    when jsonb_typeof(p_labels) <> 'object' or p_labels = '{}'::jsonb then false
+    else not exists (select 1 from jsonb_array_elements(p_sources) s
+                      where jsonb_typeof(s) <> 'object' or coalesce(btrim(s ->> 'what'), '') = '')
+     and not exists (select 1 from jsonb_each(p_labels) l
+                      where jsonb_typeof(l.value) <> 'string'
+                         or l.value #>> '{}' not in ('STATED', 'VERIFIED', 'ESTIMATE', 'CHECK'))
+  end
+$$;
+
+alter table public.ra_appraisals drop constraint if exists ra_appraisals_shows_working;
+alter table public.ra_appraisals add constraint ra_appraisals_shows_working check (
+  protocol <> 'road-ahead-1' or (
+    coalesce(outputs ? 'walk_away_opt', false)
+    and public.ra_shows_working(sources, labels)
+    and cardinality(positives) <= 3 and cardinality(negatives) <= 3 and cardinality(next_checks) <= 3));
+
 -- ---------------------------------------------------------------
 -- ra_judgements: the owner's judgement beside the maths. Append-only.
 --

@@ -10,24 +10,24 @@ The Rectory PDF and kit (v5.0) become a tab and an engine. **The plan
 is private**: read `source_documents` 'Road Ahead build plan' before
 building. Phase 0 archived P-001 and P-002; no house is active.
 
-**Phases 1 to 3 are done (30 Sep 2026).** The engine reproduces all 15,773
+**Phases 1 to 4 are done (1 Oct 2026).** The engine reproduces all 15,773
 kit figures (`npm run test:checksums`); the data is live and proven
-(`88_`/`89_road_ahead*.sql`); and `road.html` shows it: Now, a sticky
-scenario bar whose what-ifs recompute every road and listing in the
-browser and save nothing (Copy for Claude does), the register and its
-card (the maths beside the owner's judgement, Focus road), the roads and
-Compare, driven by `tools/check-frontend-road.mjs`. Sessions start with
-`road_ahead_context('<household>')`; a sit-down follows `road_ahead_agenda`
-(`docs/road-ahead/CALIBRATION.md`).
+(`88_`/`89_road_ahead*.sql`); `road.html` shows it (Now, a sticky
+scenario bar whose what-ifs save nothing, the register and its card,
+Assess, the roads, Compare); and any Claude can assess a listing by
+`docs/road-ahead/ASSESS_PROPERTY.md`; `ra_promote_listing` makes one a
+project. Start with `road_ahead_context('<household>')`; a sit-down
+follows `road_ahead_agenda` (`docs/road-ahead/CALIBRATION.md`).
 
 ## Next steps
 
-1. **Phase 4, the assessor:** `docs/road-ahead/ASSESS_PROPERTY.md`,
-   `ra_promote_listing`, the Assess section; first run L29 (Rightmove
-   93774177), once the owner pastes its text and floor plan.
+1. **L29** (Rightmove 93774177) is the protocol's first live run, once the
+   owner pastes its text and floor plan.
 2. **Phases 5 to 7:** auctions; decisions, signals, variables and the
    Calibration section; the hand-off docs and CLAUDE.md's sit-down shape.
-3. **Nine kit contradictions** (`ra-` keys) await the owner, largest first.
+3. **Open with the owner**, largest first: `ra-takehome-156` (whether the
+   take-home above the old figure is spent or saved), the nine `ra-` kit
+   contradictions, then the household four.
 
 ## Known and deliberately left
 

@@ -12,7 +12,8 @@ import {
 import {
   runAll, compare, listingInputs, currentJudgement, registerRows, ruleChecks, sortRows, movedSince,
 } from '../../assets/js/engine/road-ahead/page/model.js';
-import { scenarioMessage, judgementMessage } from '../../assets/js/engine/road-ahead/page/message.js';
+import { scenarioMessage, judgementMessage, assessMessage } from '../../assets/js/engine/road-ahead/page/message.js';
+import { assessHtml } from '../../assets/js/pages/road/assess.js';
 
 const read = (p) => JSON.parse(readFileSync(new URL(p, import.meta.url), 'utf8'));
 const D = read('../../data/fixtures/road-ahead.json');
@@ -191,4 +192,24 @@ test('messages for Claude say what changed and ask for the owner\'s reason', () 
   const j = judgementMessage({ code: 'L03', name: 'The Old Forge' }, { walk_away_opt: 400000, bid_limit: 360000 });
   assert.match(j, /walk away at £400,000, with a bid limit of £360,000/);
   assert.match(j, /because ____/);
+  const a = assessMessage('  3-bed detached, guide £250,000  ');
+  assert.match(a, /docs\/road-ahead\/ASSESS_PROPERTY\.md/);
+  assert.match(a, /as I pasted it:\n3-bed detached, guide £250,000\n/);
+  assert.match(assessMessage(''), /\[paste the listing's text here\]/);
+});
+
+test('Assess shows the latest answers in the protocol\'s format, with labels and the mortgage check', () => {
+  const ctx = resolve(D, 'base');
+  const html = assessHtml(registerRows(D.register, ctx, D.rules), D, ctx);
+  assert.ok(!/NaN|undefined|Infinity|\[object Object\]/.test(html), 'no NaN, undefined or Infinity in the markup');
+  const shown = [...html.matchAll(/class="rd-answer__title" id="rd-answer-(\w+)"/g)].map((m) => m[1]);
+  assert.deepEqual(shown, ['L02', 'L03', 'L05'], 'the three appraised last, newest first then by code');
+  assert.match(html, /Strong for H3: optimal/);
+  assert.match(html, /rd-label--verified">verified/);
+  assert.match(html, /within the mortgage in principle/);
+  assert.match(html, /over the mortgage in principle/);
+  assert.ok((html.match(/<li>/g) ?? []).length <= 3 * 9, 'at most three of each list per answer');
+  const none = assessHtml(registerRows(D.register.map((r) => ({ ...r, protocol: 'register-v5' })), ctx, D.rules), D, ctx);
+  assert.match(none, /No listing has been assessed by the protocol yet/);
+  assert.match(none, /data-assess-copy/);
 });

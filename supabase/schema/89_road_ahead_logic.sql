@@ -361,6 +361,58 @@ set search_path = public
 as $$ select public.ra_appraise(public.ra_settings(p_household, p_scenario), p_inputs) $$;
 
 -- ---------------------------------------------------------------
+-- The bridge to the project system. A listing the owner wants to work
+-- up becomes a candidate property with the renovation template, and the
+-- listing points at it. Idempotent: a listing already promoted returns
+-- its property. It never makes the property the house unless asked, and
+-- asking goes through make_active(), with all its rules.
+--
+--   select ra_promote_listing('<household>', 'L03');          a candidate
+--   select ra_promote_listing('<household>', 'L03', true);    and the house
+-- ---------------------------------------------------------------
+create or replace function public.ra_promote_listing(p_household uuid, p_code text, p_make_active boolean default false)
+returns uuid
+language plpgsql
+security invoker
+set search_path = public
+as $$
+declare
+  l public.ra_listings;
+  v_id uuid;
+  -- The reason is the link's alone: whatever the session changes next
+  -- gives its own.
+  v_why text := current_setting('house.change_why', true);
+begin
+  select * into l from public.ra_listings where household_id = p_household and code = p_code;
+  if not found then
+    raise exception 'no listing %', p_code;
+  end if;
+  if l.purpose = 'benchmark' then
+    raise exception using errcode = 'check_violation',
+      message = format('%s is a benchmark, kept for comparison; only a candidate becomes a project', p_code);
+  end if;
+  if l.status in ('dropped', 'closed', 'lost') then
+    raise exception using errcode = 'check_violation',
+      message = format('%s is %s (%s); reopen it before working it up', p_code, l.status, l.status_reason);
+  end if;
+
+  v_id := l.property_id;
+  if v_id is null then
+    v_id := public.new_property(p_household, l.name, l.address, l.postcode, null, null, null,
+                                coalesce(l.guide_price, l.asking_price));
+    perform set_config('house.change_why', format('%s promoted to a project', p_code), true);
+    update public.ra_listings set property_id = v_id where id = l.id;
+    perform set_config('house.change_why', coalesce(v_why, ''), true);
+  end if;
+  if p_make_active then
+    perform public.make_active(p_household, (select ref from public.properties where id = v_id));
+  end if;
+  return v_id;
+end;
+$$;
+
+
+-- ---------------------------------------------------------------
 -- The auction countdown, per lot and step. Due dates are derived from
 -- the auction date. A lot being chased gets every step; a lot only
 -- watched gets auction day, so the hammer price is logged.
@@ -490,7 +542,9 @@ select
   (select jsonb_build_object('step', p.label, 'due_on', p.due_on, 'days_until', p.days_until)
      from public.ra_pipeline p where p.listing_id = l.id and not p.is_done
     order by p.sort_order limit 1) as next_step,
-  n.id as write_up_id, n.appraised_on as write_up_on, n.verdict as write_up_verdict, n.narrative
+  n.id as write_up_id, n.appraised_on as write_up_on, n.verdict as write_up_verdict, n.narrative,
+  -- Where the latest figures came from, and how far each is trusted.
+  a.sources, a.labels
 from public.ra_listings l
 left join lateral (select * from public.ra_appraisals a where a.listing_id = l.id and a.inputs ? 'likely_buy'
                     order by a.appraised_on desc, a.created_at desc limit 1) a on true

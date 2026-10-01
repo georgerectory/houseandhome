@@ -27,8 +27,8 @@ private**: `source_documents` 'Road Ahead build plan'. No house is active.
 4. **L29** (Rightmove 93774177) and Rightmove 90274116 (S-55) are
    assessed once the owner pastes their text and floor plans.
 5. **Open with the owner**, in a sit-down's order: `ra-deposit-rule`
-   first (it decides whether Hedge End and Warsash are a stretch), then
-   the nine kit `ra-` contradictions, then the household four.
+   first (5% on a private sale, 10% down at auction, less cash for an
+   October completion), then the nine kit `ra-` ones, then the household four.
 
 ## Known and deliberately left
 

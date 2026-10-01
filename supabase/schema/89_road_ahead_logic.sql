@@ -568,13 +568,16 @@ left join lateral (select * from public.ra_appraisals a where a.listing_id = l.i
 -- The road's decisions in force: active, and not superseded by a newer
 -- one. The kit's log names what each decision supersedes but sometimes
 -- leaves the older one marked locked or lean; the link decides here, and
--- the older row keeps the status the kit gave it.
+-- the older row keeps the status the kit gave it. A decision about one
+-- house follows that house: once it is archived, its decisions are
+-- archive too, read only through a comparison across the houses.
 create or replace view public.ra_current_decisions
 with (security_invoker = on) as
 select d.id, d.household_id, d.property_id, d.code, d.topic, d.title, d.decided, d.rationale,
        d.firmness, d.door, d.evidence, d.certainty, d.reopen_if, d.checkpoint, d.source, d.decided_on
 from public.decisions d
 where d.domain = 'road' and d.status = 'active'
+  and public.in_default_scope(d.household_id, d.property_id)
   and not exists (select 1 from public.knowledge_links k
                    where k.kind = 'supersedes' and k.to_type = 'decision' and k.to_id = d.id
                      and k.valid_to is null);
@@ -667,61 +670,6 @@ as $$
                from (select * from public.whats_next w where w.household_id = p_household and w.days_until >= 0
                       order by w.on_date limit 10) w),
     'agenda', 'select road_ahead_agenda(household) for the order of a sit-down');
-$$;
-
--- ---------------------------------------------------------------
--- road_ahead_agenda: what a sit-down should cover, in order
--- (docs/road-ahead/CALIBRATION.md).
--- ---------------------------------------------------------------
-create or replace function public.road_ahead_agenda(p_household uuid)
-returns jsonb
-language sql
-stable
-security invoker
-set search_path = public
-as $$
-  select jsonb_build_object(
-    'dated', (select coalesce(jsonb_agg(jsonb_build_object('on', w.on_date, 'days', w.days_until, 'what', w.title)
-                order by w.on_date), '[]')
-                from public.whats_next w where w.household_id = p_household and w.days_until between 0 and 21),
-    'contradictions', (select coalesce(jsonb_agg(jsonb_build_object('key', c.key, 'topic', c.topic,
-                'a', c.position_a, 'b', c.position_b, 'what_it_changes', c.what_it_changes) order by c.created_at), '[]')
-                from public.contradictions c where c.household_id = p_household and c.status = 'open'
-                 and public.in_default_scope(c.household_id, c.property_id)),
-    -- Each input once, at its largest weighted swing across every answer
-    -- it moves: eight questions that matter beat forty that repeat.
-    'calibrate', (select coalesce(jsonb_agg(jsonb_build_object('variable', c.variable_key, 'label', c.label,
-                'score', c.score, 'swing', c.swing, 'moves', c.moves, 'evidence', c.evidence,
-                'confidence', c.confidence) order by c.score desc, c.variable_key), '[]')
-                from (select q.variable_key, max(q.label) as label, max(q.score) as score, max(q.swing) as swing,
-                             jsonb_agg(q.output order by q.score desc) as moves,
-                             max(q.evidence) as evidence, max(q.confidence) as confidence
-                        from public.ra_calibration_queue q where q.household_id = p_household and q.score > 0
-                       group by q.variable_key order by max(q.score) desc, q.variable_key limit 8) c),
-    'judgements_to_revisit', (select coalesce(jsonb_agg(jsonb_build_object('listing', l.code, 'field', j.field,
-                'value', j.value, 'reason', j.reason, 'said_on', j.said_on)), '[]')
-                from public.ra_current_judgements j join public.ra_listings l on l.id = j.listing_id
-               where j.household_id = p_household
-                 and (j.said_on < current_date - 90
-                      or exists (select 1 from public.ra_appraisals a where a.listing_id = j.listing_id
-                                  and a.appraised_on > j.said_on))),
-    'signals_unreflected', (select coalesce(jsonb_agg(jsonb_build_object('code', s.code, 'words', s.words,
-                'implies', s.implies) order by s.said_on desc nulls last, s.code), '[]')
-                from public.ra_signals s
-               where s.household_id = p_household and s.status = 'active' and s.kind = 'signal'
-                 and not exists (select 1 from public.knowledge_links k
-                                  where k.from_type = 'signal' and k.from_id = s.id and k.valid_to is null)),
-    'moved', (select coalesce(jsonb_agg(jsonb_build_object('road', m.road_code, 'scenario', m.scenario_key,
-                'run', m.run_name, 'was', m.was, 'now', m.now, 'accepted_at', m.accepted_at,
-                'note', m.accepted_note) order by abs(m.now - m.was) desc), '[]')
-                from (select r.road_code, r.scenario_key, r.run_name, r.accepted_at, r.accepted_note,
-                             (r.summary ->> 'forever_today')::numeric as now,
-                             lag((r.summary ->> 'forever_today')::numeric) over w as was,
-                             row_number() over (partition by r.road_code, r.scenario_key, r.run_name
-                                                order by r.accepted_at desc) as latest
-                        from public.ra_road_runs r where r.household_id = p_household
-                      window w as (partition by r.road_code, r.scenario_key, r.run_name order by r.accepted_at)) m
-               where m.latest = 1 and abs(m.now - m.was) >= 1000));
 $$;
 
 -- ---------------------------------------------------------------

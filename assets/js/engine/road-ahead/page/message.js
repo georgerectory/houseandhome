@@ -62,3 +62,33 @@ export function assessMessage(pasted) {
     'My first reaction: ____',
   ].join('\n');
 }
+
+/** Ask Claude for a sit-down: the agenda, worked in its order. */
+export function sitDownMessage() {
+  return [
+    'Let\'s sit down with Road Ahead and make it more accurate.',
+    'Ground first: road_ahead_context, then road_ahead_agenda for my household.',
+    'Work the agenda in its order (docs/road-ahead/CALIBRATION.md): the dated actions, the open questions, '
+      + 'where the model and my records disagree, the figures to confirm first, my judgements due a second look, '
+      + 'my words not yet taken in, and what has moved.',
+    'One question at a time, as choices I can click. Write each answer as I give it and read it back.',
+    'Lock nothing without my confirmation.',
+  ].join('\n');
+}
+
+/**
+ * Ask Claude to re-base the model to the owner's own records.
+ * @param {{start:number[], model:number, ledger:number, asOf:string|null, thisMonth:number[]}} at
+ *   the model's start month and cash, the trusted ledger's cash and its date, and this month
+ */
+export function rebaseMessage({ start, model, ledger, asOf, thisMonth }) {
+  const month = (m) => (Array.isArray(m) ? `${m[0]}-${String(m[1]).padStart(2, '0')}` : '—');
+  return [
+    'Please re-base Road Ahead to my own records.',
+    `The model starts in ${month(start)} with ${money(model)} in cash; my confirmed accounts say ${money(ledger)}`
+      + `${asOf ? ` on ${asOf}` : ''}.`,
+    'Follow "Re-basing to today" in docs/road-ahead/CALIBRATION.md: '
+      + `timeline.start to ${month(thisMonth)} and cash.start_cash to my confirmed balance, each with its reason and source.`,
+    'Then re-run the roads and show me every figure that moves by £1k or more. Accept the new runs only when I say so.',
+  ].join('\n');
+}

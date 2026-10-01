@@ -13,7 +13,7 @@ import { escape } from '../core/format.js';
 import { readState, writeState, control, parseValue, showValue, CONTROLS } from '../engine/road-ahead/page/state.js';
 import { resolve, currentValues, defaultScenario } from '../engine/road-ahead/page/resolve.js';
 import { runAll, registerRows, compare } from '../engine/road-ahead/page/model.js';
-import { scenarioMessage, judgementMessage, assessMessage } from '../engine/road-ahead/page/message.js';
+import { scenarioMessage, judgementMessage, assessMessage, sitDownMessage, rebaseMessage } from '../engine/road-ahead/page/message.js';
 import { nowHtml } from './road/now.js';
 import { barHtml, syncBar, syncSum, wireBar, copyMessage } from './road/bar.js';
 import { registerHtml } from './road/register.js';
@@ -23,7 +23,11 @@ import { compareHtml } from './road/compare.js';
 import { assessHtml } from './road/assess.js';
 import { wireTips } from './road/tips.js';
 import { auctionsHtml } from './road/auctions.js';
+import { calibrationHtml } from './road/calibration.js';
+import { decisionsHtml } from './road/decisions.js';
+import { variablesHtml } from './road/variables.js';
 import { londonToday } from '../engine/road-ahead/page/auctions.js';
+import { sinceAccepted } from '../engine/road-ahead/page/record.js';
 
 const user = await requireAuth();
 if (!user) throw new Error('redirecting to login');
@@ -43,6 +47,7 @@ render('[data-page-root]', `
   ${isDemo() ? `<div class="notice" role="note"><span class="notice__title">Demo data</span>${escape(data.meta.note)}</div>` : ''}
   <nav class="rd-jump" aria-label="On this page">
     <a href="#now">Now</a><a href="#register">Register</a><a href="#assess">Assess</a><a href="#auctions">Auctions</a><a href="#roads">Roads</a><a href="#compare">Compare</a>
+    <a href="#calibration">Calibration</a><a href="#decisions">Decisions</a><a href="#variables">Variables</a>
   </nav>
   <div data-rd="missing"></div>
   <section class="section rd-section" id="now" aria-labelledby="now-h"><h2 id="now-h">Now</h2><div data-rd="now"></div></section>
@@ -53,6 +58,9 @@ render('[data-page-root]', `
   <section class="section rd-section" id="auctions" aria-labelledby="auctions-h"><h2 id="auctions-h">Auctions</h2><div data-rd="auctions"></div></section>
   <section class="section rd-section" id="roads" aria-labelledby="roads-h"><h2 id="roads-h">Roads</h2><div data-rd="roads"></div></section>
   <section class="section rd-section" id="compare" aria-labelledby="compare-h"><h2 id="compare-h">Compare</h2><div data-rd="compare"></div></section>
+  <section class="section rd-section" id="calibration" aria-labelledby="calibration-h"><h2 id="calibration-h">Calibration</h2><div data-rd="calibration"></div></section>
+  <section class="section rd-section" id="decisions" aria-labelledby="decisions-h"><h2 id="decisions-h">Decisions</h2><div data-rd="decisions"></div></section>
+  <section class="section rd-section" id="variables" aria-labelledby="variables-h"><h2 id="variables-h">Variables</h2><div data-rd="variables"></div></section>
 `);
 const host = (k) => document.querySelector(`[data-rd="${k}"]`);
 
@@ -76,9 +84,16 @@ setHeight(host('bar'), '--rd-bar-h');
 const base = resolve(data, fallback);
 render(host('now'), base.missing.length ? '' : nowHtml(data, base));
 
-// The auctions answer to the calendar, not to a scenario: drawn once,
-// counting from London's today (the demo's own day in demo mode).
-render(host('auctions'), auctionsHtml(data, isDemo() ? data.meta.generated : londonToday()));
+// The auctions and the record answer to the calendar and to what has
+// been said, not to a scenario: drawn once, counting from London's today
+// (the demo's own day in demo mode). What has moved since the last
+// accepted run is today's figures, before any what-if, against it.
+const today = isDemo() ? data.meta.generated : londonToday();
+render(host('auctions'), auctionsHtml(data, today));
+const since = base.missing.length ? [] : sinceAccepted(data.runs, runAll(base), fallback);
+render(host('calibration'), calibrationHtml(data, since, today));
+render(host('decisions'), decisionsHtml(data, today));
+render(host('variables'), variablesHtml(data, today));
 
 function cardFor(rows, ctx, runs) {
   const x = state.listing ? rows.find((r) => r.row.code === state.listing) : null;
@@ -183,6 +198,20 @@ host('register').addEventListener('click', (e) => {
   const l = e.target.closest('[data-listing]');
   if (l) openCard(l.dataset.listing);
 });
+
+// A sit-down and a re-base are conversations with Claude: the page
+// copies the message that starts each one.
+function rebaseText() {
+  const cash = data.ledger.find((l) => l.measure === 'cash');
+  return rebaseMessage({ start: base.P['timeline.start'], model: base.P['cash.start_cash'], ledger: cash?.ledger_value,
+    asOf: cash?.ledger_as_of ?? null, thisMonth: [Number(today.slice(0, 4)), Number(today.slice(5, 7))] });
+}
+for (const k of ['calibration', 'variables']) {
+  host(k).addEventListener('click', (e) => {
+    if (e.target.closest('[data-sitdown]')) copyMessage(host('bar'), sitDownMessage(), 'the sit-down');
+    if (e.target.closest('[data-rebase]')) copyMessage(host('bar'), rebaseText(), 'the re-base');
+  });
+}
 
 host('auctions').addEventListener('click', (e) => {
   const l = e.target.closest('[data-listing]');

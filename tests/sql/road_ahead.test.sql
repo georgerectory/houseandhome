@@ -403,6 +403,125 @@ begin
 end $$;
 
 -- ---------------------------------------------------------------
+-- The record the page and the sit-down share: one view each.
+-- ---------------------------------------------------------------
+do $$
+declare r record; ag jsonb; prop uuid;
+begin
+  -- Decisions: what each replaced and what replaced it; a decision about
+  -- a house that is not the house is archive, in force or not.
+  if not exists (select 1 from ra_decision_history where code = 'RA-T1' and not is_current and superseded_by = '{RA-T3}')
+     or not exists (select 1 from ra_decision_history where code = 'RA-T3' and is_current and supersedes = '{RA-T1}')
+     or exists (select 1 from ra_decision_history where title = 'Kitchen stays where it is') then
+    perform fail('record', 'decision history: ' || (select string_agg(code || '/' || is_current, ' ') from ra_decision_history));
+  end if;
+  -- (A third household, so household A's own count of houses stays as the promotion test expects.)
+  insert into households (id, name) values ('cccccccc-0000-0000-0000-0000000000c1', 'Road C');
+  insert into properties (household_id, name, status) values ('cccccccc-0000-0000-0000-0000000000c1', 'A candidate', 'candidate')
+  returning id into prop;
+  insert into decisions (household_id, property_id, code, domain, topic, title, decided, firmness)
+  values ('cccccccc-0000-0000-0000-0000000000c1', prop, 'RA-T4', 'road', 'Candidates', 'Close the candidate', 'Yes', 'locked');
+  if exists (select 1 from ra_decision_history where code = 'RA-T4') or exists (select 1 from ra_current_decisions where code = 'RA-T4') then
+    perform fail('record', 'a decision about a house that is not the house showed as in force');
+  end if;
+
+  -- Signals: what reflects each, by its own code.
+  insert into ra_signals (household_id, code, kind, words, said_on) values
+    ('aaaaaaaa-0000-0000-0000-0000000000a1', 'S-T2', 'signal', 'Nothing past the ring road', current_date);
+  insert into knowledge_links (household_id, from_type, from_id, to_type, to_id, kind)
+  select s.household_id, 'signal', s.id, 'listing', l.id, 'relates_to'
+    from ra_signals s, ra_listings l where s.code = 'S-T2' and l.code = 'L02';
+  insert into knowledge_links (household_id, from_type, from_id, to_type, to_id, kind)
+  select s.household_id, 'signal', s.id, 'ra_variable', v.id, 'relates_to'
+    from ra_signals s, ra_variables v where s.code = 'S-T2' and v.key = 'ceiling.hard'
+     and v.household_id = s.household_id;
+  -- A signal about a listing alone has been heard, not yet taken in.
+  insert into ra_signals (household_id, code, kind, words, said_on) values
+    ('aaaaaaaa-0000-0000-0000-0000000000a1', 'S-T3', 'signal', 'Quay Row felt cramped', current_date);
+  insert into knowledge_links (household_id, from_type, from_id, to_type, to_id, kind)
+  select s.household_id, 'signal', s.id, 'listing', l.id, 'about'
+    from ra_signals s, ra_listings l where s.code = 'S-T3' and l.code = 'L02';
+  select * into r from ra_signal_record where code = 'S-T2';
+  -- relates_to is symmetric, stored once whichever way round: both still count.
+  if r.links <> '[{"code": "L02", "reads": "Related to", "type": "listing"}, {"code": "ceiling.hard", "reads": "Related to", "type": "ra_variable"}]'::jsonb
+     or not r.is_reflected
+     or (select links from ra_signal_record where code = 'S-T1') <> '[]'::jsonb
+     or (select is_reflected or links <> '[{"code": "L02", "reads": "About", "type": "listing"}]'::jsonb
+           from ra_signal_record where code = 'S-T3') then
+    perform fail('record', 'what reflects a signal: ' || r.links::text);
+  end if;
+
+  -- Every change named by its code; a scenario's figures change only with a reason.
+  begin
+    update ra_scenarios set overrides = '{"mortgage.rate": 0.06}' where key = 'keen';
+    perform fail('record', 'a scenario''s overrides changed with no reason');
+  exception when check_violation then null;
+  end;
+  perform set_config('house.change_why', 'Rates are up', true);
+  perform set_config('house.change_source', 'A broker, in conversation', true);
+  update ra_scenarios set overrides = '{"mortgage.rate": 0.06}' where key = 'keen';
+  perform set_config('house.change_why', '', true);
+  perform set_config('house.change_source', '', true);
+  select * into r from ra_changes where entity_type = 'ra_scenarios' and code = 'keen';
+  if r.field <> 'overrides' or r.new_value::jsonb <> '{"mortgage.rate": 0.06}' or r.why <> 'Rates are up'
+     or not exists (select 1 from ra_changes where entity_type = 'ra_variables' and code = 'ceiling.hard') then
+    perform fail('record', 'changes: ' || coalesce(row_to_json(r)::text, 'none'));
+  end if;
+
+  -- Open questions only, and only the household's and the house's.
+  insert into contradictions (household_id, key, topic, source_a, position_a, source_b, position_b, what_it_changes) values
+    ('aaaaaaaa-0000-0000-0000-0000000000a1', 'ra-t-open', 'Pay', 'A', 'More', 'B', 'Less', 'Every budget');
+  insert into contradictions (household_id, key, topic, source_a, position_a, source_b, position_b, what_it_changes,
+                              status, resolution) values
+    ('aaaaaaaa-0000-0000-0000-0000000000a1', 'ra-t-shut', 'Pay', 'A', 'More', 'B', 'Less', 'Nothing now',
+     'resolved', 'The owner said');
+  insert into contradictions (household_id, property_id, key, topic, source_a, position_a, source_b, position_b,
+                              what_it_changes) values
+    ('cccccccc-0000-0000-0000-0000000000c1', null, 'ra-t-c', 'Pay', 'A', 'More', 'B', 'Less', 'Every budget'),
+    ('cccccccc-0000-0000-0000-0000000000c1', prop, 'ra-t-house', 'Walls', 'A', 'Brick', 'B', 'Block', 'The plaster');
+  if (select array_agg(key order by key) from open_contradictions where household_id = 'aaaaaaaa-0000-0000-0000-0000000000a1')
+     <> '{ra-t-open}'
+     or (select array_agg(key order by key) from open_contradictions where household_id = 'cccccccc-0000-0000-0000-0000000000c1')
+     <> '{ra-t-c}' then
+    perform fail('record', 'open questions: ' || (select string_agg(key, ' ') from open_contradictions));
+  end if;
+
+  -- A judgement is due again when it is old, or the listing was appraised since.
+  insert into ra_judgements (household_id, listing_id, field, value, reason, kind, said_on)
+  select household_id, id, 'premium', '3000', 'Quiet lane', 'personal', current_date - 10 from ra_listings where code = 'L01';
+  insert into ra_judgements (household_id, listing_id, field, value, reason, kind, said_on)
+  select household_id, id, 'premium', '1000', 'Good light', 'emotional', current_date from ra_listings where code = 'L02';
+  if (select string_agg(listing_code || ':' || is_old || ':' || (appraised_since is not null), ' ' order by listing_code)
+        from ra_judgements_to_revisit) <> 'L01:false:true L03:true:false' then
+    -- L01 was appraised yesterday, after the judgement ten days ago; L03
+    -- has no appraisal, and its judgement is four months old.
+    perform fail('record', 'judgements to revisit: '
+      || (select string_agg(listing_code || ':' || is_old || ':' || (appraised_since is not null), ' ') from ra_judgements_to_revisit));
+  end if;
+
+  -- The latest accepted run, with the forever budget of the one before.
+  select * into r from ra_accepted_runs where road_code = 'H1' and scenario_key = 'base';
+  if (r.summary ->> 'forever_today')::numeric <> 405000 or r.was_forever_today <> 400000 or r.was_accepted_at is null then
+    perform fail('record', 'accepted runs: ' || row_to_json(r)::text);
+  end if;
+
+  -- The agenda reads the same views, and now sets the ledger beside the model.
+  ag := road_ahead_agenda('aaaaaaaa-0000-0000-0000-0000000000a1');
+  if ag #>> '{ledger_gaps,0,measure}' <> 'cash' or (ag #>> '{ledger_gaps,0,model}')::numeric <> 20000
+     or (ag #>> '{ledger_gaps,0,ledger}')::numeric <> 11500 then
+    perform fail('record', 'ledger gaps: ' || (ag -> 'ledger_gaps')::text);
+  end if;
+  if (select array_agg(e ->> 'key') from jsonb_array_elements(ag -> 'contradictions') e) <> '{ra-t-open}'
+     or (select array_agg(e ->> 'listing' order by e ->> 'listing') from jsonb_array_elements(ag -> 'judgements_to_revisit') e)
+        <> '{L01,L03}'
+     or exists (select 1 from jsonb_array_elements(ag -> 'signals_unreflected') e where e ->> 'code' = 'S-T2')
+     or not exists (select 1 from jsonb_array_elements(ag -> 'signals_unreflected') e where e ->> 'code' = 'S-T3') then
+    perform fail('record', 'the agenda and the views disagree: ' || ag::text);
+  end if;
+  perform pass('road ahead: decisions, signals, changes, open questions, judgements due and runs - one view each, the agenda reading them');
+end $$;
+
+-- ---------------------------------------------------------------
 -- A countdown counts from London's day, whatever zone the session is in:
 -- the auction 21 London days away is 21 days away from Kiritimati (14
 -- hours ahead of UTC) and from Pago Pago (11 behind) alike.
@@ -549,7 +668,11 @@ begin
   if (select count(*) from ra_listings) + (select count(*) from ra_variables) + (select count(*) from ra_appraisals)
      + (select count(*) from ra_judgements) + (select count(*) from ra_signals) + (select count(*) from ra_road_runs)
      + (select count(*) from ra_sensitivity) + (select count(*) from ra_pipeline)
-     + (select count(*) from whats_next where source = 'pipeline') <> 0 then
+     + (select count(*) from whats_next where source = 'pipeline')
+     + (select count(*) from ra_decision_history) + (select count(*) from ra_signal_record)
+     + (select count(*) from ra_changes) + (select count(*) from open_contradictions)
+     + (select count(*) from ra_calibration_agenda) + (select count(*) from ra_judgements_to_revisit)
+     + (select count(*) from ra_accepted_runs) <> 0 then
     perform fail('isolation', 'user B sees household A''s Road Ahead rows');
   end if;
   ctx := road_ahead_context('aaaaaaaa-0000-0000-0000-0000000000a1');

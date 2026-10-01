@@ -209,6 +209,13 @@ async function loadRoadLive() {
     calendar: sb.from('ra_auction_calendar').select(columns('calendar')).neq('status', 'cancelled').order('on_date'),
     results: sb.from('ra_auction_results').select(withListingId('results')).order('sold_on', { ascending: false }),
     playbook: active('ra_playbook', 'playbook').order('sort_order'),
+    decisions: sb.from('ra_decision_history').select(columns('decisions')).order('code'),
+    signals: active('ra_signal_record', 'signals').order('code'),
+    changes: sb.from('ra_changes').select(columns('changes')).order('changed_at', { ascending: false }).limit(200),
+    contradictions: sb.from('open_contradictions').select(columns('contradictions')).order('created_at'),
+    calibrate: sb.from('ra_calibration_agenda').select(columns('calibrate')).order('place'),
+    revisit: sb.from('ra_judgements_to_revisit').select(columns('revisit')).order('said_on'),
+    runs: sb.from('ra_accepted_runs').select(columns('runs')).eq('run_name', 'main'),
   };
   const names = Object.keys(parts);
   const results = await Promise.all(Object.values(parts));

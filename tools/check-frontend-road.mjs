@@ -3,11 +3,11 @@
 // Measuring the default render proves the page draws; it does not prove
 // the what-ifs do anything. So this hovers the charts, switches a
 // scenario, moves a slider, resets, copies, sorts, filters, opens and
-// closes a card, asks for an assessment, reads the auctions, opens a
-// money ladder and follows a shared link - and after each asks whether
-// the figures actually moved, whether the URL kept up and whether the
-// page still fits. Called once per viewport and theme by
-// check-frontend.mjs.
+// closes a card, asks for an assessment, reads the auctions and the
+// record (Calibration, Decisions, Variables), opens a money ladder and
+// follows a shared link - and after each asks whether the figures
+// actually moved, whether the URL kept up and whether the page still
+// fits. Called once per viewport and theme by check-frontend.mjs.
 
 const wait = (page, ms = 180) => page.waitForTimeout(ms);
 
@@ -227,6 +227,42 @@ export async function driveRoad(page, { label, failures, errors, measure, url })
     await wait(page, 200);
   }
   fits(await look(page), 'with Auctions drawn');
+
+  // The record: Calibration lists what a sit-down covers and copies the
+  // message that starts one; a topic of decisions and a group of figures
+  // open on demand, and the page still fits with them open.
+  const rec = await page.evaluate(() => ({
+    questions: document.querySelectorAll('[data-rd="calibration"] .rd-sides').length,
+    confirm: /Swings the/.test(document.querySelector('[data-rd="calibration"]')?.textContent ?? ''),
+    replaced: document.querySelectorAll('[data-rd="decisions"] .rd-decided--old').length,
+    changes: document.querySelectorAll('[data-rd="variables"] .rd-changes tbody tr').length,
+  }));
+  if (!rec.questions) fail('Calibration shows no open question');
+  if (!rec.confirm) fail('Calibration names no figure to confirm first');
+  if (!rec.replaced) fail('Decisions shows no replaced decision');
+  if (!rec.changes) fail('Variables shows no change');
+  if (await tap('[data-sitdown]', 'copy the message that starts a sit-down')) {
+    await wait(page, 200);
+    const sat = await page.evaluate(() => ({
+      status: document.querySelector('[data-status]')?.textContent ?? '',
+      box: !document.querySelector('[data-copy-box]')?.hidden,
+      text: document.querySelector('[data-copy-text]')?.value ?? '',
+    }));
+    if (!/^Copied/.test(sat.status) && !sat.box) fail('the sit-down neither copied nor showed its message');
+    if (!/road_ahead_agenda/.test(sat.text)) fail('the sit-down message does not name the agenda');
+    if (await page.locator('[data-adjust-panel][open]').count()) await tap('.rd-adjust > summary', 'close Adjust');
+  }
+  for (const [sel, what, inside] of [['[data-rd="decisions"] details[data-topic] > summary', 'a topic of decisions', '.rd-item'],
+    ['[data-rd="variables"] details[data-group] > summary', 'a group of figures', '.rd-vars tbody tr']]) {
+    const sum = page.locator(sel).first();
+    try {
+      await sum.scrollIntoViewIfNeeded({ timeout: 4000 });
+      await sum.click({ timeout: 4000 });
+    } catch { fail(`could not open ${what}`); continue; }
+    await wait(page, 150);
+    if (!(await page.locator(`${sel.replace(' > summary', '[open]')} ${inside}`).count())) fail(`${what} opened empty`);
+    fits(await look(page), `with ${what} open`);
+  }
 
   // A road's money ladder is wide; it scrolls in its frame, not the page.
   const ladder = page.locator('.rd-road details > summary').first();

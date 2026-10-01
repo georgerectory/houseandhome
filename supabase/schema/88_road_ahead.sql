@@ -102,6 +102,11 @@ create unique index if not exists ra_scenarios_one_default
 drop trigger if exists ra_scenarios_updated_at on public.ra_scenarios;
 create trigger ra_scenarios_updated_at before update on public.ra_scenarios
   for each row execute function public.set_updated_at();
+-- A scenario's overrides are figures: changing one needs a reason, as a
+-- variable does. The frozen kit set is not logged; it is never changed.
+drop trigger if exists ra_scenarios_log on public.ra_scenarios;
+create trigger ra_scenarios_log after update on public.ra_scenarios
+  for each row execute function public.log_changes('money:overrides', 'money:works_factor', 'help', 'status');
 
 -- ---------------------------------------------------------------
 -- ra_roads: the ways from here to the forever home.

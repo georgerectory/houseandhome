@@ -10,21 +10,21 @@ The Rectory PDF and kit (v5.0) become a tab and an engine. **The plan
 is private**: read `source_documents` 'Road Ahead build plan' before
 building. Phase 0 archived P-001 and P-002; no house is active.
 
-**Phases 1 to 5 are done (1 Oct 2026).** The engine reproduces all 15,773
+**Phases 1 to 6 are done (1 Oct 2026).** The engine reproduces all 15,773
 kit figures (`npm run test:checksums`); the data is live and proven
 (`88_`/`89_road_ahead*.sql`); `road.html` shows it (Now, a scenario bar
 whose what-ifs save nothing, the register and card, Assess, Auctions,
-the roads, Compare; countdowns in London days); any Claude assesses a
-listing by `docs/road-ahead/ASSESS_PROPERTY.md` and promotes one with
-`ra_promote_listing`. Start with `road_ahead_context('<household>')`;
-a sit-down follows `road_ahead_agenda` (`docs/road-ahead/CALIBRATION.md`).
+the roads, Compare, Calibration, Decisions, Variables); any Claude
+assesses a listing by `docs/road-ahead/ASSESS_PROPERTY.md`. Start with
+`road_ahead_context('<household>')`; a sit-down or a re-base follows
+`docs/road-ahead/CALIBRATION.md`.
 
 ## Next steps
 
 1. **L29** (Rightmove 93774177) is the protocol's first live run, once the
    owner pastes its text and floor plan.
-2. **Phases 6 and 7:** decisions, signals, variables and the Calibration
-   section; the hand-off docs and CLAUDE.md's sit-down shape.
+2. **Phase 7:** the hand-off docs, CLAUDE.md's Road Ahead section and
+   sit-down shape, the glossary, the docs lint glob, the PDFs as rows.
 3. **Open with the owner**, largest first: `ra-takehome-156` (whether the
    take-home above the old figure is spent or saved), the nine `ra-` kit
    contradictions, then the household four.

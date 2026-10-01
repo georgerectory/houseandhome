@@ -2219,7 +2219,15 @@
    ],
    "next_checks": [],
    "days_to_auction": 21,
-   "judgements": null,
+   "judgements": [
+    {
+     "field": "walk_away",
+     "value": 262000,
+     "reason": "A ceiling set before the viewing",
+     "kind": "strategic",
+     "said_on": "2026-06-10"
+    }
+   ],
    "next_step": {
     "step": "Catalogue out: appraise, set the walk-away, book the viewing, request the legal pack",
     "due_on": "2026-09-30",
@@ -4298,6 +4306,595 @@
    "kind": "did_not_work",
    "body": "Viewing before reading the legal pack wasted a morning.",
    "sort_order": 50
+  }
+ ],
+ "decisions": [
+  {
+   "code": "D-00",
+   "topic": "Money",
+   "title": "What deposit goes down on House 1?",
+   "decided": "5%",
+   "rationale": null,
+   "firmness": "locked",
+   "door": "two-way",
+   "evidence": "STATED",
+   "certainty": "M",
+   "reopen_if": null,
+   "checkpoint": null,
+   "source": "Invented for the demo",
+   "decided_on": "2026-08-02",
+   "status": "active",
+   "is_current": false,
+   "supersedes": [],
+   "superseded_by": [
+    "D-01"
+   ]
+  },
+  {
+   "code": "D-01",
+   "topic": "Money",
+   "title": "What deposit goes down on House 1?",
+   "decided": "10%, with the rest kept for the works",
+   "rationale": "A lower rate, and still six months of works in hand",
+   "firmness": "locked",
+   "door": "one-way",
+   "evidence": "STATED",
+   "certainty": "H",
+   "reopen_if": null,
+   "checkpoint": null,
+   "source": "Invented for the demo",
+   "decided_on": "2026-09-20",
+   "status": "active",
+   "is_current": true,
+   "supersedes": [
+    "D-00"
+   ],
+   "superseded_by": []
+  },
+  {
+   "code": "D-02",
+   "topic": "Money",
+   "title": "How much cash is kept back at all times?",
+   "decided": "£5,000",
+   "rationale": null,
+   "firmness": "lean",
+   "door": "two-way",
+   "evidence": "STATED",
+   "certainty": "M",
+   "reopen_if": "The works run over by a month",
+   "checkpoint": null,
+   "source": "Invented for the demo",
+   "decided_on": "2026-09-20",
+   "status": "active",
+   "is_current": true,
+   "supersedes": [],
+   "superseded_by": []
+  },
+  {
+   "code": "D-03",
+   "topic": "Where",
+   "title": "How far from home can House 1 be?",
+   "decided": "Within 75 minutes",
+   "rationale": null,
+   "firmness": "locked",
+   "door": "two-way",
+   "evidence": "STATED",
+   "certainty": "M",
+   "reopen_if": "A job move",
+   "checkpoint": null,
+   "source": "Invented for the demo",
+   "decided_on": "2026-09-20",
+   "status": "active",
+   "is_current": true,
+   "supersedes": [],
+   "superseded_by": []
+  },
+  {
+   "code": "D-04",
+   "topic": "Where",
+   "title": "Is a village better than a town?",
+   "decided": null,
+   "rationale": "Waiting on two viewings",
+   "firmness": "open",
+   "door": "two-way",
+   "evidence": null,
+   "certainty": "M",
+   "reopen_if": null,
+   "checkpoint": null,
+   "source": "Invented for the demo",
+   "decided_on": null,
+   "status": "active",
+   "is_current": true,
+   "supersedes": [],
+   "superseded_by": []
+  },
+  {
+   "code": "D-05",
+   "topic": "Timing",
+   "title": "When does the family stay end?",
+   "decided": "December, then renting",
+   "rationale": null,
+   "firmness": "locked",
+   "door": "two-way",
+   "evidence": "STATED",
+   "certainty": "M",
+   "reopen_if": null,
+   "checkpoint": "CP1",
+   "source": "Invented for the demo",
+   "decided_on": "2026-09-20",
+   "status": "active",
+   "is_current": true,
+   "supersedes": [],
+   "superseded_by": []
+  },
+  {
+   "code": "D-06",
+   "topic": "Model",
+   "title": "Split the works into materials and labour?",
+   "decided": "Not yet: one figure is enough for now",
+   "rationale": null,
+   "firmness": "lean",
+   "door": "two-way",
+   "evidence": "ESTIMATE",
+   "certainty": "M",
+   "reopen_if": null,
+   "checkpoint": null,
+   "source": "Invented for the demo",
+   "decided_on": "2026-09-20",
+   "status": "active",
+   "is_current": true,
+   "supersedes": [],
+   "superseded_by": []
+  },
+  {
+   "code": "D-07",
+   "topic": "Process",
+   "title": "Who bids in the room?",
+   "decided": null,
+   "rationale": null,
+   "firmness": "open",
+   "door": "two-way",
+   "evidence": null,
+   "certainty": "M",
+   "reopen_if": null,
+   "checkpoint": null,
+   "source": "Invented for the demo",
+   "decided_on": null,
+   "status": "active",
+   "is_current": true,
+   "supersedes": [],
+   "superseded_by": []
+  }
+ ],
+ "signals": [
+  {
+   "code": "S-01",
+   "kind": "signal",
+   "words": "I would rather a smaller house in a village than a big one in a town.",
+   "context": null,
+   "implies": "Village listings first",
+   "open_question": "How small is too small?",
+   "conflicts": [],
+   "certainty": "M",
+   "rating": null,
+   "said_on": "2026-09-25",
+   "source": "Invented for the demo",
+   "links": [],
+   "is_reflected": false
+  },
+  {
+   "code": "S-02",
+   "kind": "signal",
+   "words": "Nothing more than an hour and a quarter away: I want to work on it after work.",
+   "context": null,
+   "implies": "The distance rule for House 1",
+   "open_question": null,
+   "conflicts": [],
+   "certainty": "M",
+   "rating": null,
+   "said_on": "2026-09-12",
+   "source": "Invented for the demo",
+   "links": [
+    {
+     "type": "ra_variable",
+     "code": "rules.house1_max_minutes",
+     "reads": "Affects"
+    }
+   ],
+   "is_reflected": true
+  },
+  {
+   "code": "S-03",
+   "kind": "signal",
+   "words": "A garden matters more to me than a fourth bedroom.",
+   "context": null,
+   "implies": "The plot in every road's fit",
+   "open_question": null,
+   "conflicts": [],
+   "certainty": "M",
+   "rating": null,
+   "said_on": "2026-09-28",
+   "source": "Invented for the demo",
+   "links": [],
+   "is_reflected": false
+  },
+  {
+   "code": "PT-1",
+   "kind": "pattern",
+   "words": "Every house liked so far has had a view at the back.",
+   "context": null,
+   "implies": "Outlook belongs in the fit",
+   "open_question": null,
+   "conflicts": [],
+   "certainty": "M",
+   "rating": null,
+   "said_on": "2026-09-18",
+   "source": "Invented for the demo",
+   "links": [],
+   "is_reflected": false
+  },
+  {
+   "code": "R1-01",
+   "kind": "reaction",
+   "words": "Loved the forge; worried about the road outside.",
+   "context": "The Old Forge, Fernwick",
+   "implies": null,
+   "open_question": null,
+   "conflicts": [],
+   "certainty": "M",
+   "rating": "Liked",
+   "said_on": "2026-09-18",
+   "source": "Invented for the demo",
+   "links": [
+    {
+     "type": "listing",
+     "code": "L03",
+     "reads": "About"
+    }
+   ],
+   "is_reflected": false
+  },
+  {
+   "code": "R1-02",
+   "kind": "reaction",
+   "words": "Too far, and the kitchen is a gut job.",
+   "context": "Ivy Lodge, Netherfold",
+   "implies": null,
+   "open_question": null,
+   "conflicts": [],
+   "certainty": "M",
+   "rating": "Unsure",
+   "said_on": "2026-09-18",
+   "source": "Invented for the demo",
+   "links": [
+    {
+     "type": "listing",
+     "code": "L05",
+     "reads": "About"
+    }
+   ],
+   "is_reflected": false
+  }
+ ],
+ "changes": [
+  {
+   "entity_type": "ra_variables",
+   "code": "income.net_pay_now",
+   "label": "Take-home pay today.",
+   "field": "value",
+   "old_value": "2830",
+   "new_value": "2980",
+   "why": "The take-home pay was confirmed higher than first thought",
+   "source": "Invented for the demo",
+   "changed_at": "2026-09-29T18:00:00+00:00"
+  },
+  {
+   "entity_type": "ra_scenarios",
+   "code": "promotion",
+   "label": "Promotion",
+   "field": "overrides",
+   "old_value": "{\"income.pay_rise_2027\": 5000}",
+   "new_value": "{\"income.pay_rise_2027\": 6000}",
+   "why": "The promotion letter named a figure",
+   "source": "Invented for the demo",
+   "changed_at": "2026-09-27T09:30:00+00:00"
+  },
+  {
+   "entity_type": "ra_listings",
+   "code": "L08",
+   "label": "Rowan Cottage, Kestlecombe",
+   "field": "status",
+   "old_value": "watch",
+   "new_value": "dropped",
+   "why": "Already done: nothing left to add",
+   "source": "Invented for the demo",
+   "changed_at": "2026-09-24T16:00:00+00:00"
+  },
+  {
+   "entity_type": "ra_variables",
+   "code": "mortgage.stress_rate",
+   "label": "The rate a lender stress-tests the payment at.",
+   "field": "confidence",
+   "old_value": "drafted",
+   "new_value": "researched",
+   "why": "Checked against two lenders' published rates",
+   "source": "Invented for the demo",
+   "changed_at": "2026-09-22T11:00:00+00:00"
+  }
+ ],
+ "contradictions": [
+  {
+   "key": "demo-cash",
+   "topic": "Cash at the start",
+   "source_a": "The model",
+   "position_a": "Starts from the savings figure set in September",
+   "source_b": "Your accounts",
+   "position_b": "Hold a little less, as of mid-September",
+   "what_it_changes": "Every road's low point, and the cash left after buying",
+   "value_at_stake": 1150,
+   "created_at": "2026-09-29T09:00:00+00:00"
+  },
+  {
+   "key": "demo-rent",
+   "topic": "Renting",
+   "source_a": "The plan",
+   "position_a": "Four months of renting before the keys",
+   "source_b": "A letting agent",
+   "position_b": "Six months is the shortest tenancy offered",
+   "what_it_changes": "Two months more rent on every road",
+   "value_at_stake": 2600,
+   "created_at": "2026-09-30T09:00:00+00:00"
+  }
+ ],
+ "calibrate": [
+  {
+   "variable_key": "income.net_pay_now",
+   "label": "Take-home pay today.",
+   "score": 134000,
+   "swing": 134000,
+   "moves": [
+    "H2 forever budget",
+    "H1 forever budget",
+    "H4 forever budget",
+    "H3 forever budget",
+    "GE forever budget"
+   ],
+   "evidence": "VERIFIED",
+   "confidence": "researched",
+   "place": 1
+  },
+  {
+   "variable_key": "mortgage.lender_expenditure_adult",
+   "label": "A lender's living-cost allowance for one adult.",
+   "score": 76000,
+   "swing": 76000,
+   "moves": [
+    "H2 forever budget",
+    "H1 forever budget",
+    "H4 forever budget",
+    "H3 forever budget",
+    "GE forever budget"
+   ],
+   "evidence": "ESTIMATE",
+   "confidence": "drafted",
+   "place": 2
+  },
+  {
+   "variable_key": "mortgage.lender_expenditure_child",
+   "label": "A lender's living-cost allowance per child.",
+   "score": 66000,
+   "swing": 66000,
+   "moves": [
+    "H1 forever budget",
+    "H2 forever budget",
+    "H3 forever budget",
+    "H4 forever budget"
+   ],
+   "evidence": "ESTIMATE",
+   "confidence": "drafted",
+   "place": 3
+  },
+  {
+   "variable_key": "income.annual_rise_from_2028",
+   "label": "The rise each April from 2028.",
+   "score": 45000,
+   "swing": 45000,
+   "moves": [
+    "H4 forever budget",
+    "H1 forever budget",
+    "H3 forever budget",
+    "H2 forever budget"
+   ],
+   "evidence": "ESTIMATE",
+   "confidence": "drafted",
+   "place": 4
+  },
+  {
+   "variable_key": "cash.start_cash",
+   "label": "Cash at the model start.",
+   "score": 34000,
+   "swing": 34000,
+   "moves": [
+    "H2 forever budget",
+    "H1 forever budget",
+    "H4 forever budget",
+    "GE forever budget",
+    "H3 forever budget"
+   ],
+   "evidence": "VERIFIED",
+   "confidence": "researched",
+   "place": 5
+  },
+  {
+   "variable_key": "fa.max_ltv",
+   "label": "Most a further advance can reach, as a share of current value.",
+   "score": 34000,
+   "swing": 34000,
+   "moves": [
+    "H2 forever budget"
+   ],
+   "evidence": "ESTIMATE",
+   "confidence": "drafted",
+   "place": 6
+  },
+  {
+   "variable_key": "mortgage.stress_rate",
+   "label": "The rate a lender stress-tests the payment at.",
+   "score": 34000,
+   "swing": 34000,
+   "moves": [
+    "H2 forever budget",
+    "H3 forever budget",
+    "H1 forever budget",
+    "H4 forever budget",
+    "GE forever budget"
+   ],
+   "evidence": "VERIFIED",
+   "confidence": "researched",
+   "place": 7
+  },
+  {
+   "variable_key": "mortgage.rate",
+   "label": "Mortgage rate on a purchase.",
+   "score": 25000,
+   "swing": 25000,
+   "moves": [
+    "H4 forever budget",
+    "H1 forever budget",
+    "H2 forever budget",
+    "H3 forever budget"
+   ],
+   "evidence": "ESTIMATE",
+   "confidence": "drafted",
+   "place": 8
+  }
+ ],
+ "revisit": [
+  {
+   "listing_code": "L01",
+   "listing_name": "Mill House, Ashcombe",
+   "field": "walk_away",
+   "value": 262000,
+   "reason": "A ceiling set before the viewing",
+   "kind": "strategic",
+   "said_on": "2026-06-10",
+   "is_old": true,
+   "appraised_since": "2026-09-23"
+  }
+ ],
+ "runs": [
+  {
+   "scenario_key": "base",
+   "road_code": "GE",
+   "run_name": "main",
+   "source": "engine",
+   "summary": {
+    "forever_today": 292000,
+    "forever_price": 290000,
+    "forever_when": "2027-05",
+    "min_cash": -13000,
+    "min_cash_when": "2034-03",
+    "fa_used": 0,
+    "works_done": 8000,
+    "works_left": 100000,
+    "profits": []
+   },
+   "accepted_at": "2026-09-20T12:00:00+00:00",
+   "accepted_note": "The figures as first agreed",
+   "was_forever_today": null,
+   "was_accepted_at": null
+  },
+  {
+   "scenario_key": "base",
+   "road_code": "H1",
+   "run_name": "main",
+   "source": "engine",
+   "summary": {
+    "forever_today": 229000,
+    "forever_price": 246000,
+    "forever_when": "2029-08",
+    "min_cash": -8000,
+    "min_cash_when": "2029-07",
+    "fa_used": 0,
+    "works_done": 0,
+    "works_left": 0,
+    "profits": [
+     60000
+    ]
+   },
+   "accepted_at": "2026-09-20T12:00:00+00:00",
+   "accepted_note": "The figures as first agreed",
+   "was_forever_today": null,
+   "was_accepted_at": null
+  },
+  {
+   "scenario_key": "base",
+   "road_code": "H2",
+   "run_name": "main",
+   "source": "engine",
+   "summary": {
+    "forever_today": 186000,
+    "forever_price": 195000,
+    "forever_when": "2029-03",
+    "min_cash": 2000,
+    "min_cash_when": "2029-02",
+    "fa_used": 8000,
+    "works_done": 0,
+    "works_left": 0,
+    "profits": [
+     7000
+    ]
+   },
+   "accepted_at": "2026-09-20T12:00:00+00:00",
+   "accepted_note": "The figures as first agreed",
+   "was_forever_today": null,
+   "was_accepted_at": null
+  },
+  {
+   "scenario_key": "base",
+   "road_code": "H3",
+   "run_name": "main",
+   "source": "engine",
+   "summary": {
+    "forever_today": 246000,
+    "forever_price": 261000,
+    "forever_when": "2029-05",
+    "min_cash": 3000,
+    "min_cash_when": "2029-04",
+    "fa_used": 0,
+    "works_done": 0,
+    "works_left": 0,
+    "profits": [
+     61000
+    ]
+   },
+   "accepted_at": "2026-09-20T12:00:00+00:00",
+   "accepted_note": "The figures as first agreed",
+   "was_forever_today": null,
+   "was_accepted_at": null
+  },
+  {
+   "scenario_key": "base",
+   "road_code": "H4",
+   "run_name": "main",
+   "source": "engine",
+   "summary": {
+    "forever_today": 189000,
+    "forever_price": 205000,
+    "forever_when": "2029-11",
+    "min_cash": -23000,
+    "min_cash_when": "2029-10",
+    "fa_used": 0,
+    "works_done": 0,
+    "works_left": 0,
+    "profits": [
+     33000
+    ]
+   },
+   "accepted_at": "2026-09-20T12:00:00+00:00",
+   "accepted_note": "The figures as first agreed",
+   "was_forever_today": null,
+   "was_accepted_at": null
   }
  ]
 }

@@ -40,6 +40,26 @@ export const ROAD_SHAPE = Object.freeze({
   results: ['house_code', 'listing_code', 'sold_on', 'lot', 'property_type', 'guide', 'sold', 'outcome', 'lesson',
     'source'],
   playbook: ['code', 'kind', 'body', 'sort_order'],
+  // The record (89_road_ahead_record.sql): every road decision, in force
+  // or replaced, with the codes either side of each replacement.
+  decisions: ['code', 'topic', 'title', 'decided', 'rationale', 'firmness', 'door', 'evidence', 'certainty',
+    'reopen_if', 'checkpoint', 'source', 'decided_on', 'status', 'is_current', 'supersedes', 'superseded_by'],
+  // The owner's words, what each is joined to, and whether the model has
+  // taken it in yet.
+  signals: ['code', 'kind', 'words', 'context', 'implies', 'open_question', 'conflicts', 'certainty', 'rating',
+    'said_on', 'source', 'links', 'is_reflected'],
+  // Every logged change to a figure, a listing or a scenario, newest first.
+  changes: ['entity_type', 'code', 'label', 'field', 'old_value', 'new_value', 'why', 'source', 'changed_at'],
+  // The questions still open.
+  contradictions: ['key', 'topic', 'source_a', 'position_a', 'source_b', 'position_b', 'what_it_changes',
+    'value_at_stake', 'created_at'],
+  // What a sit-down covers: the inputs to confirm first, the judgements
+  // due a second look, and each road's last accepted run.
+  calibrate: ['variable_key', 'label', 'score', 'swing', 'moves', 'evidence', 'confidence', 'place'],
+  revisit: ['listing_code', 'listing_name', 'field', 'value', 'reason', 'kind', 'said_on', 'is_old',
+    'appraised_since'],
+  runs: ['scenario_key', 'road_code', 'run_name', 'source', 'summary', 'accepted_at', 'accepted_note',
+    'was_forever_today', 'was_accepted_at'],
 });
 
 /** The columns of one part as a PostgREST select list. */

@@ -6,13 +6,10 @@
 import { escape, money } from '../../core/format.js';
 import { dayName } from '../../engine/road-ahead/page/state.js';
 import { kilo } from '../../engine/road-ahead/charts/scale.js';
+import { labelTag } from './tags.js';
 
-/** The kit's evidence labels, in words, as a tag beside the figure. */
-const LABEL = { STATED: 'stated', VERIFIED: 'verified', ESTIMATE: 'estimate', CHECK: 'to check' };
-const tag = (labels, ...keys) => {
-  const found = keys.map((k) => labels?.[k]).find(Boolean);
-  return found ? ` <span class="rd-label rd-label--${escape(found.toLowerCase())}">${escape(LABEL[found] ?? found)}</span>` : '';
-};
+/** The first of these figures' evidence labels, as a tag beside the figure. */
+const tag = (labels, ...keys) => labelTag(keys.map((k) => labels?.[k]).find(Boolean));
 const list = (title, items) => (items?.length
   ? `<div><h4 class="rd-card__h">${escape(title)}</h4><ul class="rd-list">${items.map((i) => `<li>${escape(i)}</li>`).join('')}</ul></div>` : '');
 

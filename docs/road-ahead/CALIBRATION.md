@@ -37,13 +37,15 @@ the connector without running any code:
 | Call or table | For |
 |---|---|
 | `select road_ahead_context('<household>')` | Grounding, and the first call of any session: variables, scenarios, roads, rules, current decisions, open contradictions, the register, current judgements, the next dated actions. |
-| `select road_ahead_agenda('<household>')` | A sit-down, in the order below. |
+| `select road_ahead_agenda('<household>')` | A sit-down, in the order below. Every part is a view (`89_road_ahead_record.sql`), and road.html's Calibration section reads the same views, so the page and the sit-down agree. |
 | `select ra_assess('<household>', 'L03', 'base')` | One listing's numbers on today's variables. `ra_assess_inputs('<household>', '<json>', 'base')` assesses before a listing row exists. |
 | `ra_signals` | The owner's words, and what they imply. |
 | `ra_judgements` | The owner's figure beside the maths. Append-only. |
 | `ra_variables` | Every figure, with its evidence label, confidence and range. A money figure changes only with `house.change_why` set. |
 | `ra_sensitivity` | What each input does to each answer; `ra_calibration_queue` ranks it. |
-| `decisions` (domain road) | A changed rule or road, or a change to the model's structure (topic Model). |
+| `decisions` (domain road) | A changed rule or road, or a change to the model's structure (topic Model). `ra_decision_history` has every one, in force or replaced, with what replaced it. |
+| `ra_changes` | Every logged change to a figure, a listing or a scenario: old, new, why, source, when. |
+| `ra_model_vs_ledger` | The model's cash and pay beside the owner's own trusted records. |
 
 A Claude Code session can also run the JavaScript engine on today's
 figures: save `select road_ahead_inputs('<household>')` to a file in
@@ -88,7 +90,10 @@ front of it rather than a question, in this order:
 
 1. **Dated actions** - auction countdowns, viewings, legal packs.
 2. **Contradictions** the model has found, one at a time.
-3. **The calibration agenda** - the inputs that move the answer most
+3. **Where the model and the owner's records disagree** - the model's
+   cash or pay against the trusted ledger, by £1k or more. The answer is
+   usually a re-base (below).
+4. **The calibration agenda** - the inputs that move the answer most
    while still being estimates. Each input is swung across its range
    (its own low and high, or 10% either side) and ranked by how far it
    moves any road's forever budget or a live listing's walk-away, with a
@@ -104,9 +109,11 @@ front of it rather than a question, in this order:
    which prints the agenda and writes `data/road-ahead/out/sensitivity-<date>.sql`
    to run through the connector. `road_ahead_agenda` then ranks from the
    latest snapshot.
-4. **Judgements to revisit.**
-5. **Signals not yet reflected** in a rule, a road or a fit criterion.
-6. **What moved since last time** - every road result that shifted by
+5. **Judgements to revisit.**
+6. **Signals not yet reflected**: a signal is reflected once a road, a
+   rule, a variable or a decision carries it (an open link, either way
+   round). One linked only to a listing has been heard, not acted on.
+7. **What moved since last time** - every road result that shifted by
    £1k or more between accepted runs, and why. A run is accepted with
    the owner's words attached:
 
@@ -114,6 +121,53 @@ front of it rather than a question, in this order:
 
 Each answer is written as it is given and read back. Priority is not a
 question; nor is any figure the maths derives.
+
+The page's Calibration section shows the same agenda, and its "Copy:
+start a sit-down" button copies the message that asks for one. It also
+holds today's figures against each road's last accepted run, so a move
+the owner has not yet accepted is visible before anyone asks.
+
+## Re-basing to today
+
+The model starts from a month (`timeline.start`) and the cash held then
+(`cash.start_cash`): every road's months, costs and house prices count
+from that start. As months pass and the owner's own records firm up, the
+start goes stale. The page shows the model's cash beside the trusted
+ledger (`ra_model_vs_ledger`: confirmed and actual accounts only,
+liabilities off), and Calibration lists a gap of £1k or more.
+
+A re-base moves the start to today's trusted figures. It changes every
+road, so it is done only on the owner's word; the page's "Copy: re-base
+to my records" button writes the request.
+
+1. Read the gap: `select * from ra_model_vs_ledger where household_id = '<household>'`.
+2. Move both figures in one statement, with the reason and the source:
+
+       do $$ begin
+         perform set_config('house.change_why', 'Re-based to the confirmed accounts of <date>, on the owner''s word', true);
+         perform set_config('house.change_source', 'ra_model_vs_ledger, <date>', true);
+         update ra_variables set value = '[<year>, <month>]'
+          where household_id = '<household>' and key = 'timeline.start';
+         update ra_variables set value = '<the ledger''s cash>', evidence = 'STATED',
+                confidence = 'confirmed', confirmed_at = now()
+          where household_id = '<household>' and key = 'cash.start_cash';
+       end $$;
+
+3. Re-read both rows and their `ra_changes` entries.
+4. Run the roads on the new figures (save `select road_ahead_inputs('<household>')`
+   to `data/road-ahead/`, then `node tools/road-ahead.mjs roads --extract <file>`)
+   and show the owner every figure that moved by £1k or more. The page's
+   "Since the last accepted run" shows the same.
+5. Accept the new runs only when the owner says so, with their words
+   (`snapshot --note`, above), and refresh the sensitivity snapshot
+   (`agenda --snapshot`), because the swings have moved too.
+
+Two things a re-base does not do. Dates the owner gave as months (the
+end of the family stay, the pay rise) stay where they are. And a figure
+stated in an earlier year's money (a unit marked 2026£) is not inflated
+to the new start: when the start moves into a new year, re-state those
+figures or record a contradiction, rather than let them drift. The
+frozen `kit-v5` scenario, and so the checksum gate, is untouched.
 
 ## Growing the model
 

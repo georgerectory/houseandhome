@@ -92,7 +92,7 @@ export function calibrationAgenda(rows, labels, { top = 10, confirmedWeight = 0.
 /**
  * One agenda across several answers: each input once, at its largest
  * weighted swing, with every answer it moves. The same aggregation as
- * the calibrate list of road_ahead_agenda() in 89_road_ahead_logic.sql.
+ * ra_calibration_agenda in 89_road_ahead_record.sql, which road_ahead_agenda() reads.
  * @param {Array<{output:string, rows:ReturnType<typeof sensitivity>}>} snapshots
  * @param {Object<string, {evidence?:string, confidence?:string}>} labels
  * @param {{top?:number, confirmedWeight?:number}} [opts]

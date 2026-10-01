@@ -24,9 +24,9 @@ Supabase behind row-level security.
 **None.** P-001 (48 Ameysford Road) and P-002 (1 Walnut Tree Cottages)
 were archived on 30 Sep 2026 on the owner's instruction; the owner had
 closed both on 27 Sep (Road to the Rectory decisions G-K09 and G-K11).
-The next house comes through Road Ahead, which is being built (see
-`docs/STATE.md`): a listing is assessed there, promoted to a property,
-and becomes "the house" only through `make_active()`. Until then every
+The next house comes through Road Ahead (below): a listing is assessed
+there, promoted to a property with `ra_promote_listing`, and becomes
+"the house" only through `make_active()`. Until then every
 default view shows only the household's own rows.
 
 The system is property-agnostic. Five scopes: **USER** (the household,
@@ -74,6 +74,7 @@ when the work touches it:
 |---|---|
 | `docs/STATE.md` | Always, straight after this. What is in flight. |
 | `docs/RENOVATION-SYSTEM.md` | Anything touching properties, the lifecycle, scopes, the template or the library. |
+| `docs/road-ahead/README.md` | Road Ahead: listings, roads, scenarios, variables, auctions, a sit-down or a re-base. |
 | `docs/properties/<ref>/` | One property's specifics. Archived ones move to `docs/properties-archive/`. |
 | `docs/DECISIONS.md` | Priority, money, the roadmap, the shopping list, quantities, stockpiles, links. |
 | `docs/REVIEW.md` | A review session. |
@@ -163,6 +164,11 @@ In practice:
   moves it to `confirmed`.
 - `carried_finance` is an archive, not a ledger. It is a prompt sheet of
   things once listed, excluded from every total until reviewed.
+- **Road Ahead is a model**, so it computes from estimates. Its budgets
+  and walk-aways are always shown, always saying how much of them rests
+  on figures nobody has confirmed, and never become "you can afford
+  this". Its figures carry the kit's label beside `confidence`: STATED
+  lands confirmed, VERIFIED researched, ESTIMATE and CHECK drafted.
 
 ## Session shape
 
@@ -225,13 +231,40 @@ valuable thing a review produces is `confidence` moving to `confirmed`.
 **`docs/REVIEW.md` is the full protocol**, including which column each
 answer writes.
 
+## Road Ahead
+
+The second tab, `road.html`: which house next, and why - the roads to
+the forever home, the listings register, the auctions and every figure
+behind them. Its data lives in Supabase (the `ra_` tables, and the
+road's rows in `decisions`); its figures are the owner's and never enter
+this repository, which holds the code and the variable schema only.
+**`docs/road-ahead/README.md` is the reference.**
+
+- **Start** with `select road_ahead_context('<household>')` (`select id
+  from households` gives it; the connector has no signed-in user).
+- **Research before asserting.** A market fact - a sold price, a rate,
+  a guide - needs a dated source. A comparable is a real sale or
+  listing, or it is not used; a modelled figure is labelled ESTIMATE.
+- **A listing** the owner sends is assessed by
+  `docs/road-ahead/ASSESS_PROPERTY.md`. The portals are never fetched:
+  the owner pastes the text and the floor plan.
+- **A sit-down.** "Let's go through it", or "make it more accurate", is
+  a defined session shape like a review: ground with
+  `road_ahead_context` and `road_ahead_agenda`, open by saying what is
+  in front of you, and work the agenda in its order - dated actions,
+  open questions, where the model and the ledger disagree, the figures
+  to confirm first, judgements due again, signals not yet taken in,
+  what has moved. One CLICKABLE question at a time; write each answer
+  as it is given and read it back. **`docs/road-ahead/CALIBRATION.md`
+  is the protocol**, the re-base included.
+
 ## Testing
 
 `npm test` runs eight gates. All must pass.
 
 | Gate | What it proves |
 |---|---|
-| `npm run test:secrets` | Nothing private is tracked by a public repository: no carried-over or Road Ahead extract, no service_role key, no JWT, no source drawing - and, wherever the private kit extract is present, not the owner's surname, home village, salary or mortgage in principle. |
+| `npm run test:secrets` | Nothing private is tracked by a public repository, or about to be (a new file not yet added is checked too): no carried-over or Road Ahead extract, no service_role key, no JWT, no source drawing - and, wherever the private kit extract is present, not the owner's surname, home village, salary or mortgage in principle. |
 | `npm run lint` | No `100vw`, raw `vh`, `max-width` layout query, breakpoint in the 600-800 iPad band, inline style, emoji or hard-coded hex. |
 | `npm run test:unit` | The allocation, priority and geometry engines behave as stated, and Road Ahead's engine matches the Rectory kit's own Python on invented inputs (the golden master). |
 | `npm run test:geometry` | Every stage of every building IS a building - rooms that do not overlap, a shell that closes, a floor with something under it - and agrees with the drawings it was measured from. |

@@ -4,36 +4,32 @@ What is in flight. Overwritten in place, never appended to - git history
 is the record of what changed, `docs/PLAN.md` is the design record, and
 this file is only what is not yet finished. Keep it under 40 lines.
 
-## In progress: Road Ahead
+## Road Ahead: built, waiting on the owner
 
-The Rectory PDF and kit (v5.0) become a tab and an engine. **The plan
-is private**: read `source_documents` 'Road Ahead build plan' before
-building. Phase 0 archived P-001 and P-002; no house is active.
-
-**Phases 1 to 6 are done (1 Oct 2026).** The engine reproduces all 15,773
-kit figures (`npm run test:checksums`); the data is live and proven
-(`88_`/`89_road_ahead*.sql`); `road.html` shows it (Now, a scenario bar
-whose what-ifs save nothing, the register and card, Assess, Auctions,
-the roads, Compare, Calibration, Decisions, Variables); any Claude
-assesses a listing by `docs/road-ahead/ASSESS_PROPERTY.md`. Start with
-`road_ahead_context('<household>')`; a sit-down or a re-base follows
-`docs/road-ahead/CALIBRATION.md`.
+All eight phases of the build are done (1 Oct 2026). `road.html` is in
+the repository, the data in Supabase, and the engine proved against
+every figure the Rectory kit published. Start from CLAUDE.md's Road
+Ahead section and `docs/road-ahead/README.md`. **The plan is private**:
+`source_documents` 'Road Ahead build plan'. No house is active.
 
 ## Next steps
 
-1. **L29** (Rightmove 93774177) is the protocol's first live run, once the
-   owner pastes its text and floor plan.
-2. **Phase 7:** the hand-off docs, CLAUDE.md's Road Ahead section and
-   sit-down shape, the glossary, the docs lint glob, the PDFs as rows.
-3. **Open with the owner**, largest first: `ra-takehome-156` (whether the
-   take-home above the old figure is spent or saved), the nine `ra-` kit
-   contradictions, then the household four.
+1. **L29** (Rightmove 93774177) is the assessment protocol's first live
+   run, once the owner pastes its text and floor plan.
+2. **Open with the owner**, largest first, in a sit-down's order (the
+   page's Calibration section lists them): the model's cash against the
+   confirmed accounts, a re-base; `ra-takehome-156`, whether the
+   take-home above the old figure is spent or saved; the nine `ra-` kit
+   contradictions; then the household four.
+3. **The published site runs `main`.** Merging this branch puts Road
+   Ahead live; a PR waits on the owner asking for one.
 
 ## Known and deliberately left
 
 - No rent-and-invest line in Compare: the route model (`ladder.js`) and
   the roads disagree on one and the same plan, so it waits for an invest
   step in the roads (a Model decision). No live road states fit criteria.
-- The published site runs `main` until this branch is merged. Over 400
-  lines: `check-frontend.mjs`, `pages/house.js`. Twelve live tables order
-  columns unlike a fresh install (no view sees it).
+- The v4.0 archive and the kit's working log are recorded by checksum
+  only; the Master's data pages live as rows, its narrative as sections.
+- Over 400 lines: `check-frontend.mjs`, `pages/house.js`. Twelve live
+  tables order columns unlike a fresh install (no view sees it).

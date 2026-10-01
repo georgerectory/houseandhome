@@ -113,8 +113,10 @@ nothing is ever deleted.
 
 ## The gates
 
-**gate** — one of the seven checks `npm test` runs: lint, secrets, unit,
-geometry, sql, parity, front end. All must pass before a commit.
+**gate** — one of the eight checks `npm test` runs: lint, secrets, unit,
+geometry, sql, parity, front end, checksums. All must pass before a
+commit; the SQL and checksum gates skip loudly where their database or
+private extract is missing.
 
 **parity** — the check that the JS engine and the SQL engine agree to
 the micro-pound. Some logic exists twice, because the site must render
@@ -145,3 +147,66 @@ and keeps library rates and kit. Irreversible.
 
 **Funding stream.** Where a row's money comes from: pot, mortgage,
 advance, build_finance or income. Only pot rows compete for deposits.
+
+## Road Ahead
+
+**Road Ahead** — the tab and engine for which house next, and why
+(`docs/road-ahead/README.md`). The project system works one house up;
+Road Ahead chooses it. They meet at `ra_promote_listing`.
+
+**road** — one way from now to the forever home: a House 1 bought,
+worked on and sold, then the forever purchase; or the Golden Egg (GE),
+the forever home bought first and grown into. A road is data: steps at
+months.
+
+**step** — one move on a road: rent, buy, sell, the forever purchase.
+Not a stage: a stage is a building's structural state.
+
+**scenario** — a named set of overrides on the variables (Base,
+Optimistic, Promotion, Job change...). Not a variant: a variant is a
+furniture arrangement. A **what-if** is the page's own override; it
+saves nothing until the owner sends it to Claude.
+
+**forever budget** — the dearest forever home a road reaches, in cash
+and in **today's money**: deflated to the model's start by the base
+house-price path, so roads ending in different years compare.
+
+**listings register** — every house looked at, with its latest
+appraisal. Not the equipment register. **L-codes** (L01...) are the
+listings scored by the kit's method; **G-codes** (G01...) the older
+register's rows, kept as history and benchmarks.
+
+**walk-away** — the most a listing is worth paying and still making the
+target profit. The **bid limit** is the optimistic walk-away, never
+above the hard cash ceiling.
+
+**judgement** — the owner's own figure on a listing, beside the maths
+and never over it: a walk-away or a premium, with a reason and its kind
+(emotional, personal, strategic, information).
+
+**signal** — the owner's words about a house, a road or the plan, kept
+as said (S-); a **reaction** is to one listing (R1-), a **pattern**
+runs across several (PT-). A signal is **taken in** once a road, rule,
+variable or decision carries it.
+
+**STATED, VERIFIED, ESTIMATE, CHECK** — the kit's evidence labels,
+kept beside `confidence`: the owner said it (confirmed); a dated
+external source (researched); modelled (drafted); needs a professional
+(drafted).
+
+**sit-down** — a session that makes the model more accurate, working
+`road_ahead_agenda` in its order (`docs/road-ahead/CALIBRATION.md`).
+
+**re-base** — moving the model's start month and cash to today's
+trusted figures, on the owner's word.
+
+**accepted run** — a road's results the owner has accepted, with their
+words; today's figures are held against it, and a move of £1k or more
+is named.
+
+**kit-v5** — the frozen scenario holding the Rectory kit's complete
+inputs and published outputs, so the engine can be proved again
+without the kit.
+
+**countdown** — a tracked lot's steps before its auction, T-21 to T+1,
+each settling one question; counted in London days (`london_today()`).

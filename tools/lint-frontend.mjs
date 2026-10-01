@@ -89,7 +89,7 @@ const files = [
   ...walk('tools'),
   ...walk('supabase'),
   ...globSync('*.html'),
-  ...globSync('docs/*.md'),
+  ...globSync('docs/**/*.md'),
   'README.md',
 ];
 

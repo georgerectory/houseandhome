@@ -14,7 +14,10 @@
 //      The publishable key is safe to commit and is; that one is not.
 //
 // This checks what git ACTUALLY TRACKS, not what is on disk, because the
-// question is only ever "could this be pushed".
+// question is only ever "could this be pushed" - and what it is about to
+// track: a new file not yet added is one `git add` from being pushed, and
+// a gate run before the commit is the one that has to see it. An ignored
+// file is left out; forcing one in makes it tracked, and caught.
 
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
@@ -22,17 +25,17 @@ import { privateMarkers } from './road-ahead-lib.mjs';
 
 const failures = [];
 
-function tracked() {
+const git = (...args) => execFileSync('git', ['ls-files', '-z', ...args], { encoding: 'utf8' }).split('\0').filter(Boolean);
+function pushable() {
   try {
-    return execFileSync('git', ['ls-files', '-z'], { encoding: 'utf8' })
-      .split('\0').filter(Boolean);
+    return { tracked: new Set(git()), files: [...new Set([...git(), ...git('--others', '--exclude-standard')])] };
   } catch {
     // Not a git checkout: nothing can be pushed from here.
-    return null;
+    return { tracked: null, files: null };
   }
 }
 
-const files = tracked();
+const { tracked, files } = pushable();
 
 if (files === null) {
   console.log('Secrets: not a git checkout, nothing to check.');
@@ -40,8 +43,10 @@ if (files === null) {
   // 1. Carried-over blobs, and Road Ahead's kit extract and exports.
   const blobs = files.filter((f) => /^data\/(carried|road-ahead)\/.+/.test(f) && !f.endsWith('README.md'));
   for (const f of blobs) {
-    failures.push(`${f} is TRACKED BY GIT. Extracts are private and this repository is public.\n`
-      + `     Remove it with: git rm --cached "${f}"`);
+    failures.push(tracked.has(f)
+      ? `${f} is TRACKED BY GIT. Extracts are private and this repository is public.\n`
+        + `     Remove it with: git rm --cached "${f}"`
+      : `${f} is NOT IGNORED, so one git add would push it. Extracts are private: restore its .gitignore rule.`);
   }
 
   // 3. The owner's names, home village, salary and mortgage in principle,
@@ -94,9 +99,9 @@ if (files === null) {
     console.log('');
     for (const f of failures) console.log(`FAIL ${f}`);
     console.log('');
-    console.log(`Secrets: ${failures.length} problem(s) in ${files.length} tracked files`);
+    console.log(`Secrets: ${failures.length} problem(s) in ${files.length} tracked and new files`);
     process.exit(1);
   }
   const privateNote = existsSync('data/road-ahead/kit-extract.json') ? ', none of the owner\'s private markers' : '';
-  console.log(`Secrets: ${files.length} tracked files, no private data and no privileged key${privateNote}`);
+  console.log(`Secrets: ${files.length} tracked and new files, no private data and no privileged key${privateNote}`);
 }

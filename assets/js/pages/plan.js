@@ -12,7 +12,7 @@
 // because a document is a snapshot of what was believed on a day and
 // every figure inside it inherits that date.
 import { requireAuth } from '../core/auth.js';
-import { mountShell, render } from '../core/shell.js';
+import { mountShell, showProperty, render } from '../core/shell.js';
 import { load } from '../core/store.js';
 import { emptyState } from '../core/page.js';
 import { escape } from '../core/format.js';
@@ -24,6 +24,7 @@ if (!user) throw new Error('redirecting to login');
 mountShell('plan.html', { user });
 
 const d = await load();
+showProperty(d.property);
 const sections = checklistFor(d.items ?? [], 'viewing');
 const total = totalItems(sections);
 const doc = (d.document_sections ?? []).slice()

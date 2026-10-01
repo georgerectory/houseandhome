@@ -98,6 +98,11 @@ export const RATES = {
   // The finish is a different material, not a thinner mix of the same
   // one. 3mm of lime putty is about 5 kg/m2; 6 covers the wastage.
   limeFinishTonnesPerM2: 0.006,
+  // Gypsum, for a cavity wall, where lime buys nothing. An 11mm
+  // bonding or browning undercoat is about 10 kg/m2; a 2mm multi-finish
+  // skim about 1.5 kg/m2.
+  gypsumUndercoatTonnesPerM2: 0.010,
+  gypsumFinishTonnesPerM2: 0.0015,
   // Haired base coat over bare brick: the hair is what stops the
   // backing coat shrinking off a hard, suction-heavy Victorian brick.
   plasterCoatsOnBrick: 2,

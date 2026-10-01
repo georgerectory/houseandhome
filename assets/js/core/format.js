@@ -53,6 +53,7 @@ const PROV_LABEL = {
   carried_over: 'Carried over, unverified',
   drafted: 'Drafted, not yet confirmed',
   researched: 'Researched, not confirmed',
+  quoted: 'Quoted in writing',
   confirmed: 'Confirmed',
   actual: 'Actual',
 };

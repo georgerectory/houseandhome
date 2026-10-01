@@ -118,6 +118,9 @@ on conflict (key) do nothing;
 create table if not exists public.milestones (
   id           uuid primary key default gen_random_uuid(),
   household_id uuid not null references public.households (id) on delete cascade,
+  -- A dated milestone belongs to one building's roadmap. Null is a
+  -- milestone of the household's own (a move, a pay review).
+  property_id  uuid references public.properties (id) on delete cascade,
   key          text not null,
   title        text not null,
   description  text,
@@ -131,6 +134,52 @@ create table if not exists public.milestones (
 drop trigger if exists milestones_updated_at on public.milestones;
 create trigger milestones_updated_at before update on public.milestones
   for each row execute function public.set_updated_at();
+
+-- ---------------------------------------------------------------
+-- work_phases: WHAT KIND of work a row is, P0-P29. Not an order - P18
+-- planning starts in month one and runs beside everything else, because
+-- consent is the long-lead item. `phase` on work_items is the other
+-- axis, WHEN in the life of the project; a row carries both.
+-- TEMPLATE scope: the same thirty categories for every house.
+-- ---------------------------------------------------------------
+create table if not exists public.work_phases (
+  key         text primary key,
+  label       text not null,
+  sort_order  integer not null
+);
+
+insert into public.work_phases (key, label, sort_order) values
+  ('P0',  'Purchase, legal, finance', 0),
+  ('P1',  'Surveys, testing, design baseline', 1),
+  ('P2',  'Site establishment, safety, PPE', 2),
+  ('P3',  'Salvage and protection', 3),
+  ('P4',  'Garden and site clearance', 4),
+  ('P5',  'Internal strip-out', 5),
+  ('P6',  'Waste removal and logistics', 6),
+  ('P7',  'Make watertight', 7),
+  ('P8',  'Moisture diagnosis and drying', 8),
+  ('P9',  'Structural, masonry, timber, repointing', 9),
+  ('P10', 'Roof, chimneys, rainwater goods', 10),
+  ('P11', 'Drainage, ground levels, external fabric', 11),
+  ('P12', 'Electrical first fix', 12),
+  ('P13', 'Plumbing and heating first fix', 13),
+  ('P14', 'Insulation and thermal', 14),
+  ('P15', 'Plaster and wall finishes', 15),
+  ('P16', 'Floors, ceilings, carpentry', 16),
+  ('P17', 'Basic habitable setup', 17),
+  ('P18', 'Planning, regulations, engineering', 18),
+  ('P19', 'Extension: complete the square', 19),
+  ('P20', 'Kitchen, bathrooms, WC, utility', 20),
+  ('P21', 'Second fix and decoration', 21),
+  ('P22', 'Windows and doors', 22),
+  ('P23', 'Hard landscaping', 23),
+  ('P24', 'Planting and establishment', 24),
+  ('P25', 'Furniture and household', 25),
+  ('P26', 'Technology, security, networking', 26),
+  ('P27', 'Workshop, tools, storage', 27),
+  ('P28', 'Lifestyle and non-essential', 28),
+  ('P29', 'Sale preparation and exit', 29)
+on conflict (key) do update set label = excluded.label, sort_order = excluded.sort_order;
 
 -- ---------------------------------------------------------------
 -- work_item_templates: generic, property-agnostic work with per-unit
@@ -162,6 +211,20 @@ create table if not exists public.work_item_templates (
   -- arrives already answerable to "what can I do in 15 minutes".
   matcher       jsonb not null default '{}'::jsonb,
   applies_to_room_types text[] not null default '{}',
+  -- Where a cloned row lands in a new property's plan, and what money
+  -- pays for it. A template carries no quantity and no building's cost:
+  -- the quantity comes from property_quantities, the rate from the
+  -- library, so a new house starts with every line at NULL and a reason.
+  work_phase    text references public.work_phases (key),
+  phase         text,
+  funding_stream text not null default 'pot'
+    check (funding_stream in ('pot','mortgage','advance','build_finance','income')),
+  acquisition   text not null default 'new',
+  package_key   text,
+  -- Null: every property carries this line. Otherwise the condition
+  -- that switches it on (thatch, off-mains drainage, listed...), which
+  -- the intake checklist answers.
+  triggered_by  text,
   confidence    text not null default 'drafted' references public.confidence_levels (key),
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now()
@@ -177,7 +240,10 @@ create trigger work_item_templates_updated_at before update on public.work_item_
 create table if not exists public.work_items (
   id            uuid primary key default gen_random_uuid(),
   household_id  uuid not null references public.households (id) on delete cascade,
-  property_id   uuid references public.properties (id) on delete set null,
+  -- PROPERTY scope when set, USER scope when null. CASCADE because a
+  -- purge is the one deliberate delete this system has: a building's
+  -- jobs go with the building. Tools and kit are USER rows and survive.
+  property_id   uuid references public.properties (id) on delete cascade,
   room_id       uuid references public.rooms (id) on delete set null,
   template_id   uuid references public.work_item_templates (id) on delete set null,
   milestone_id  uuid references public.milestones (id) on delete set null,
@@ -262,9 +328,37 @@ create table if not exists public.work_items (
   fully_funded_at timestamptz,
   spent_actual  numeric(12,2) check (spent_actual is null or spent_actual >= 0),
   spent_at      timestamptz,
-  -- Opt out of funding: a job needing no money, or one deliberately
-  -- excluded from the pot. Excluded items still appear on the roadmap.
-  is_fundable   boolean not null default true,
+  -- WHERE THE MONEY COMES FROM. Only `pot` rows compete for savings
+  -- deposits; the shell, the roof and the purchase are drawdowns on
+  -- borrowing, and saving toward them a slice at a time is how a £15
+  -- light switch once took 13.56% of every deposit while an £89,000
+  -- shell took 23p. Income rows are money coming back in.
+  funding_stream text not null default 'pot'
+    check (funding_stream in ('pot','mortgage','advance','build_finance','income')),
+  -- VAT is a column because the 5% empty-home rate changes which of
+  -- DIY and trade is cheaper, and it has a deadline.
+  vat_rate      numeric(4,1) check (vat_rate is null or vat_rate in (0, 5, 20)),
+  vat_deadline  date,
+  -- Two dates, not one: when it must be bought and when it is done.
+  -- Bare-root hedging is bought and planted in the first winter; the
+  -- bricks for a 2028 wall are collected from 2027.
+  procure_by    date,
+  execute_on    date,
+  -- Takes the kitchen or bathroom out of service. A lender's valuer
+  -- will not lend on a house without both, so review_queue flags any
+  -- such row that is dated.
+  habitability_impact boolean not null default false,
+  -- What an owned tool fetches when the project ends; the effective
+  -- cost is the price less this.
+  residual_resale_value numeric(12,2) check (residual_resale_value is null or residual_resale_value >= 0),
+  -- The quantity driver this row is priced by, when it is priced by one
+  -- (property_quantities x a library rate).
+  package_key   text,
+  cost_source_date date,
+  -- A parent normally carries the cost of its components. Set this only
+  -- when the parent is a heading and the children carry the money.
+  costs_components_separately boolean not null default false,
+  work_phase    text references public.work_phases (key),
 
   -- Time.
   duration_min_minutes integer check (duration_min_minutes is null or duration_min_minutes >= 0),
@@ -314,6 +408,12 @@ create table if not exists public.work_items (
   -- A cost range must be a range.
   constraint work_items_cost_range
     check (cost_best is null or cost_worst is null or cost_best <= cost_worst),
+  -- F.11.6: a purchase dated for execution has to say when it is bought.
+  constraint work_items_two_dates
+    check (execute_on is null or kind <> 'purchase' or procure_by is not null),
+  -- F.11.4: "researched" means a source somebody can re-read, dated.
+  constraint work_items_researched_has_source check (cost_confidence <> 'researched'
+    or (cost_source is not null and cost_source_date is not null)),
   constraint work_items_duration_range
     check (duration_min_minutes is null or duration_max_minutes is null
            or duration_min_minutes <= duration_max_minutes)
@@ -332,7 +432,7 @@ create index if not exists work_items_tools_idx
 -- The funding read path: open, fundable, costed items, in rank order.
 create index if not exists work_items_funding_idx
   on public.work_items (household_id, priority)
-  where is_fundable and status not in ('done','dropped');
+  where funding_stream = 'pot' and status not in ('done','dropped');
 
 -- Deleting a work item is not an operation this system has. Rows close
 -- with status done/dropped plus a resolution, which keeps the decision,

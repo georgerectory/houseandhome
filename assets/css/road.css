@@ -1,0 +1,319 @@
+/* road.css - Road Ahead.
+ *
+ * One long page: Now, a sticky scenario bar, the register with its card,
+ * Assess, the roads and Compare. The listings are styled in
+ * road-register.css and the charts in road-charts.css.
+ *
+ * Every chart is HTML or SVG coloured from the tokens. A road's colour
+ * rides --road, set by rd-s1..rd-s5 in the roads' order, so a road is the
+ * same colour in every chart; and the colour is never the only carrier,
+ * because every lane, bar and point is labelled in words beside it. */
+
+/* Tints of a road or the accent mix in oklab: in oklch a mix with the
+ * achromatic paper swings the hue towards the paper's nominal one (0,
+ * for white), which turned the gold road pink. */
+.rd-s1 { --road: var(--road-1); }
+.rd-s2 { --road: var(--road-2); }
+.rd-s3 { --road: var(--road-3); }
+.rd-s4 { --road: var(--road-4); }
+.rd-s5 { --road: var(--road-5); }
+
+.rd-quiet { color: var(--ink-muted); font-size: var(--text-sm); }
+.rd-code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.rd-sub {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  margin-block: var(--space-6) var(--space-2);
+}
+
+/* What the page scrolls to - a jump link, an opened card, a control
+ * reached by Tab - stops below the sticky header AND the bar, which
+ * road.js measures into --rd-top and --rd-bar-h (WCAG 2.4.11). */
+.rd-section,
+.rd-card,
+[data-rd]:not([data-rd="bar"]) :focus-visible {
+  scroll-margin-top: calc(var(--rd-top, 0px) + var(--rd-bar-h, 0px) + var(--space-3));
+}
+[data-rd] .table-wrap { margin-bottom: var(--space-4); }
+
+/* --- On this page ---------------------------------------------------- */
+.rd-jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+}
+.rd-jump a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
+  padding-inline: var(--space-4);
+  border: 1px solid var(--rule-strong);
+  border-radius: 999px;
+  background: var(--paper-raised);
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+  text-decoration: none;
+}
+.rd-jump a:hover { color: var(--ink); border-color: var(--ink-faint); }
+
+/* --- The scenario bar ------------------------------------------------
+ * Sticks under the site header (z-index 20) once Now has scrolled away,
+ * and runs to the page's edges so what scrolls beneath it is covered. */
+.rd-bar {
+  position: sticky;
+  top: var(--rd-top, 0px);
+  z-index: 10;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+  margin-inline: calc(var(--gutter) * -1);
+  margin-bottom: var(--space-8);
+  padding: var(--space-2) var(--gutter);
+  background: var(--paper);
+  border-block: 1px solid var(--rule);
+}
+.rd-bar__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+/* Ten scenarios do not fit a phone, so the pills scroll sideways, with
+ * room inside the scroller for the focus ring it would otherwise clip. */
+.rd-bar__pills {
+  flex: 1 1 auto;
+  display: flex;
+  gap: var(--space-2);
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  margin: calc(var(--space-1) * -1);
+  padding: var(--space-1);
+}
+.rd-pill { flex: 0 0 auto; white-space: nowrap; }
+.rd-bar__pills .seg + .seg,
+.rd-filters .seg + .seg { margin-left: 0; }
+
+.rd-bar__status,
+.rd-bar__sum {
+  max-width: none;
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
+}
+.rd-bar__sum {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+/* With room, the status and the budgets share one line under the pills. */
+@media (min-width: 1024px) {
+  .rd-bar { grid-template-columns: auto minmax(0, 1fr); column-gap: var(--space-4); }
+  .rd-bar__row { grid-column: 1 / -1; }
+}
+
+.rd-adjust { flex: none; }
+.rd-adjust > summary {
+  padding-inline: var(--space-3);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--tap-min);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-sm);
+  background: var(--paper-raised);
+  color: var(--ink);
+  font-size: max(1rem, var(--text-sm));
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+.rd-adjust > summary::-webkit-details-marker { display: none; }
+.rd-adjust > summary::after {
+  content: "+";
+  content: "+" / "";
+  font-family: var(--font-mono);
+  color: var(--ink-muted);
+}
+.rd-adjust[open] > summary { background: var(--accent-soft); border-color: var(--accent-edge); }
+.rd-adjust[open] > summary::after { content: "\2212"; content: "\2212" / ""; }
+
+/* The what-ifs open as a sheet under the bar, so the pills, the budget
+ * line and the charts below stay where they were while a slider moves. */
+.rd-adjust__sheet {
+  position: absolute;
+  inset-inline: 0;
+  top: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+  max-block-size: min(34rem, calc(100svh - var(--rd-top, 0px) - var(--rd-bar-h, 0px) - var(--space-4)));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-4) var(--gutter);
+  background: var(--paper-raised);
+  border-bottom: 1px solid var(--rule-strong);
+  box-shadow: var(--shadow-sheet);
+}
+.rd-adjust__tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+.rd-adjust__tools p { flex: 1 1 16rem; margin: 0; }
+.rd-adjust__form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: start;
+}
+@media (min-width: 480px) { .rd-adjust__form { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { .rd-adjust__form { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+.rd-adjust__group {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+  margin: 0;
+  padding: var(--space-2) var(--space-3) var(--space-3);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
+.rd-adjust__group legend {
+  padding-inline: var(--space-1);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+.rd-ctl {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 0 var(--space-2);
+}
+.rd-ctl label { min-height: 0; margin: 0; font-size: var(--text-sm); color: var(--ink); }
+.rd-ctl__out { font-size: var(--text-sm); color: var(--ink-muted); }
+.rd-ctl input { grid-column: 1 / -1; width: 100%; }
+.rd-ctl input[type="range"] {
+  min-height: var(--tap-min);
+  padding: 0;
+  border: 0;
+  background: none;
+  accent-color: var(--accent);
+}
+.rd-ctl__was { grid-column: 1 / -1; font-size: var(--text-xs); color: var(--ink-muted); }
+.rd-ctl__was:empty { display: none; }
+.rd-ctl.is-changed .rd-ctl__out { color: var(--accent); font-weight: 600; }
+
+.rd-copy { display: grid; gap: var(--space-1); }
+.rd-copy label { min-height: 0; }
+.rd-copy textarea { width: 100%; font-family: var(--font-mono); resize: vertical; }
+
+/* On a short screen - a phone on its side, the smallest phones - a bar
+ * that stuck would leave almost nothing to read under it. It scrolls
+ * with the page instead, and the sheet opens over what follows it. */
+@media (max-height: 700px) {
+  .rd-bar { position: relative; top: auto; }
+  .rd-adjust__sheet { max-block-size: none; }
+  .rd-section,
+  .rd-card,
+  [data-rd]:not([data-rd="bar"]) :focus-visible {
+    scroll-margin-top: calc(var(--rd-top, 0px) + var(--space-3));
+  }
+}
+
+/* --- Now ------------------------------------------------------------- */
+@media (min-width: 768px) { .rd-now__stats { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1280px) { .rd-now__stats { grid-template-columns: repeat(5, 1fr); } }
+
+.rd-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-4);
+  padding: 0;
+  list-style: none;
+}
+/* A rule is a sentence, not a tag: it wraps rather than running off a
+ * phone. */
+.rd-chips .chip { white-space: normal; border-radius: var(--radius-sm); padding-block: var(--space-1); }
+
+.rd-next {
+  display: grid;
+  max-width: var(--measure);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rd-next li {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: baseline;
+  padding-block: var(--space-2);
+  border-bottom: 1px solid var(--rule);
+}
+.rd-next__when { font-size: var(--text-sm); color: var(--ink-muted); }
+
+/* --- Roads --------------------------------------------------------------- */
+.rd-roads {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rd-road {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  align-content: start;
+  min-width: 0;
+  padding: var(--space-4);
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+  border-top: 4px solid var(--road);
+  border-radius: var(--radius);
+}
+/* Opening a road's money ladder gives it the whole row: eleven columns
+ * do not fit a third of the page. */
+.rd-road:has(> details[open]) { grid-column: 1 / -1; }
+.rd-road p { margin: 0; }
+.rd-road__title { margin: 0; font-size: var(--text-lg); }
+.rd-road__figs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2) var(--space-3);
+  margin: 0;
+}
+.rd-road__figs dt { font-size: var(--text-xs); color: var(--ink-faint); }
+.rd-road__figs dd { margin: 0; }
+.rd-neg { color: var(--alert); font-weight: 600; }
+.rd-warn {
+  padding: var(--space-2) var(--space-3);
+  background: var(--alert-soft);
+  border: 1px solid var(--alert);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+}
+.rd-flags li::marker { color: var(--warn); }
+.rd-flag {
+  display: inline-block;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--warn);
+  border-radius: 999px;
+  font-size: var(--text-xs);
+  white-space: nowrap;
+}
+.rd-ladder { min-width: 62rem; }

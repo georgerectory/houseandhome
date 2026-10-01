@@ -45,7 +45,7 @@
 create table if not exists public.stock_targets (
   id            uuid primary key default gen_random_uuid(),
   household_id  uuid not null references public.households (id) on delete cascade,
-  property_id   uuid references public.properties (id) on delete set null,
+  property_id   uuid references public.properties (id) on delete cascade,
   room_id       uuid references public.rooms (id) on delete set null,
   -- The job this feeds. A stockpile with no job behind it is hoarding.
   work_item_id  uuid references public.work_items (id) on delete set null,
@@ -114,6 +114,12 @@ create table if not exists public.stock_targets (
   confirmed_at  timestamptz,
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now(),
+  -- The review mark (57_review.sql explains it). Declared here rather
+  -- than added there, because stock_status below selects t.* and a view
+  -- fixes its column list when it is created: added later, the columns
+  -- would exist on the table and be missing from the view.
+  reviewed_at   timestamptz,
+  review_note   text,
 
   -- A spec is the whole value of the row, so an empty one is refused.
   constraint stock_targets_spec_not_blank check (length(btrim(spec)) > 0),
@@ -231,7 +237,10 @@ left join (
          max(acquired_on)                     as last_acquired_on
   from public.stock_acquisitions
   group by stock_target_id
-) a on a.stock_target_id = t.id;
+) a on a.stock_target_id = t.id
+-- The default scope: this household's own stockpiles plus the active
+-- property's. A candidate's bricks are not this house's bricks.
+where public.in_default_scope(t.household_id, t.property_id);
 
 comment on view public.stock_status is
   'stock_targets with the running total derived from stock_acquisitions. Never store quantity_held on the target.';
@@ -245,7 +254,7 @@ comment on view public.stock_status is
 -- it as a purchase or leave it out.
 alter table public.work_items
   add column if not exists acquisition text not null default 'new'
-    check (acquisition in ('new','reclaimed','either','hire','owned','gift'));
+    check (acquisition in ('new','used','reclaimed','salvaged','made','either','hire','owned','gift'));
 
 comment on column public.work_items.acquisition is
   'new by default. hire covers plant and skips; owned means it is already in the inventory and the row exists only so the plan can see it is covered.';

@@ -14,33 +14,65 @@
 //      The publishable key is safe to commit and is; that one is not.
 //
 // This checks what git ACTUALLY TRACKS, not what is on disk, because the
-// question is only ever "could this be pushed".
+// question is only ever "could this be pushed" - and what it is about to
+// track: a new file not yet added is one `git add` from being pushed, and
+// a gate run before the commit is the one that has to see it. An ignored
+// file is left out; forcing one in makes it tracked, and caught.
 
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+import { privateMarkers } from './road-ahead-lib.mjs';
 
 const failures = [];
 
-function tracked() {
+const git = (...args) => execFileSync('git', ['ls-files', '-z', ...args], { encoding: 'utf8' }).split('\0').filter(Boolean);
+function pushable() {
   try {
-    return execFileSync('git', ['ls-files', '-z'], { encoding: 'utf8' })
-      .split('\0').filter(Boolean);
+    return { tracked: new Set(git()), files: [...new Set([...git(), ...git('--others', '--exclude-standard')])] };
   } catch {
     // Not a git checkout: nothing can be pushed from here.
-    return null;
+    return { tracked: null, files: null };
   }
 }
 
-const files = tracked();
+const { tracked, files } = pushable();
 
 if (files === null) {
   console.log('Secrets: not a git checkout, nothing to check.');
 } else {
-  // 1. Carried-over blobs.
-  const blobs = files.filter((f) => /^data\/carried\/.+/.test(f) && !f.endsWith('README.md'));
+  // 1. Carried-over blobs, and Road Ahead's kit extract and exports.
+  const blobs = files.filter((f) => /^data\/(carried|road-ahead)\/.+/.test(f) && !f.endsWith('README.md'));
   for (const f of blobs) {
-    failures.push(`${f} is TRACKED BY GIT. Carried-over extracts are private and this repository is public.\n`
-      + `     Remove it with: git rm --cached "${f}"`);
+    failures.push(tracked.has(f)
+      ? `${f} is TRACKED BY GIT. Extracts are private and this repository is public.\n`
+        + `     Remove it with: git rm --cached "${f}"`
+      : `${f} is NOT IGNORED, so one git add would push it. Extracts are private: restore its .gitignore rule.`);
+  }
+
+  // 3. The owner's names, home village, salary and mortgage in principle,
+  //    checked wherever the private kit extract is present - which is
+  //    exactly where they could leak from. The values are read from it
+  //    at check time; nothing here names them.
+  //    Two generated files are spared the NUMBER markers only. The golden
+  //    master comes from invented inputs by tools/road-ahead-golden.py, and
+  //    Road Ahead's demo fixture from the golden master's listings by
+  //    tools/build-road-fixture.mjs; both generators are themselves checked.
+  //    Their figures are rounded to a thousand, so one matching the owner's
+  //    is chance, not a leak, and editing a figure because it matched
+  //    would only point at it. Names and places still apply to both.
+  const EXTRACT = 'data/road-ahead/kit-extract.json';
+  const INVENTED = new Set(['tests/fixtures/road-ahead-golden.json', 'data/fixtures/road-ahead.json']);
+  if (existsSync(EXTRACT)) {
+    let markers = { numbers: [], words: [] };
+    try { markers = privateMarkers(JSON.parse(readFileSync(EXTRACT, 'utf8'))); } catch { /* an unreadable extract is the checksum gate's to report */ }
+    for (const f of files) {
+      let src;
+      try { src = readFileSync(f, 'utf8'); } catch { continue; }
+      if (src.includes('\0')) continue;
+      const apply = INVENTED.has(f) ? markers.words : [...markers.numbers, ...markers.words];
+      const hits = apply.filter((re) => re.test(src)).length;
+      if (hits) failures.push(`${f} contains ${hits} of the owner's private markers (names, home village, salary or mortgage in principle).`);
+    }
   }
 
   // 2. Anything that looks like a service_role key or a JWT carrying
@@ -67,8 +99,9 @@ if (files === null) {
     console.log('');
     for (const f of failures) console.log(`FAIL ${f}`);
     console.log('');
-    console.log(`Secrets: ${failures.length} problem(s) in ${files.length} tracked files`);
+    console.log(`Secrets: ${failures.length} problem(s) in ${files.length} tracked and new files`);
     process.exit(1);
   }
-  console.log(`Secrets: ${files.length} tracked files, no private data and no privileged key`);
+  const privateNote = existsSync('data/road-ahead/kit-extract.json') ? ', none of the owner\'s private markers' : '';
+  console.log(`Secrets: ${files.length} tracked and new files, no private data and no privileged key${privateNote}`);
 }

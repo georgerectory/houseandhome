@@ -10,8 +10,26 @@
 // here, it is proven by tests/sql/rls.test.sql.
 
 import { CONFIG } from './config.js';
+import { ROAD_SHAPE, columns } from './road-shape.js';
 
 let cache = null;
+let sbClient = null;
+
+/** The one Supabase client, signed in, or null after sending the reader
+ *  to the login screen. Shared, so a page that reads the house and Road
+ *  Ahead does not start two auth clients on one session. */
+async function client() {
+  if (!sbClient) {
+    sbClient = (async () => {
+      const { createClient } = await import(CONFIG.supabaseModule);
+      return createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
+    })();
+  }
+  const sb = await sbClient;
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { location.replace('login.html'); return null; }
+  return sb;
+}
 
 async function loadFixture() {
   if (cache) return cache;
@@ -22,16 +40,27 @@ async function loadFixture() {
 }
 
 async function loadLive() {
-  const { createClient } = await import(CONFIG.supabaseModule);
-  const sb = createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) { location.replace('login.html'); return null; }
+  const sb = await client();
+  if (!sb) return null;
+
+  // THE HOUSE. Exactly one property is active, committed or owned, and
+  // every default view shows it plus the household's own rows. The views
+  // filter in Postgres (in_default_scope); the base tables are filtered
+  // here by the same rule, so a candidate being worked up alongside
+  // never leaks into the roadmap, the budget or the shopping list.
+  const { data: property, error: propertyError } = await sb.from('properties')
+    .select('id, ref, name, status, address_line, postcode, offer_status, guide_price, walk_away_price')
+    .in('status', ['active', 'committed', 'owned']).maybeSingle();
+  if (propertyError) throw new Error(`Could not read the database - properties: ${propertyError.message}`);
+  const scoped = (q) => (property
+    ? q.or(`property_id.is.null,property_id.eq.${property.id}`)
+    : q.is('property_id', null));
 
   const [rooms, items, bills, assets, storage, inventory, settings, prices,
     carried, accounts, shopping, totals, stock, review, links, docs, theme, ready, diary] = await Promise.all([
-    sb.from('rooms').select('*'),
-    sb.from('work_items').select('*').order('priority'),
-    sb.from('bills').select('*').eq('is_active', true),
+    scoped(sb.from('rooms').select('*')),
+    scoped(sb.from('work_items').select('*')).order('priority'),
+    scoped(sb.from('bills').select('*').eq('is_active', true)),
     sb.from('assets').select('*'),
     sb.from('storage_locations').select('*'),
     sb.from('inventory_items').select('*'),
@@ -57,16 +86,21 @@ async function loadLive() {
     sb.from('knowledge_links').select('*').is('valid_to', null),
     // THE DOCUMENT. Sections in reading order, so plan.html can render
     // the handbook rather than linking to a PDF that nothing can query
-    // and nothing keeps in step.
-    sb.from('document_sections').select('*').order('sort_order'),
+    // and nothing keeps in step. Only the house in view's own handbook:
+    // household-wide documents (Road Ahead's plan, the Rectory kit's
+    // text) are reference for Claude through the connector, not reading
+    // for this page, and with no house in view there is no handbook.
+    property
+      ? sb.from('document_sections').select('*').eq('property_id', property.id).order('sort_order')
+      : Promise.resolve({ data: [], error: null }),
     sb.from('theme_book').select('*').order('sort_order'),
     // WHY each job cannot be started yet, derived from the same edges
     // that drive the shopping list. The roadmap says what matters most;
     // this says what is actually doable.
     sb.from('work_item_readiness').select('*'),
-    // The diary. Milestones and events in one list, with days_until
-    // already counted - see 65_diary.sql for why that is not the page's
-    // job.
+    // The diary. Milestones, events and the auction countdown in one
+    // list, with days_until already counted - see whats_next in
+    // 89_road_ahead_logic.sql for why that is not the page's job.
     sb.from('whats_next').select('*').order('days_until'),
   ]);
   const { data: pot, error: potError } = await sb.from('pots')
@@ -97,6 +131,7 @@ async function loadLive() {
 
   cache = {
     meta: { generated: new Date().toISOString().slice(0, 10), note: 'Live data.' },
+    property: property ?? null,
     pot: pot ?? null,
     rooms: rooms.data ?? [],
     items: (items.data ?? []).map(withRoom),
@@ -145,4 +180,62 @@ export async function load() {
   return isDemo() ? loadFixture() : loadLive();
 }
 
-// --- Derived selectors, shared by every page ------------------------
+// --- Road Ahead ------------------------------------------------------
+// Read by the Road Ahead page only: the register, the roads, the
+// scenarios and the variables the engine runs on in the browser. The
+// columns are ROAD_SHAPE's, so the demo (built from invented inputs by
+// tools/build-road-fixture.mjs) and the live rows have one shape.
+
+let roadCache = null;
+
+async function loadRoadFixture() {
+  const res = await fetch(new URL('../../../data/fixtures/road-ahead.json', import.meta.url));
+  if (!res.ok) throw new Error(`fixture load failed: ${res.status}`);
+  return res.json();
+}
+
+async function loadRoadLive() {
+  const sb = await client();
+  if (!sb) return null;
+  const active = (t, part) => sb.from(t).select(columns(part)).eq('status', 'active');
+  // listing_id rather than listing_code: the code is resolved below.
+  const withListingId = (part) => ROAD_SHAPE[part].map((c) => (c === 'listing_code' ? 'listing_id' : c)).join(', ');
+  const parts = {
+    variables: active('ra_variables', 'variables').order('key'),
+    scenarios: active('ra_scenarios', 'scenarios'),
+    roads: active('ra_roads', 'roads').eq('kind', 'road').order('sort_order'),
+    rules: active('ra_rules', 'rules').order('code'),
+    register: sb.from('ra_register').select(columns('register')).order('code'),
+    comparables: sb.from('ra_comparables').select(withListingId('comparables')),
+    pipeline: sb.from('ra_pipeline').select(columns('pipeline')).order('due_on'),
+    next: sb.from('whats_next').select(columns('next')).gte('days_until', 0).order('days_until').limit(12),
+    ledger: sb.from('ra_model_vs_ledger').select(columns('ledger')),
+    houses: active('ra_auction_houses', 'houses').order('code'),
+    calendar: sb.from('ra_auction_calendar').select(columns('calendar')).neq('status', 'cancelled').order('on_date'),
+    results: sb.from('ra_auction_results').select(withListingId('results')).order('sold_on', { ascending: false }),
+    playbook: active('ra_playbook', 'playbook').order('sort_order'),
+    decisions: sb.from('ra_decision_history').select(columns('decisions')).order('code'),
+    signals: active('ra_signal_record', 'signals').order('code'),
+    changes: sb.from('ra_changes').select(columns('changes')).order('changed_at', { ascending: false }).limit(200),
+    contradictions: sb.from('open_contradictions').select(columns('contradictions')).order('created_at'),
+    calibrate: sb.from('ra_calibration_agenda').select(columns('calibrate')).order('place'),
+    revisit: sb.from('ra_judgements_to_revisit').select(columns('revisit')).order('said_on'),
+    runs: sb.from('ra_accepted_runs').select(columns('runs')).eq('run_name', 'main'),
+  };
+  const names = Object.keys(parts);
+  const results = await Promise.all(Object.values(parts));
+  // A broken read is raised, never rendered as an empty register.
+  const failed = results.map((r, i) => (r.error ? `${names[i]}: ${r.error.message}` : null)).filter(Boolean);
+  if (failed.length) throw new Error(`Could not read Road Ahead - ${failed.join('; ')}`);
+  const data = Object.fromEntries(names.map((n, i) => [n, results[i].data ?? []]));
+  const codeById = new Map(data.register.map((r) => [r.id, r.code]));
+  const byCode = ({ listing_id: id, ...row }) => ({ listing_code: codeById.get(id) ?? null, ...row });
+  data.comparables = data.comparables.map(byCode);
+  data.results = data.results.map(byCode);
+  return { meta: { generated: new Date().toISOString().slice(0, 10), note: 'Live data.' }, ...data };
+}
+
+export async function loadRoadAhead() {
+  if (!roadCache) roadCache = await (isDemo() ? loadRoadFixture() : loadRoadLive());
+  return roadCache;
+}

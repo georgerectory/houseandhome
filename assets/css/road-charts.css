@@ -1,0 +1,276 @@
+/* road-charts.css - Road Ahead's charts: the fit heatmap, the budget
+ * bars, the timeline, the cash lines and the scatter. Split from
+ * road.css to keep each file readable; the road colours (--road, set by
+ * rd-s1..rd-s5) and the page itself are there.
+ *
+ * Each chart is HTML or SVG with its words beside it. A road's tint is
+ * mixed in oklab, never oklch: see road.css. */
+
+/* Fit: the owner's score shaded from the accent, the number always
+ * written. Text stays --ink on every shade, which holds 4.5:1 in both
+ * themes where the muted inks would not. */
+.rd-heat { min-width: 30rem; }
+.rd-heat caption {
+  caption-side: top;
+  padding: var(--space-3);
+  text-align: left;
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+}
+.rd-heat thead th { text-align: center; }
+.rd-heat thead th:first-child { text-align: left; }
+.rd-heat abbr { text-decoration: none; }
+.rd-heat__cell { text-align: center; color: var(--ink); }
+.rd-heat__cell .num { font-weight: 600; }
+.rd-heat--1 { background: color-mix(in oklab, var(--accent) 12%, var(--paper-raised)); }
+.rd-heat--2 { background: color-mix(in oklab, var(--accent) 26%, var(--paper-raised)); }
+.rd-heat--3 { background: color-mix(in oklab, var(--accent) 42%, var(--paper-raised)); }
+.rd-heat__check { display: block; font-size: var(--text-xs); }
+.rd-heat__check--differs { font-weight: 600; }
+.rd-heat__check--differs::before {
+  content: "";
+  display: inline-block;
+  width: 0.5em;
+  height: 0.5em;
+  margin-right: var(--space-1);
+  border-radius: 999px;
+  background: var(--alert);
+}
+
+/* --- Charts ------------------------------------------------------------ */
+.rd-bars, .rd-tl, .rd-sc, .rd-multi { margin: 0 0 var(--space-8); }
+.rd-bars figcaption,
+.rd-tl figcaption,
+.rd-sc figcaption,
+.rd-multi figcaption {
+  max-width: var(--measure);
+  margin-bottom: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+}
+
+.rd-bars__list { display: grid; gap: var(--space-4); margin: 0; padding: 0; list-style: none; }
+.rd-bars__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "label value" "track track" "marks marks";
+  gap: var(--space-1) var(--space-3);
+  align-items: center;
+}
+.rd-bars__label { grid-area: label; }
+.rd-bars__value { grid-area: value; font-weight: 600; text-align: right; }
+.rd-bars__track {
+  grid-area: track;
+  position: relative;
+  height: 1.25rem;
+  background: var(--paper-sunken);
+}
+.rd-bars__fill {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: var(--pct, 0%);
+  background: var(--road);
+  border-radius: 0 4px 4px 0;
+}
+.rd-bars__row:hover .rd-bars__fill { background: color-mix(in oklab, var(--road) 82%, var(--paper-raised)); }
+/* A marker is a tick with a paper halo, so it shows on the bar and off
+ * it; which scenario it is, and its figure, are written beneath. */
+.rd-bars__mark,
+.rd-bars__target {
+  position: absolute;
+  inset-block: calc(var(--space-1) * -1);
+  left: var(--pos, 0%);
+}
+.rd-bars__mark {
+  width: 2px;
+  margin-left: -1px;
+  background: var(--ink);
+  box-shadow: 0 0 0 1px var(--paper-raised);
+}
+.rd-bars__target { border-left: 2px dashed var(--ink-muted); }
+.rd-bars__marks { grid-area: marks; font-size: var(--text-xs); color: var(--ink-muted); }
+@media (min-width: 1024px) {
+  .rd-bars__row {
+    grid-template-columns: 16rem minmax(0, 1fr) 7rem;
+    grid-template-areas: "label track value" ". marks marks";
+  }
+}
+
+/* Time runs left to right on one axis for every road. The lanes need
+ * room to be read, so on a phone the chart scrolls inside its frame. */
+.rd-tl { --rd-tl-name: 7.5rem; --rd-tl-min: 36rem; }
+@media (min-width: 1024px) { .rd-tl { --rd-tl-name: 13rem; } }
+.rd-tl__scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: var(--space-3);
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
+.rd-tl__axis {
+  position: relative;
+  height: 1.5rem;
+  min-width: calc(var(--rd-tl-min) - var(--rd-tl-name) - var(--space-2));
+  margin-left: calc(var(--rd-tl-name) + var(--space-2));
+}
+.rd-tl__year {
+  position: absolute;
+  left: var(--pos, 0%);
+  padding-left: var(--space-1);
+  border-left: 1px solid var(--rule-strong);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
+}
+.rd-tl__lanes {
+  display: grid;
+  gap: var(--space-2);
+  min-width: var(--rd-tl-min);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rd-tl__lane {
+  display: grid;
+  grid-template-columns: var(--rd-tl-name) minmax(0, 1fr);
+  gap: var(--space-2);
+  align-items: center;
+}
+/* The road's name wraps rather than being cut; the bar of colour beside
+ * it is the road's mark, the words are its identity. */
+.rd-tl__name {
+  padding-left: var(--space-2);
+  border-left: 3px solid var(--road);
+  font-size: var(--text-sm);
+  line-height: var(--leading-tight);
+}
+.rd-tl__track {
+  position: relative;
+  height: 2rem;
+  background: var(--paper-sunken);
+  border-radius: var(--radius-sm);
+}
+/* A phase's kind is its fill, from none to the road at its strongest, and
+ * neighbours are parted by a 2px gap in the track's colour, never a border.
+ * A label sits inside only where timeline.js found it fits. */
+.rd-tl__seg {
+  position: absolute;
+  inset-block: 2px;
+  left: var(--from, 0%);
+  width: var(--width, 0%);
+  display: flex;
+  align-items: center;
+  padding-inline: var(--space-1);
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px var(--paper-sunken);
+  font-size: var(--text-xs);
+  color: var(--ink);
+  white-space: nowrap;
+}
+.rd-tl__seg:hover { box-shadow: 0 0 0 1px var(--paper-sunken), inset 0 0 0 2px var(--ink-faint); }
+.rd-tl__seg--family { color: var(--ink-muted); }
+.rd-tl__seg--rent { background: color-mix(in oklab, var(--road) 12%, var(--paper-raised)); }
+.rd-tl__seg--house { background: color-mix(in oklab, var(--road) 30%, var(--paper-raised)); }
+.rd-tl__seg--forever { background: color-mix(in oklab, var(--road) 50%, var(--paper-raised)); font-weight: 600; }
+.rd-tl__key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  margin: 0 0 var(--space-3);
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
+}
+.rd-tl__key li { display: inline-flex; align-items: center; gap: var(--space-2); }
+.rd-tl__swatch {
+  width: 1.5rem;
+  height: 0.75rem;
+  border-radius: 2px;
+  background: var(--paper-sunken);
+  box-shadow: inset 0 0 0 1px var(--rule);
+}
+.rd-tl__swatch--rent { background: color-mix(in oklab, var(--ink-muted) 12%, var(--paper-raised)); }
+.rd-tl__swatch--house { background: color-mix(in oklab, var(--ink-muted) 30%, var(--paper-raised)); }
+.rd-tl__swatch--forever { background: color-mix(in oklab, var(--ink-muted) 50%, var(--paper-raised)); }
+
+/* The cash line. Strokes keep their width however the chart stretches;
+ * the lowest month is a round-capped point. */
+.rd-spark { display: block; width: 100%; height: 4.5rem; overflow: visible; }
+.rd-spark__zero { stroke: var(--rule-strong); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.rd-spark__floor {
+  stroke: var(--ink-faint);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+  vector-effect: non-scaling-stroke;
+}
+.rd-spark__line {
+  fill: none;
+  stroke: var(--road, var(--ink));
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+.rd-spark__ring { stroke: var(--paper-raised); stroke-width: 12; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.rd-spark__low { stroke: var(--ink); stroke-width: 8; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.rd-spark__cross { stroke: var(--ink-faint); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.rd-spark { cursor: crosshair; touch-action: pan-y; }
+
+.rd-multi__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rd-multi__cell {
+  padding: var(--space-2) var(--space-3);
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+  border-top: 3px solid var(--road);
+  border-radius: var(--radius);
+}
+.rd-multi__name { display: block; margin-bottom: var(--space-1); font-size: var(--text-sm); }
+
+/* The scatter keeps a legible size and scrolls in its frame on a phone,
+ * and stops growing on a wide screen, where its text would balloon. */
+.rd-sc__scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
+.rd-sc svg { display: block; width: 100%; min-width: 40rem; max-width: 52rem; height: auto; margin-inline: auto; }
+.rd-sc text { font-family: var(--font-body); font-size: var(--text-xs); fill: var(--ink-muted); }
+.rd-sc__grid line { stroke: var(--rule); }
+.rd-sc__rule line { stroke: var(--ink-faint); stroke-dasharray: 5 4; }
+.rd-sc__pt circle { fill: var(--ink-muted); stroke: var(--paper-raised); stroke-width: 2; }
+.rd-sc__pt .rd-sc__hit { fill: transparent; stroke: none; }
+.rd-sc__pt:hover circle:not(.rd-sc__hit) { fill: var(--ink); }
+.rd-sc__pt text { font-family: var(--font-mono); font-weight: 600; fill: var(--ink); }
+.rd-heat__cell:hover { box-shadow: inset 0 0 0 2px var(--ink-faint); }
+
+/* The one tooltip: the value first, then what it is. Placed by tips.js
+ * through --tip-x and --tip-y, and never in the way of the pointer. */
+.rd-tip {
+  position: fixed;
+  left: var(--tip-x, 0px);
+  top: var(--tip-y, 0px);
+  z-index: 30;
+  display: grid;
+  gap: 2px;
+  max-width: min(18rem, calc(100% - var(--space-4)));
+  padding: var(--space-2) var(--space-3);
+  background: var(--paper-raised);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sheet);
+  pointer-events: none;
+}
+.rd-tip strong { font-size: var(--text-base); color: var(--ink); }
+.rd-tip span { font-size: var(--text-xs); color: var(--ink-muted); }

@@ -7,7 +7,7 @@
 // Nothing on this page is confirmed yet, and it says so rather than
 // presenting a drafted total as a budget.
 import { requireAuth } from '../core/auth.js';
-import { mountShell, render, confidenceBanner } from '../core/shell.js';
+import { mountShell, showProperty, render, confidenceBanner } from '../core/shell.js';
 import { load } from '../core/store.js';
 import { confidenceSummary } from '../engine/selectors.js';
 import { emptyState } from '../core/page.js';
@@ -23,6 +23,7 @@ if (!user) throw new Error('redirecting to login');
 mountShell('shopping.html', { user });
 
 const d = await load();
+showProperty(d.property);
 const refs = d.price_references ?? [];
 
 // THE LIST IS DERIVED, NOT RE-DERIVED HERE. `shopping_list` knows which

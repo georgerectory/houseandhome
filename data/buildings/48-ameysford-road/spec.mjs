@@ -90,6 +90,12 @@ export const building = {
   bought: false,
   surveyed: false,
   defaultStage: 'as-bought',
+  // The external wall build-up decides the plaster, the pointing and the
+  // paint. The owner confirmed on 24 Sep 2026 that the house is 1950s,
+  // not Victorian; a 1950s house is most likely cavity-walled. That is
+  // an expectation, not a measurement - the brick bond on the front
+  // elevation settles it, and changing this one field re-runs the takeoff.
+  walls: { construction: 'cavity', confidence: 'drafted', basis: 'Built in the 1950s (owner, 24 Sep 2026); cavity expected, not yet seen.' },
   note: 'A candidate property, not a purchase. No offer has been accepted and no survey has been done. Every dimension in this model is read off a drawing or derived from one, so none of it may size a real job or order a real material until it is measured on site.',
   orientation: {
     planUpIs: 'north',

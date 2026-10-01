@@ -74,7 +74,8 @@ select
   end as readiness
 from public.work_items w
 left join predecessors p on p.item_id = w.id
-left join materials m on m.item_id = w.id;
+left join materials m on m.item_id = w.id
+where public.in_default_scope(w.household_id, w.property_id);
 
 comment on view public.work_item_readiness is
   'Why each item cannot be started yet, derived from must_precede and requires_material rather than typed. The roadmap answers what matters most; this answers what is actually doable.';

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Road Ahead — House &amp; Home</title>
+<meta name="description" content="Which house next, and why: the roads to the forever home, the listings register and every figure behind them.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/roadmap.css">
+<link rel="stylesheet" href="assets/css/floorplan.css">
+<link rel="stylesheet" href="assets/css/house.css">
+<link rel="stylesheet" href="assets/css/road.css">
+<link rel="stylesheet" href="assets/css/road-register.css">
+<link rel="stylesheet" href="assets/css/road-charts.css">
+<link rel="stylesheet" href="assets/css/road-record.css">
+<script>
+/* Apply the stored theme before first paint: doing it in the module
+   would flash the wrong theme while the module loads. */
+try { var t = localStorage.getItem('hh-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+</head>
+<body>
+<main id="main" class="page">
+  <h1>Road Ahead</h1>
+  <p class="lede">Which house next, and why: the roads to the forever home, the listings register and every figure behind them.</p>
+  <div data-page-root aria-live="polite"></div>
+</main>
+<script type="module" src="assets/js/pages/road.js"></script>
+</body>
+</html>

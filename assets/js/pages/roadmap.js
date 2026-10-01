@@ -10,7 +10,7 @@
 // Everything else - delivered, wide, filters - is a remembered
 // preference rather than part of the link.
 import { requireAuth } from '../core/auth.js';
-import { mountShell, render, confidenceBanner } from '../core/shell.js';
+import { mountShell, showProperty, render, confidenceBanner } from '../core/shell.js';
 import { load } from '../core/store.js';
 import { confidenceSummary } from '../engine/selectors.js';
 import { escape, titleCase } from '../core/format.js';
@@ -29,6 +29,7 @@ if (!user) throw new Error('redirecting to login');
 mountShell('roadmap.html', { user });
 
 const d = await load();
+showProperty(d.property);
 markRecency(d.items ?? [], Date.now());
 
 const THEMES = [

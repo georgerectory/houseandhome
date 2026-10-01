@@ -29,7 +29,7 @@
 create table if not exists public.source_documents (
   id            uuid primary key default gen_random_uuid(),
   household_id  uuid not null references public.households (id) on delete cascade,
-  property_id   uuid references public.properties (id) on delete set null,
+  property_id   uuid references public.properties (id) on delete cascade,
   title         text not null,
   kind          text not null default 'handbook'
     check (kind in ('handbook','survey','quote','certificate','plan','report','other')),
@@ -55,6 +55,9 @@ create table if not exists public.document_sections (
   id            uuid primary key default gen_random_uuid(),
   household_id  uuid not null references public.households (id) on delete cascade,
   document_id   uuid not null references public.source_documents (id) on delete cascade,
+  -- A system document can carry one building's chapter. That chapter is
+  -- PROPERTY scope and goes when the building is purged; the rest stays.
+  property_id   uuid references public.properties (id) on delete cascade,
   part          text,
   number        text,
   title         text not null,
@@ -168,7 +171,9 @@ select
      where c.section_id = s.id and c.work_item_id is not null)              as claims_landed
 from public.document_sections s
 join public.source_documents d on d.id = s.document_id
-where d.status = 'current';
+where d.status = 'current'
+  and public.in_default_scope(d.household_id, d.property_id)
+  and public.in_default_scope(s.household_id, s.property_id);
 
 comment on view public.document_outline is
   'The document as a contents page, with how many claims each section makes and how many of them point at a work item. A section with claims and none landed is one nobody has connected to the plan yet.';

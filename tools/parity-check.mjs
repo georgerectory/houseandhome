@@ -13,6 +13,7 @@ import { allocate } from '../assets/js/engine/allocate.js';
 import { shoppingList } from '../assets/js/engine/demand.js';
 import { rank } from '../assets/js/engine/priority.js';
 import { readinessReport } from '../assets/js/engine/readiness.js';
+import { roadAheadParity } from './parity-road-ahead.mjs';
 
 const PGBIN = process.env.PGBIN || '/usr/lib/postgresql/16/bin';
 const DB = process.env.PARITY_DB || 'househome_parity';
@@ -115,7 +116,7 @@ for (const c of CASES) {
     return { id, rank: Number(rank), amount: Number(amount) };
   }) : [];
 
-  const order = psql(`select id from work_items where household_id='11111111-1111-1111-1111-111111111111' and is_fundable and status not in ('done','dropped') order by priority, id;`);
+  const order = psql(`select id from work_items where household_id='11111111-1111-1111-1111-111111111111' and funding_stream = 'pot' and status not in ('done','dropped') order by priority, id;`);
   const ids = order ? order.split('\n') : [];
   const jsRows = allocate(ids.map((id) => ({ id, targetCost: 1000, allocatedBalance: 0 })), c.amount);
 
@@ -393,6 +394,12 @@ if (readyDiffs === 0 && allLabels) {
   console.log(`FAIL parity: readiness - diffs=${readyDiffs} allLabels=${allLabels} saw=${[...labels].join(',')}`);
 }
 
+// ROAD AHEAD PARITY. The listing assessor lives in appraise.js for the
+// page and in ra_appraise() for any Claude with the connector; its cases
+// are in parity-road-ahead.mjs.
+const road = roadAheadParity(psql, HH);
+failures += road.failures;
+
 console.log('');
-console.log(failures === 0 ? `Parity: all ${CASES.length + 3} cases identical` : `Parity: ${failures} case(s) failed`);
+console.log(failures === 0 ? `Parity: all ${CASES.length + 3 + road.cases} cases identical` : `Parity: ${failures} case(s) failed`);
 process.exit(failures === 0 ? 0 : 1);

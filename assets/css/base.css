@@ -236,3 +236,15 @@ code, kbd, samp { font-family: var(--font-mono); font-size: 0.95em; }
   padding-inline: var(--space-3);
 }
 .theme-toggle:hover { border-color: var(--rule-strong); color: var(--ink); }
+
+/* The active property, under the brand: which house every default view
+   is showing. Small and muted, because it is context rather than a
+   heading, and it wraps rather than pushing the header wide. */
+.brand__property {
+  display: block;
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
+  white-space: normal;
+}

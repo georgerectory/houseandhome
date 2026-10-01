@@ -19,12 +19,39 @@ the result. There is no form on it and no button that changes anything.
 **The repository is public; the data is not.** Everything real lives in
 Supabase behind row-level security.
 
+## The active property
+
+**None.** P-001 (48 Ameysford Road) and P-002 (1 Walnut Tree Cottages)
+were archived on 30 Sep 2026 on the owner's instruction; the owner had
+closed both on 27 Sep (Road to the Rectory decisions G-K09 and G-K11).
+The next house comes through Road Ahead (below): a listing is assessed
+there, promoted to a property with `ra_promote_listing`, and becomes
+"the house" only through `make_active()`. Until then every
+default view shows only the household's own rows.
+
+The system is property-agnostic. Five scopes: **USER** (the household,
+`property_id` null), **BRIEF** (what a house is looked for against),
+**TEMPLATE** (`work_item_templates`, `work_phases`), **LIBRARY**
+(`price_references`, dated and region-tagged) and **PROPERTY** (one
+building, `property_id` set). A rate carries to every house; a quantity
+belongs to one.
+
+"The house", "the budget", "the roadmap" mean the active property. "My
+bills", "my savings", "my tools" are USER. "Across the houses" is
+`property_compare`, the only read of an archived property. **Never read
+the property archive unless asked for a cross-property comparison.
+Purged properties do not exist.** Lifecycle commands, the five scopes
+and the rules behind them: `docs/RENOVATION-SYSTEM.md`.
+
 **The standing scope is a FULL RESTORATION.** Every internal face comes
 back to the brick, the house is replumbed and rewired, and it is made
-watertight before anything goes back on. Not a redecoration with the
-worst bits fixed. This is the assumption behind every quantity, total
-and sequence in this system, and it is recorded as a `decision` row so
-it can be argued with rather than inherited silently.
+watertight before anything goes back on. The plaster that goes back
+follows the walls - gypsum on a cavity wall, lime on solid brick - and
+`walls.construction` in the building spec decides, so the takeoff
+follows it. Not a redecoration with the worst bits fixed. This is the
+assumption behind every quantity, total and sequence in this system, and
+it is recorded as a `decision` row so it can be argued with rather than
+inherited silently.
 
 Two things follow from it, and neither is optional:
 
@@ -33,10 +60,9 @@ Two things follow from it, and neither is optional:
   an existing row conflicts with the strip, SAY SO on the row - a `risk`
   note tagged `review:scope-conflict` - and let the owner decide. Do not
   quietly drop somebody else's job, and do not quietly do both.
-- **The internal wall face is a quantity, not an impression.** 241 m2 of
-  wall and 77 m2 of ceiling on this house: four skips out and 10.6
-  tonnes of lime plaster back. `npm run takeoff` derives it from the
-  geometry. Nothing about it is typed.
+- **The internal wall face is a quantity, not an impression.**
+  `npm run takeoff` derives the materials from the geometry and `--sql`
+  writes them to `property_quantities`. Nothing about it is typed.
 
 ## Where the rest lives
 
@@ -47,6 +73,9 @@ when the work touches it:
 | File | When to read it |
 |---|---|
 | `docs/STATE.md` | Always, straight after this. What is in flight. |
+| `docs/RENOVATION-SYSTEM.md` | Anything touching properties, the lifecycle, scopes, the template or the library. |
+| `docs/road-ahead/README.md` | Road Ahead: listings, roads, scenarios, variables, auctions, a sit-down or a re-base. |
+| `docs/properties/<ref>/` | One property's specifics. Archived ones move to `docs/properties-archive/`. |
 | `docs/DECISIONS.md` | Priority, money, the roadmap, the shopping list, quantities, stockpiles, links. |
 | `docs/REVIEW.md` | A review session. |
 | `docs/BUILDING-MODEL.md` | Anything under `model3d/`, `planner/` or `data/buildings/`. |
@@ -70,7 +99,11 @@ when the work touches it:
    deliberate cleanup opts in with
    `set local house.allow_work_item_delete = 'on';`. This governs ROWS
    only - a dead column or an unused file should be removed, because
-   leaving it means two mechanisms for one job.
+   leaving it means two mechanisms for one job. **The one named
+   exception is `purge_property()`**: on the owner's explicit instruction
+   naming the property, with its address typed, a property and
+   everything it owns is deleted. It is irreversible and never run on
+   Claude's own initiative.
 4. **Unconfirmed data never drives a decision.** See below.
 5. **`npm test` is green before every commit.**
 
@@ -90,6 +123,10 @@ in this file still binds, and three things in particular:
   Standing permission to run SQL is not permission to retire a row the
   owner wrote; it is permission to run the statement that closes it
   once they have said so.
+- **A money figure never changes silently.** Set
+  `house.change_why` (and `house.change_source`) before changing a cost,
+  amount or balance; the trigger refuses otherwise and writes OLD, NEW,
+  WHY and SOURCE to `change_log`.
 - **Verify by re-reading.** A write that was not read back did not
   happen. This matters more under standing permission, not less,
   because nobody is reading the statement before it runs.
@@ -127,6 +164,11 @@ In practice:
   moves it to `confirmed`.
 - `carried_finance` is an archive, not a ledger. It is a prompt sheet of
   things once listed, excluded from every total until reviewed.
+- **Road Ahead is a model**, so it computes from estimates. Its budgets
+  and walk-aways are always shown, always saying how much of them rests
+  on figures nobody has confirmed, and never become "you can afford
+  this". Its figures carry the kit's label beside `confidence`: STATED
+  lands confirmed, VERIFIED researched, ESTIMATE and CHECK drafted.
 
 ## Session shape
 
@@ -189,25 +231,54 @@ valuable thing a review produces is `confidence` moving to `confirmed`.
 **`docs/REVIEW.md` is the full protocol**, including which column each
 answer writes.
 
+## Road Ahead
+
+The second tab, `road.html`: which house next, and why - the roads to
+the forever home, the listings register, the auctions and every figure
+behind them. Its data lives in Supabase (the `ra_` tables, and the
+road's rows in `decisions`); its figures are the owner's and never enter
+this repository, which holds the code and the variable schema only.
+**`docs/road-ahead/README.md` is the reference.**
+
+- **Start** with `select road_ahead_context('<household>')` (`select id
+  from households` gives it; the connector has no signed-in user).
+- **Research before asserting.** A market fact - a sold price, a rate,
+  a guide - needs a dated source. A comparable is a real sale or
+  listing, or it is not used; a modelled figure is labelled ESTIMATE.
+- **A listing** the owner sends is assessed by
+  `docs/road-ahead/ASSESS_PROPERTY.md`. The portals are never fetched:
+  the owner pastes the text and the floor plan.
+- **A sit-down.** "Let's go through it", or "make it more accurate", is
+  a defined session shape like a review: ground with
+  `road_ahead_context` and `road_ahead_agenda`, open by saying what is
+  in front of you, and work the agenda in its order - dated actions,
+  open questions, where the model and the ledger disagree, the figures
+  to confirm first, judgements due again, signals not yet taken in,
+  what has moved. One CLICKABLE question at a time; write each answer
+  as it is given and read it back. **`docs/road-ahead/CALIBRATION.md`
+  is the protocol**, the re-base included.
+
 ## Testing
 
-`npm test` runs seven gates. All must pass.
+`npm test` runs eight gates. All must pass.
 
 | Gate | What it proves |
 |---|---|
-| `npm run test:secrets` | Nothing private is tracked by a public repository: no carried-over extract, no service_role key, no JWT, no source drawing. |
+| `npm run test:secrets` | Nothing private is tracked by a public repository, or about to be (a new file not yet added is checked too): no carried-over or Road Ahead extract, no service_role key, no JWT, no source drawing - and, wherever the private kit extract is present, not the owner's surname, home village, salary or mortgage in principle. |
 | `npm run lint` | No `100vw`, raw `vh`, `max-width` layout query, breakpoint in the 600-800 iPad band, inline style, emoji or hard-coded hex. |
-| `npm run test:unit` | The allocation, priority and geometry engines behave as stated. |
+| `npm run test:unit` | The allocation, priority and geometry engines behave as stated, and Road Ahead's engine matches the Rectory kit's own Python on invented inputs (the golden master). |
 | `npm run test:geometry` | Every stage of every building IS a building - rooms that do not overlap, a shell that closes, a floor with something under it - and agrees with the drawings it was measured from. |
 | `npm run test:sql` | The schema applies to a real Postgres; guards, triggers and RLS isolation all hold. |
 | `npm run test:parity` | The JS engine and the SQL engine agree to the micro-pound. |
 | `npm run test:frontend` | Real Chromium, six viewports, both themes: no horizontal scroll, no overflow, no target under 24px, no console errors, landmarks present. |
+| `npm run test:checksums` | Road Ahead's engine reproduces every figure the Rectory kit published, exactly, on the owner's private inputs. |
 
 `npm run screenshots` writes the same renders to `tests/screenshots/`
 (gitignored) when you want to look at something.
 
-The SQL gate needs a local Postgres; without one it SKIPS loudly rather
-than passing quietly.
+The SQL gate needs a local Postgres, and the checksum gate the private
+kit extract in `data/road-ahead/`; without them they SKIP loudly rather
+than passing quietly. CI never has the extract.
 
 ## The building model, and the House page
 
@@ -306,6 +377,12 @@ functions. Two `authenticated`-executable ones are expected and correct -
 `is_household_member()` and `current_household()` - because every RLS
 policy calls the first, and both only ever read the caller's own
 `auth.uid()`.
+
+Then prove the live database is the repository: run
+`tools/schema-fingerprint.sql` through the connector and
+`npm run schema:fingerprint` locally, and require the eight digests to
+match. A schema change applied live and not committed, or committed and
+not applied, shows up there and nowhere else.
 
 The test suite forces demo mode by setting `globalThis.__HH_CONFIG__`
 before the modules load, so it never touches the live database.

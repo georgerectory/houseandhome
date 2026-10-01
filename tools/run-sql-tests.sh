@@ -7,6 +7,11 @@
 # way the triggers, policies and the allocation settlement get exercised.
 set -euo pipefail
 
+# --fingerprint applies the schema and prints tools/schema-fingerprint.sql
+# instead of running the suites: the repository half of the live drift
+# check (the live half is the same file through the Supabase connector).
+MODE="${1:-}"
+
 PGBIN="${PGBIN:-$(ls -d /usr/lib/postgresql/*/bin | tail -1)}"
 PGDIR="${PGDIR:-/var/tmp/pgdata}"
 PGSOCK="${PGSOCK:-/var/tmp}"
@@ -27,7 +32,7 @@ if ! as_pg "$PGBIN/pg_isready -h $PGSOCK -p $PGPORT" >/dev/null 2>&1; then
 fi
 
 STAGE=$(mktemp -d /var/tmp/houseandhome-sql.XXXXXX)
-cp "$ROOT"/supabase/schema/*.sql "$ROOT"/tests/sql/*.sql "$STAGE"/
+cp "$ROOT"/supabase/schema/*.sql "$ROOT"/tests/sql/*.sql "$ROOT"/tools/schema-fingerprint.sql "$STAGE"/
 cat > "$STAGE/00_shim.sql" <<'SQL'
 -- Local-only: Supabase supplies these. Never applied to a real project.
 create schema if not exists auth;
@@ -79,6 +84,12 @@ for f in "$ROOT"/supabase/schema/*.sql; do
   fi
 done
 echo "  schema applied"
+
+if [ "$MODE" = "--fingerprint" ]; then
+  psql_run "-q -d $DB -f $STAGE/schema-fingerprint.sql"
+  rm -rf "$STAGE"
+  exit 0
+fi
 
 pass=0; fail=0
 for t in "$ROOT"/tests/sql/*.test.sql; do

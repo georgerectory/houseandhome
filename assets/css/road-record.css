@@ -1,0 +1,91 @@
+/* road-record.css - Road Ahead's record: Calibration, Decisions and
+ * Variables. The open questions, the figures to confirm, the decisions
+ * in force and the ones they replaced, the owner's words, every figure
+ * the model runs on and every change to one. Split from road.css and
+ * road-register.css; read-only lists and tables, so mostly type. */
+
+.rd-lede { max-width: var(--measure); margin: 0 0 var(--space-4); }
+.rd-count {
+  margin-left: var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 400;
+  color: var(--ink-muted);
+}
+
+/* One entry of a list: an open question, a decision, a figure to
+ * confirm, a judgement, the owner's words. */
+.rd-items {
+  display: grid;
+  max-width: var(--measure);
+  margin: 0 0 var(--space-2);
+  padding: 0;
+  list-style: none;
+}
+.rd-item {
+  display: grid;
+  gap: var(--space-1);
+  padding-block: var(--space-3);
+  border-bottom: 1px solid var(--rule);
+}
+.rd-item > p { margin: 0; }
+.rd-item__title { font-weight: 600; overflow-wrap: anywhere; }
+.rd-item__title .rd-quiet { font-weight: 400; }
+.rd-item .rd-quiet { overflow-wrap: anywhere; }
+
+/* An open question's two sides, one above the other until there is
+ * room to set them side by side. */
+.rd-sides { display: grid; gap: var(--space-2); margin: 0; }
+@media (min-width: 768px) { .rd-sides { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.rd-sides > div {
+  padding: var(--space-2) var(--space-3);
+  background: var(--paper-raised);
+  border-radius: var(--radius-sm);
+}
+.rd-sides dt { font-size: var(--text-xs); color: var(--ink-faint); }
+.rd-sides dd { margin: 0; font-size: var(--text-sm); }
+
+/* A decision's answer, and the answer a newer one replaced. */
+.rd-decided { font-size: var(--text-sm); }
+.rd-decided--old { color: var(--ink-muted); text-decoration: line-through; text-decoration-color: var(--ink-faint); }
+
+/* The owner's own words, kept as said. */
+.rd-words {
+  margin: 0;
+  padding-left: var(--space-3);
+  border-left: 3px solid var(--accent-edge);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+.rd-links { margin: var(--space-1) 0 0; }
+
+/* Groups that open on demand: topics, kinds of words, groups of figures. */
+.rd-topics { display: grid; grid-template-columns: minmax(0, 1fr); margin-bottom: var(--space-4); }
+.rd-topics > details.detail > summary,
+[data-rd="calibration"] details.detail > summary,
+[data-rd="decisions"] details.detail > summary,
+[data-rd="variables"] details.detail > summary { gap: var(--space-2); flex-wrap: wrap; }
+.rd-topics > details.detail > summary .rd-quiet { font-size: var(--text-xs); color: var(--ink-muted); }
+.rd-topics > details.detail > .rd-items,
+.rd-topics > details.detail > .table-wrap { margin-top: var(--space-2); }
+
+/* Tables. A row header is a road, a figure or a change, and reads as one. */
+.rd-since tbody th,
+.rd-ledger tbody th,
+.rd-vars tbody th,
+.rd-changes tbody th {
+  position: static;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--ink);
+}
+.rd-since { min-width: 34rem; }
+.rd-ledger { min-width: 30rem; }
+.rd-vars { min-width: 46rem; }
+.rd-vars tbody th { min-width: 14rem; }
+.rd-changes { min-width: 48rem; }
+.rd-changes td:last-child, .rd-vars td:last-child { min-width: 12rem; }
+.rd-moved-cell { font-weight: 600; }
+.rd-ledger tr.rd-differs > th { box-shadow: inset 3px 0 0 var(--warn); }

@@ -118,6 +118,22 @@ export function mountShell(active, { user = null } = {}) {
   document.body.append(footer);
 }
 
+/** Name the house every default view is showing. There is at most one
+ *  active property, and a page that does not say which is a page that
+ *  can be misread the day a second candidate is worked up alongside.
+ *  Between houses there is none, and that is said too: an empty roadmap
+ *  should read as "no house yet", not as a failed load. */
+export function showProperty(property) {
+  const brand = document.querySelector('.site-header .brand');
+  if (!brand || brand.querySelector('.brand__property')) return;
+  const line = document.createElement('span');
+  line.className = 'brand__property';
+  line.textContent = property
+    ? `${property.ref} \u00b7 ${property.name} \u00b7 ${property.status}`
+    : 'No active house';
+  brand.append(line);
+}
+
 /** Render into a host, replacing whatever was there. */
 export function render(host, html) {
   const el = typeof host === 'string' ? document.querySelector(host) : host;

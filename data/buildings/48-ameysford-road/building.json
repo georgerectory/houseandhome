@@ -6,6 +6,11 @@
  "bought": false,
  "surveyed": false,
  "defaultStage": "as-bought",
+ "walls": {
+  "construction": "cavity",
+  "confidence": "drafted",
+  "basis": "Built in the 1950s (owner, 24 Sep 2026); cavity expected, not yet seen."
+ },
  "note": "A candidate property, not a purchase. No offer has been accepted and no survey has been done. Every dimension in this model is read off a drawing or derived from one, so none of it may size a real job or order a real material until it is measured on site.",
  "orientation": {
   "planUpIs": "north",

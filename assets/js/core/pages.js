@@ -20,6 +20,11 @@ export const PAGES = [
     lede: 'What to do next, and where things stand.',
   },
   {
+    href: 'road.html',
+    label: 'Road Ahead',
+    lede: 'Which house next, and why: the roads to the forever home, the listings register and every figure behind them.',
+  },
+  {
     href: 'plan.html',
     label: 'Plan',
     lede: 'The document: checklists, decisions and the handbook, in reading order. Prints.',

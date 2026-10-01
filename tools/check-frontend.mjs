@@ -20,6 +20,7 @@ import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import { mkdirSync, existsSync } from 'node:fs';
 import { PAGES as PAGE_LIST, PUBLIC_PAGES } from '../assets/js/core/pages.js';
+import { driveRoad } from './check-frontend-road.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 // Port 0 asks the OS for a free one. A fixed port made this gate fail
@@ -765,6 +766,13 @@ for (const theme of THEMES) {
         }
 
         if (errors.length) failures.push(`${label}: console error while driving the board - ${errors[0].slice(0, 140)}`);
+      }
+
+      // Road Ahead is a page of what-ifs, so the sweep asks them: a
+      // scenario, a slider, Reset, Copy, a sort, a filter, a card, a
+      // money ladder and a shared link. tools/check-frontend-road.mjs.
+      if (p === 'road.html') {
+        await driveRoad(page, { label, failures, errors, measure, url: `http://localhost:${PORT}/road.html` });
       }
 
       if (shot && vp.name !== 'Narrow phone') {

@@ -1,7 +1,7 @@
 // Handbook. What this system is, how it decides things, and what has
 // been decided. The reference a cold session reads to become competent.
 import { requireAuth } from '../core/auth.js';
-import { mountShell, render } from '../core/shell.js';
+import { mountShell, showProperty, render } from '../core/shell.js';
 import { load } from '../core/store.js';
 import { openItems, confidenceSummary } from '../engine/selectors.js';
 import { titleCase, escape } from '../core/format.js';
@@ -14,6 +14,7 @@ if (!user) throw new Error('redirecting to login');
 mountShell('handbook.html', { user });
 
 const d = await load();
+showProperty(d.property);
 const conf = confidenceSummary(d);
 
 // The building geometry is repo content. It is read here only to resolve

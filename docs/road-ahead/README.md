@@ -28,8 +28,8 @@ it alone; only purging a property takes that property's listing with it.
 |---|---|
 | `assets/js/engine/road-ahead/` | The engine, pure: `money`, `params`, `simulate` (the monthly roads), `roads`, `ladder` (the older route model), `sweep`, `appraise`, `fit`, `focus`, `sensitivity`, `provenance`, and `registry.js`: every key the engine reads, with its unit and meaning and no value. |
 | `.../road-ahead/charts/` | The charts, as pure SVG builders. |
-| `.../road-ahead/page/` | The page's logic, pure: the URL state, resolving a scenario, the model, the messages for Claude, the auctions, the figures and the record. |
-| `assets/js/pages/road.js`, `pages/road/` | The page: Now, the scenario bar, Register and its card, Assess, Auctions, Roads, Compare, Calibration, Decisions, Variables. |
+| `.../road-ahead/page/` | The page's logic, pure: the URL state, resolving a scenario, the model, the shortlist, the messages for Claude, the auctions, the figures and the record. |
+| `assets/js/pages/road.js`, `pages/road/` | The page: Now, the scenario bar, the Shortlist, Register and its card, Assess, Auctions, Roads, Compare, Calibration, Decisions, Variables. |
 | `assets/css/road*.css` | Its styles. |
 | `supabase/schema/88_road_ahead.sql` | The tables. `89_road_ahead_logic.sql`: the SQL assessor, the register, the countdowns. `89_road_ahead_record.sql`: the record and the sit-down agenda. |
 | `tools/road-ahead.mjs` | The command line, below. |
@@ -74,7 +74,7 @@ Every gate of `npm test` covers Road Ahead:
 - **unit**: the engine module by module; the golden master, exact; the page's logic, the charts and the sections;
 - **SQL**: the tables, guards and RLS isolation, the assessor, the countdowns in London days, the record's views;
 - **parity**: the SQL assessor, and the page's reading of a listing, against the engine;
-- **front end**: `road.html` at six widths in both themes, driven - a what-if, Copy, a sort, a filter, a card, Assess, Auctions, the record, a money ladder, a shared link;
+- **front end**: `road.html` at six widths in both themes, driven - a what-if, Copy, a sort, a filter, a card, the shortlist, Assess, Auctions, the record, a money ladder, a shared link;
 - **checksums**: every figure the kit published, reproduced exactly from the private extract or a `road_ahead_export` file. It skips loudly without one, as CI always does.
 
 After a schema change, the security advisor and the fingerprint, as

@@ -1,7 +1,55 @@
-/* road-register.css - Road Ahead's listings: the register, a listing's
- * card, the Assess section's answers and the auctions. Split from
+/* road-register.css - Road Ahead's listings: the shortlist, the register,
+ * a listing's card, the Assess section's answers and the auctions. Split from
  * road.css, which has the page, the scenario bar, Now and the roads; the
  * charts are in road-charts.css. */
+
+/* --- Shortlist ------------------------------------------------------- */
+/* Four columns, as the owner asked for them. On a phone each listing is
+ * a short block - the name and the price on one line, the description and
+ * the link under them - so nothing hides off to the side; from 768px it
+ * is a table. The markup carries its table roles itself (shortlist.js),
+ * so a screen reader hears a table at any width. */
+.rd-short { min-width: 0; }
+.rd-short thead {
+  position: absolute; width: 1px; height: 1px;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+.rd-short tbody tr {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: var(--space-3);
+  padding-block: var(--space-2);
+  border-bottom: 1px solid var(--rule);
+}
+.rd-short tbody tr:last-child { border-bottom: 0; }
+.rd-short tbody > tr > * { display: block; padding-block: 0; border-bottom: 0; }
+.rd-short__name { grid-column: 1; grid-row: 1; }
+.rd-short__price { grid-column: 2; grid-row: 1; white-space: nowrap; }
+.rd-short__desc { grid-column: 1 / -1; grid-row: 2; }
+.rd-short__go { grid-column: 1 / -1; grid-row: 3; }
+.rd-short__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 768px) {
+  .rd-short { min-width: 36rem; }
+  .rd-short thead {
+    position: static; width: auto; height: auto;
+    overflow: visible; clip-path: none; white-space: normal;
+  }
+  .rd-short tbody tr { display: table-row; padding-block: 0; border-bottom: 0; }
+  .rd-short tbody > tr > * {
+    display: table-cell;
+    padding-block: var(--space-2);
+    border-bottom: 1px solid var(--rule);
+  }
+  .rd-short tbody tr:last-child > * { border-bottom: 0; }
+  .rd-short__name { min-width: 10rem; }
+  .rd-short__desc { min-width: 12rem; }
+}
 
 /* --- Register -------------------------------------------------------- */
 .rd-filters {
@@ -17,6 +65,7 @@
 /* The table's own rule dresses every th as a column label; a row header
  * here is a listing, a figure or a road, and reads as one. */
 .rd-reg tbody th,
+.rd-short tbody th,
 .rd-maths tbody th,
 .rd-heat tbody th,
 .rd-sale__lots tbody th,

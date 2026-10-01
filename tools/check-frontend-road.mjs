@@ -178,6 +178,24 @@ export async function driveRoad(page, { label, failures, errors, measure, url })
     }
   }
 
+  // The shortlist: the listings chased, likeliest first, in the four
+  // columns the owner asked for; a name opens the same card.
+  const short = await page.evaluate(() => ({
+    rows: document.querySelectorAll('.rd-short tbody tr').length,
+    heads: [...document.querySelectorAll('.rd-short thead th')].map((th) => th.textContent.trim()),
+    first: document.querySelector('[data-short]')?.dataset.short ?? null,
+    safe: [...document.querySelectorAll('.rd-short__link')].every((a) => a.target === '_blank' && /noopener/.test(a.rel)),
+  }));
+  if (!short.rows) fail('the shortlist shows no listing');
+  if (short.heads.join('|') !== 'Name|Link|Description|Price') fail(`the shortlist's columns are ${short.heads.join(', ')}`);
+  if (!short.safe) fail('a shortlist link does not open in a new tab without its opener');
+  if (short.first && await tap(`[data-short="${short.first}"]`, `open ${short.first} from the shortlist`)) {
+    await wait(page, 300);
+    const opened = await look(page);
+    if (opened.card < 200 || !opened.search.includes(`l=${short.first}`)) fail(`the shortlist did not open ${short.first}'s card`);
+    if (await tap('[data-close]', 'close the card')) await wait(page, 300);
+  }
+
   // Assess: the latest answers, and a pasted listing copied for Claude
   // with the protocol. What was pasted survives a repaint.
   const PASTED = 'Invented: a 3-bed detached house, guide £250,000';

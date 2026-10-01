@@ -138,7 +138,8 @@ export function verdictRank(grade) {
   return (i < 0 ? 50 : i * 2) + (/stretch/.test(grade) ? 1 : 0);
 }
 
-const STATUS_ORDER = ['offer', 'bid', 'survey', 'legal', 'viewing', 'chase', 'watch', 'unreviewed', 'won', 'lost', 'dropped', 'closed'];
+/** A listing's statuses, furthest along first. */
+export const STATUS_ORDER = Object.freeze(['offer', 'bid', 'survey', 'legal', 'viewing', 'chase', 'watch', 'unreviewed', 'won', 'lost', 'dropped', 'closed']);
 const auctionTime = (x) => (x.row.auction_on ? Date.parse(x.row.auction_on) : null);
 const cmp = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 // A missing value sorts last whichever way the column runs.

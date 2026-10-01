@@ -17,6 +17,7 @@ import { scenarioMessage, judgementMessage, assessMessage, sitDownMessage, rebas
 import { nowHtml } from './road/now.js';
 import { barHtml, syncBar, syncSum, wireBar, copyMessage } from './road/bar.js';
 import { registerHtml } from './road/register.js';
+import { shortlistHtml } from './road/shortlist.js';
 import { cardHtml } from './road/card.js';
 import { roadsHtml } from './road/roads.js';
 import { compareHtml } from './road/compare.js';
@@ -46,12 +47,13 @@ let last = null;
 render('[data-page-root]', `
   ${isDemo() ? `<div class="notice" role="note"><span class="notice__title">Demo data</span>${escape(data.meta.note)}</div>` : ''}
   <nav class="rd-jump" aria-label="On this page">
-    <a href="#now">Now</a><a href="#register">Register</a><a href="#assess">Assess</a><a href="#auctions">Auctions</a><a href="#roads">Roads</a><a href="#compare">Compare</a>
+    <a href="#now">Now</a><a href="#shortlist">Shortlist</a><a href="#register">Register</a><a href="#assess">Assess</a><a href="#auctions">Auctions</a><a href="#roads">Roads</a><a href="#compare">Compare</a>
     <a href="#calibration">Calibration</a><a href="#decisions">Decisions</a><a href="#variables">Variables</a>
   </nav>
   <div data-rd="missing"></div>
   <section class="section rd-section" id="now" aria-labelledby="now-h"><h2 id="now-h">Now</h2><div data-rd="now"></div></section>
   <div class="rd-bar" data-rd="bar" role="region" aria-label="Scenario and what-ifs"></div>
+  <section class="section rd-section" id="shortlist" aria-labelledby="shortlist-h"><h2 id="shortlist-h">Shortlist</h2><div data-rd="shortlist"></div></section>
   <section class="section rd-section" id="register" aria-labelledby="register-h"><h2 id="register-h">Register</h2>
     <div data-rd="card"></div><div data-rd="register"></div></section>
   <section class="section rd-section" id="assess" aria-labelledby="assess-h"><h2 id="assess-h">Assess</h2><div data-rd="assess"></div></section>
@@ -103,7 +105,7 @@ function cardFor(rows, ctx, runs) {
 // A repaint replaces the register, the card and the roads. Whoever was
 // on a control keeps their place on its successor, and a money ladder
 // that was open stays open.
-const REFOCUS = ['data-sort', 'data-filter', 'data-listing', 'data-judge', 'data-assess-text', 'data-assess-copy'];
+const REFOCUS = ['data-sort', 'data-filter', 'data-listing', 'data-short', 'data-judge', 'data-assess-text', 'data-assess-copy'];
 function focusKey() {
   const el = document.activeElement;
   if (!el?.closest('[data-rd]') || el.closest('[data-rd="bar"]')) return null;
@@ -121,6 +123,7 @@ function paint() {
   const runs = runAll(ctx);
   const rows = registerRows(data.register, ctx, data.rules, base);
   last = { ctx, runs, rows };
+  render(host('shortlist'), shortlistHtml(rows, data, today));
   render(host('register'), registerHtml(rows, state, ctx));
   render(host('card'), cardFor(rows, ctx, runs));
   renderAssess(rows, ctx);
@@ -212,6 +215,11 @@ for (const k of ['calibration', 'variables']) {
     if (e.target.closest('[data-rebase]')) copyMessage(host('bar'), rebaseText(), 'the re-base');
   });
 }
+
+host('shortlist').addEventListener('click', (e) => {
+  const l = e.target.closest('[data-short]');
+  if (l) openCard(l.dataset.short);
+});
 
 host('auctions').addEventListener('click', (e) => {
   const l = e.target.closest('[data-listing]');

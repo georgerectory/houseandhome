@@ -417,6 +417,19 @@ $$;
 -- the auction date. A lot being chased gets every step; a lot only
 -- watched gets auction day, so the hammer price is logged.
 -- ---------------------------------------------------------------
+-- Today, in London. Every countdown counts from it: `current_date` is the
+-- database session's date (UTC on Supabase), which between midnight and
+-- one in the morning of a British summer day is still yesterday - and an
+-- auction day shown as "in 1 day" is worse than no countdown at all.
+-- ---------------------------------------------------------------
+create or replace function public.london_today()
+returns date
+language sql
+stable
+set search_path = public
+as $$ select (now() at time zone 'Europe/London')::date $$;
+
+-- ---------------------------------------------------------------
 create or replace view public.ra_pipeline
 with (security_invoker = on) as
 select
@@ -424,7 +437,7 @@ select
   l.auction_on, l.auction_at, l.status as listing_status,
   t.key as step_key, t.label, t.settles, t.sort_order,
   (l.auction_on + t.offset_days) as due_on,
-  ((l.auction_on + t.offset_days) - current_date) as days_until,
+  ((l.auction_on + t.offset_days) - public.london_today()) as days_until,
   s.done_on, s.outcome, (s.done_on is not null) as is_done
 from public.ra_listings l
 join public.ra_pipeline_template t on (l.status <> 'watch' or t.key = 't-0')
@@ -446,8 +459,9 @@ where l.auction_on is not null
 -- `days_until` is computed HERE rather than in the page, because two
 -- surfaces counting days from a date is two chances to get a timezone
 -- wrong, and a countdown that is a day out is worse than no countdown.
--- The event side converts through Europe/London before taking the date,
--- so an 11am viewing does not land on the previous day in summer.
+-- Every row counts from london_today(), and the event side converts
+-- through Europe/London before taking the date, so an 11am viewing does
+-- not land on the previous day in summer.
 --
 -- The countdown is ONE ROW PER DAY: every lot's step due that day is
 -- folded into the title, so a page showing one row per date - the
@@ -467,7 +481,7 @@ select
   null::timestamptz                 as starts_at,
   null::text                        as location,
   'planned'::text                   as status,
-  (m.due_on - current_date)         as days_until,
+  (m.due_on - public.london_today()) as days_until,
   m.household_id,
   -- How much open work is pinned to this date. A milestone nothing
   -- points at is a date in a document; one with work behind it is a
@@ -487,7 +501,7 @@ select
   e.starts_at,
   e.location,
   e.status,
-  ((e.starts_at at time zone 'Europe/London')::date - current_date) as days_until,
+  ((e.starts_at at time zone 'Europe/London')::date - public.london_today()) as days_until,
   e.household_id,
   0                                 as open_items
 from public.scheduled_events e
@@ -504,7 +518,7 @@ select
   null::timestamptz                 as starts_at,
   null::text                        as location,
   'planned'::text                   as status,
-  (d.due_on - current_date)         as days_until,
+  (d.due_on - public.london_today()) as days_until,
   d.household_id,
   sum(d.lots)::bigint               as open_items
 from (
@@ -535,7 +549,7 @@ select
   l.*,
   a.id as appraisal_id, a.appraised_on, a.protocol, a.inputs, a.outputs, a.fits, a.verdict,
   a.override_grade, a.override_reason, a.positives, a.negatives, a.red_flags, a.next_checks,
-  (l.auction_on - current_date) as days_to_auction,
+  (l.auction_on - public.london_today()) as days_to_auction,
   (select jsonb_agg(jsonb_build_object('field', j.field, 'value', j.value, 'reason', j.reason,
                                        'kind', j.kind, 'said_on', j.said_on) order by j.field)
      from public.ra_current_judgements j where j.listing_id = l.id) as judgements,

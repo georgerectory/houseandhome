@@ -1,7 +1,7 @@
 /* road-register.css - Road Ahead's listings: the register, a listing's
- * card and the Assess section's answers. Split from road.css, which has
- * the page, the scenario bar, Now and the roads; the charts are in
- * road-charts.css. */
+ * card, the Assess section's answers and the auctions. Split from
+ * road.css, which has the page, the scenario bar, Now and the roads; the
+ * charts are in road-charts.css. */
 
 /* --- Register -------------------------------------------------------- */
 .rd-filters {
@@ -18,7 +18,9 @@
  * here is a listing, a figure or a road, and reads as one. */
 .rd-reg tbody th,
 .rd-maths tbody th,
-.rd-heat tbody th {
+.rd-heat tbody th,
+.rd-sale__lots tbody th,
+.rd-houses tbody th {
   position: static;
   font-size: var(--text-sm);
   font-weight: 500;
@@ -233,3 +235,74 @@
 .rd-label--stated { border-color: var(--info); background: var(--info-soft); }
 .rd-label--estimate { border-color: var(--warn); background: var(--warn-soft); }
 .rd-label--check { border-color: var(--alert); background: var(--alert-soft); }
+
+/* --- Auctions ------------------------------------------------------------ */
+/* The list is the calendar; with room, the months beside it show the same
+ * dates as weeks, and are hidden from assistive technology so nothing is
+ * read twice. */
+.rd-cal { display: grid; gap: var(--space-6); margin-bottom: var(--space-6); }
+.rd-cal__grids { display: none; }
+@media (min-width: 768px) { .rd-cal__grids { display: grid; gap: var(--space-4); align-content: start; } }
+@media (min-width: 1024px) { .rd-cal { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); } }
+.rd-cal__list {
+  display: grid;
+  margin: 0 0 var(--space-4);
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+}
+.rd-cal__item {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  gap: var(--space-3);
+  padding-block: var(--space-2);
+  border-bottom: 1px solid var(--rule);
+}
+.rd-cal__grid {
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 2px;
+  font-size: var(--text-xs);
+}
+.rd-cal__grid caption {
+  caption-side: top;
+  padding-bottom: var(--space-1);
+  text-align: left;
+  font-weight: 600;
+}
+.rd-cal__grid th { padding: 2px var(--space-1); text-align: left; font-weight: 600; color: var(--ink-faint); }
+.rd-cal__grid td {
+  height: 3.5rem;
+  padding: 2px var(--space-1);
+  vertical-align: top;
+  background: var(--paper-raised);
+  border-radius: 4px;
+}
+.rd-cal__grid td:empty { background: none; }
+.rd-cal__grid td.is-today { box-shadow: inset 0 0 0 2px var(--accent); }
+.rd-cal__day { display: block; font-family: var(--font-mono); color: var(--ink-muted); }
+.rd-cal__ev {
+  display: block;
+  margin-top: 2px;
+  padding-left: var(--space-1);
+  border-left: 2px solid var(--ink-faint);
+  line-height: var(--leading-tight);
+  overflow-wrap: anywhere;
+}
+.rd-cal__ev--auction { border-left-color: var(--ink); font-weight: 600; }
+.rd-cal__ev--step { color: var(--ink-muted); }
+
+.rd-sale { margin-bottom: var(--space-4); }
+.rd-sale__title { margin: 0 0 var(--space-2); font-family: var(--font-body); font-size: var(--text-base); }
+.rd-sale .table-wrap { margin-bottom: 0; }
+.rd-sale__lots { min-width: 32rem; }
+.rd-overdue { font-weight: 600; color: var(--alert); }
+.rd-results { min-width: 46rem; }
+.rd-houses { min-width: 42rem; }
+.rd-houses a { display: inline-flex; align-items: center; min-block-size: var(--tap-min-floor); }
+.rd-playbook {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}

@@ -194,17 +194,21 @@ async function loadRoadLive() {
   if (!sb) return null;
   const active = (t, part) => sb.from(t).select(columns(part)).eq('status', 'active');
   // listing_id rather than listing_code: the code is resolved below.
-  const comparableCols = ROAD_SHAPE.comparables.map((c) => (c === 'listing_code' ? 'listing_id' : c)).join(', ');
+  const withListingId = (part) => ROAD_SHAPE[part].map((c) => (c === 'listing_code' ? 'listing_id' : c)).join(', ');
   const parts = {
     variables: active('ra_variables', 'variables').order('key'),
     scenarios: active('ra_scenarios', 'scenarios'),
     roads: active('ra_roads', 'roads').eq('kind', 'road').order('sort_order'),
     rules: active('ra_rules', 'rules').order('code'),
     register: sb.from('ra_register').select(columns('register')).order('code'),
-    comparables: sb.from('ra_comparables').select(comparableCols),
+    comparables: sb.from('ra_comparables').select(withListingId('comparables')),
     pipeline: sb.from('ra_pipeline').select(columns('pipeline')).order('due_on'),
     next: sb.from('whats_next').select(columns('next')).gte('days_until', 0).order('days_until').limit(12),
     ledger: sb.from('ra_model_vs_ledger').select(columns('ledger')),
+    houses: active('ra_auction_houses', 'houses').order('code'),
+    calendar: sb.from('ra_auction_calendar').select(columns('calendar')).neq('status', 'cancelled').order('on_date'),
+    results: sb.from('ra_auction_results').select(withListingId('results')).order('sold_on', { ascending: false }),
+    playbook: active('ra_playbook', 'playbook').order('sort_order'),
   };
   const names = Object.keys(parts);
   const results = await Promise.all(Object.values(parts));
@@ -213,7 +217,9 @@ async function loadRoadLive() {
   if (failed.length) throw new Error(`Could not read Road Ahead - ${failed.join('; ')}`);
   const data = Object.fromEntries(names.map((n, i) => [n, results[i].data ?? []]));
   const codeById = new Map(data.register.map((r) => [r.id, r.code]));
-  data.comparables = data.comparables.map(({ listing_id: id, ...c }) => ({ listing_code: codeById.get(id) ?? null, ...c }));
+  const byCode = ({ listing_id: id, ...row }) => ({ listing_code: codeById.get(id) ?? null, ...row });
+  data.comparables = data.comparables.map(byCode);
+  data.results = data.results.map(byCode);
   return { meta: { generated: new Date().toISOString().slice(0, 10), note: 'Live data.' }, ...data };
 }
 

@@ -4108,5 +4108,196 @@
    "ledger_value": 2980,
    "ledger_as_of": null
   }
+ ],
+ "houses": [
+  {
+   "code": "FBK",
+   "name": "Fairbank & Co",
+   "format": "Online, timed",
+   "covers": "Houses across the demo county",
+   "cadence": "About monthly",
+   "link": "https://example.org/demo/fbk",
+   "why": "The most lots of the right kind"
+  },
+  {
+   "code": "CLV",
+   "name": "Clover Auctions",
+   "format": "In the room and online",
+   "covers": "Cottages and land",
+   "cadence": "Every six weeks or so",
+   "link": "https://example.org/demo/clv",
+   "why": "Fewer bidders in the room"
+  },
+  {
+   "code": "BRH",
+   "name": "Brook Hall",
+   "format": "Online, live",
+   "covers": "Larger and listed houses",
+   "cadence": "Quarterly",
+   "link": "https://example.org/demo/brh",
+   "why": "Where the over-budget houses turn up"
+  }
+ ],
+ "calendar": [
+  {
+   "house_code": "BRH",
+   "kind": "catalogue",
+   "on_date": "2026-09-24",
+   "title": null,
+   "notes": null,
+   "checked_on": "2026-09-22",
+   "status": "scheduled"
+  },
+  {
+   "house_code": "FBK",
+   "kind": "catalogue",
+   "on_date": "2026-09-30",
+   "title": null,
+   "notes": null,
+   "checked_on": "2026-09-28",
+   "status": "scheduled"
+  },
+  {
+   "house_code": "BRH",
+   "kind": "auction",
+   "on_date": "2026-10-15",
+   "title": null,
+   "notes": null,
+   "checked_on": "2026-09-28",
+   "status": "scheduled"
+  },
+  {
+   "house_code": "CLV",
+   "kind": "catalogue",
+   "on_date": "2026-10-15",
+   "title": null,
+   "notes": null,
+   "checked_on": "2026-09-28",
+   "status": "scheduled"
+  },
+  {
+   "house_code": "FBK",
+   "kind": "auction",
+   "on_date": "2026-10-21",
+   "title": null,
+   "notes": null,
+   "checked_on": "2026-09-28",
+   "status": "scheduled"
+  },
+  {
+   "house_code": "CLV",
+   "kind": "auction",
+   "on_date": "2026-11-05",
+   "title": null,
+   "notes": null,
+   "checked_on": "2026-09-28",
+   "status": "scheduled"
+  },
+  {
+   "house_code": "FBK",
+   "kind": "catalogue",
+   "on_date": "2026-11-11",
+   "title": null,
+   "notes": null,
+   "checked_on": "2026-09-28",
+   "status": "scheduled"
+  },
+  {
+   "house_code": "FBK",
+   "kind": "bidding_opens",
+   "on_date": "2026-11-25",
+   "title": "Timed sale opens",
+   "notes": null,
+   "checked_on": "2026-09-28",
+   "status": "scheduled"
+  },
+  {
+   "house_code": "FBK",
+   "kind": "auction",
+   "on_date": "2026-12-02",
+   "title": null,
+   "notes": "Moved from 25 November",
+   "checked_on": "2026-09-28",
+   "status": "moved"
+  },
+  {
+   "house_code": "CLV",
+   "kind": "auction",
+   "on_date": "2026-12-17",
+   "title": null,
+   "notes": null,
+   "checked_on": "2026-09-28",
+   "status": "scheduled"
+  }
+ ],
+ "results": [
+  {
+   "house_code": "FBK",
+   "listing_code": null,
+   "sold_on": "2026-07-15",
+   "lot": "4",
+   "property_type": "3-bed semi, tired",
+   "guide": 240000,
+   "sold": 291000,
+   "outcome": "sold",
+   "lesson": "A low guide drew a crowd: it went 21% over",
+   "source": "Invented for the demo"
+  },
+  {
+   "house_code": "CLV",
+   "listing_code": null,
+   "sold_on": "2026-08-20",
+   "lot": "2",
+   "property_type": "2-bed cottage",
+   "guide": 180000,
+   "sold": 196000,
+   "outcome": "sold",
+   "lesson": null,
+   "source": "Invented for the demo"
+  },
+  {
+   "house_code": "BRH",
+   "listing_code": null,
+   "sold_on": "2026-06-10",
+   "lot": "9",
+   "property_type": "5-bed listed house",
+   "guide": 300000,
+   "sold": null,
+   "outcome": "unsold",
+   "lesson": "Unsold in the room; offers after",
+   "source": "Invented for the demo"
+  }
+ ],
+ "playbook": [
+  {
+   "code": "PB-1",
+   "kind": "setup",
+   "body": "Register with each house before the catalogue is out.",
+   "sort_order": 10
+  },
+  {
+   "code": "PB-2",
+   "kind": "daily",
+   "body": "Check the new lots against the rules before anything else.",
+   "sort_order": 20
+  },
+  {
+   "code": "PB-3",
+   "kind": "weekly",
+   "body": "Re-check every tracked date: houses move them.",
+   "sort_order": 30
+  },
+  {
+   "code": "PB-4",
+   "kind": "rule",
+   "body": "Fix the maximum bid at the go or no-go step, and do not move it in the room.",
+   "sort_order": 40
+  },
+  {
+   "code": "PB-5",
+   "kind": "did_not_work",
+   "body": "Viewing before reading the legal pack wasted a morning.",
+   "sort_order": 50
+  }
  ]
 }

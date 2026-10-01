@@ -31,6 +31,15 @@ export const ROAD_SHAPE = Object.freeze({
   // whats_next, from today on.
   next: ['source', 'title', 'on_date', 'days_until', 'open_items'],
   ledger: ['measure', 'model_value', 'model_confidence', 'model_source', 'ledger_value', 'ledger_as_of'],
+  // The auctions: the houses followed, their dates (each saying when it
+  // was last checked, because auctioneers move them), what lots went for,
+  // and the playbook.
+  houses: ['code', 'name', 'format', 'covers', 'cadence', 'link', 'why'],
+  calendar: ['house_code', 'kind', 'on_date', 'title', 'notes', 'checked_on', 'status'],
+  // listing_code is resolved from listing_id by the loader.
+  results: ['house_code', 'listing_code', 'sold_on', 'lot', 'property_type', 'guide', 'sold', 'outcome', 'lesson',
+    'source'],
+  playbook: ['code', 'kind', 'body', 'sort_order'],
 });
 
 /** The columns of one part as a PostgREST select list. */

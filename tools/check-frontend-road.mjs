@@ -3,10 +3,11 @@
 // Measuring the default render proves the page draws; it does not prove
 // the what-ifs do anything. So this hovers the charts, switches a
 // scenario, moves a slider, resets, copies, sorts, filters, opens and
-// closes a card, asks for an assessment, opens a money ladder and follows
-// a shared link - and after each asks whether the figures actually moved,
-// whether the URL kept up and whether the page still fits. Called once per
-// viewport and theme by check-frontend.mjs.
+// closes a card, asks for an assessment, reads the auctions, opens a
+// money ladder and follows a shared link - and after each asks whether
+// the figures actually moved, whether the URL kept up and whether the
+// page still fits. Called once per viewport and theme by
+// check-frontend.mjs.
 
 const wait = (page, ms = 180) => page.waitForTimeout(ms);
 
@@ -205,6 +206,27 @@ export async function driveRoad(page, { label, failures, errors, measure, url })
     await tap('[data-close]', 'close the card');
     await wait(page, 200);
   }
+
+  // Auctions: the dates as a list everywhere, the months as weeks only
+  // with room, and a tracked lot opens its card.
+  const cal = await page.evaluate(() => ({
+    items: document.querySelectorAll('[data-rd="auctions"] .rd-cal__item').length,
+    grid: document.querySelector('.rd-cal__grids')?.getBoundingClientRect().width ?? 0,
+    sales: document.querySelectorAll('[data-rd="auctions"] .rd-sale').length,
+    wide: innerWidth >= 768,
+  }));
+  if (!cal.items) fail('Auctions lists no dates');
+  if (!cal.sales) fail('Auctions shows no tracked lots');
+  if (cal.wide !== cal.grid > 0) fail(`the month grid is ${cal.grid > 0 ? 'shown' : 'hidden'} at this width`);
+  const tracked = await page.locator('[data-rd="auctions"] [data-listing]').first().getAttribute('data-listing').catch(() => null);
+  if (tracked && await tap(`[data-rd="auctions"] [data-listing="${tracked}"]`, `open ${tracked} from Auctions`)) {
+    await wait(page, 300);
+    const opened = await look(page);
+    if (!opened.search.includes(`l=${tracked}`) || opened.card < 200) fail(`a tracked lot did not open ${tracked}`);
+    await tap('[data-close]', 'close the card');
+    await wait(page, 200);
+  }
+  fits(await look(page), 'with Auctions drawn');
 
   // A road's money ladder is wide; it scrolls in its frame, not the page.
   const ladder = page.locator('.rd-road details > summary').first();

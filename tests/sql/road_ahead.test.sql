@@ -37,10 +37,10 @@ insert into ra_auction_houses (household_id, code, name) values
 -- Three lots chased and one watched, all in the same sale in three weeks.
 insert into ra_listings (household_id, code, name, house_code, lot, auction_on, sale_method, minutes_from_home, status)
 values
-  ('aaaaaaaa-0000-0000-0000-0000000000a1', 'L01', 'Mill Lane', 'HX', '12', current_date + 21, 'auction', 20, 'chase'),
-  ('aaaaaaaa-0000-0000-0000-0000000000a1', 'L02', 'Quay Row', 'HX', '4', current_date + 21, 'auction', 45, 'chase'),
-  ('aaaaaaaa-0000-0000-0000-0000000000a1', 'L03', 'Rope Walk', 'HX', '11', current_date + 21, 'auction', 25, 'chase'),
-  ('aaaaaaaa-0000-0000-0000-0000000000a1', 'L04', 'Salt Store', 'HX', '30', current_date + 21, 'auction', 50, 'watch');
+  ('aaaaaaaa-0000-0000-0000-0000000000a1', 'L01', 'Mill Lane', 'HX', '12', london_today() + 21, 'auction', 20, 'chase'),
+  ('aaaaaaaa-0000-0000-0000-0000000000a1', 'L02', 'Quay Row', 'HX', '4', london_today() + 21, 'auction', 45, 'chase'),
+  ('aaaaaaaa-0000-0000-0000-0000000000a1', 'L03', 'Rope Walk', 'HX', '11', london_today() + 21, 'auction', 25, 'chase'),
+  ('aaaaaaaa-0000-0000-0000-0000000000a1', 'L04', 'Salt Store', 'HX', '30', london_today() + 21, 'auction', 50, 'watch');
 
 insert into ra_appraisals (household_id, listing_id, appraised_on, authored_by, protocol, inputs, outputs, fits,
                            sources, labels)
@@ -230,12 +230,12 @@ begin
               and household_id = 'aaaaaaaa-0000-0000-0000-0000000000a1' group by on_date having count(*) > 1) then
     perform fail('countdown', 'more than one pipeline row on a day');
   end if;
-  select * into r from whats_next where source = 'pipeline' and on_date = current_date + 7
+  select * into r from whats_next where source = 'pipeline' and on_date = london_today() + 7
      and household_id = 'aaaaaaaa-0000-0000-0000-0000000000a1';
   if r.title not like 'Harbour Auctions % Viewing (lot 4, lot 11, lot 12)' or r.open_items <> 3 or r.days_until <> 7 then
     perform fail('countdown', coalesce(r.title, 'no viewing row') || ' / ' || coalesce(r.open_items, -1));
   end if;
-  select * into r from whats_next where source = 'pipeline' and on_date = current_date + 21
+  select * into r from whats_next where source = 'pipeline' and on_date = london_today() + 21
      and household_id = 'aaaaaaaa-0000-0000-0000-0000000000a1';
   if r.title not like '%Auction day (lot 4, lot 11, lot 12, lot 30)' or r.open_items <> 4 then
     perform fail('countdown', 'a watched lot belongs on auction day: ' || coalesce(r.title, 'no row'));
@@ -252,7 +252,7 @@ begin
   -- A step reported done leaves the diary, and a moved auction moves every date.
   insert into ra_pipeline_steps (household_id, listing_id, step_key, done_on, outcome)
   select household_id, id, 't-14', current_date, 'Viewed; still keen' from ra_listings where code = 'L01';
-  select * into r from whats_next where source = 'pipeline' and on_date = current_date + 7
+  select * into r from whats_next where source = 'pipeline' and on_date = london_today() + 7
      and household_id = 'aaaaaaaa-0000-0000-0000-0000000000a1';
   if r.title not like '%(lot 4, lot 11)' or r.open_items <> 2 then
     perform fail('countdown done', r.title);
@@ -264,7 +264,7 @@ begin
   exception when check_violation then null;
   end;
   update ra_listings set auction_on = auction_on + 7 where code = 'L03';
-  if not exists (select 1 from ra_pipeline where code = 'L03' and step_key = 't-0' and due_on = current_date + 28) then
+  if not exists (select 1 from ra_pipeline where code = 'L03' and step_key = 't-0' and due_on = london_today() + 28) then
     perform fail('countdown moved', 'the dates did not follow the auction');
   end if;
   update ra_listings set auction_on = auction_on - 7 where code = 'L03';
@@ -400,6 +400,32 @@ begin
     perform fail('agenda', 'what moved: ' || (ag -> 'moved')::text);
   end if;
   perform pass('road ahead: the sit-down agenda - dates, calibration, old judgements, unreflected signals, what moved');
+end $$;
+
+-- ---------------------------------------------------------------
+-- A countdown counts from London's day, whatever zone the session is in:
+-- the auction 21 London days away is 21 days away from Kiritimati (14
+-- hours ahead of UTC) and from Pago Pago (11 behind) alike.
+-- ---------------------------------------------------------------
+do $$
+declare
+  was text := current_setting('TimeZone');
+  z text;
+  d integer;
+  n integer;
+  w integer;
+begin
+  foreach z in array array['UTC', 'Pacific/Kiritimati', 'Pacific/Pago_Pago', 'Europe/London'] loop
+    execute format('set local timezone = %L', z);
+    select days_until into d from ra_pipeline where code = 'L01' and step_key = 't-0';
+    select days_to_auction into n from ra_register where code = 'L01';
+    select days_until into w from whats_next where source = 'pipeline' and on_date = london_today() + 21;
+    if d <> 21 or n <> 21 or w <> 21 then
+      perform fail('london', format('in %s the auction 21 London days away counts %s, %s and %s', z, d, n, w));
+    end if;
+  end loop;
+  execute format('set local timezone = %L', was);
+  perform pass('road ahead: every countdown counts from London''s day, whatever zone the session is in');
 end $$;
 
 -- ---------------------------------------------------------------

@@ -235,4 +235,5 @@ revoke insert, update on public.property_ref_counters from authenticated;
 -- caller's own policies let them see.
 grant execute on function public.active_property_id(uuid) to authenticated;
 grant execute on function public.in_default_scope(uuid, uuid) to authenticated;
+grant execute on function public.london_today() to authenticated;
 

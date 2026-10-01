@@ -22,6 +22,8 @@ import { roadsHtml } from './road/roads.js';
 import { compareHtml } from './road/compare.js';
 import { assessHtml } from './road/assess.js';
 import { wireTips } from './road/tips.js';
+import { auctionsHtml } from './road/auctions.js';
+import { londonToday } from '../engine/road-ahead/page/auctions.js';
 
 const user = await requireAuth();
 if (!user) throw new Error('redirecting to login');
@@ -40,7 +42,7 @@ let last = null;
 render('[data-page-root]', `
   ${isDemo() ? `<div class="notice" role="note"><span class="notice__title">Demo data</span>${escape(data.meta.note)}</div>` : ''}
   <nav class="rd-jump" aria-label="On this page">
-    <a href="#now">Now</a><a href="#register">Register</a><a href="#assess">Assess</a><a href="#roads">Roads</a><a href="#compare">Compare</a>
+    <a href="#now">Now</a><a href="#register">Register</a><a href="#assess">Assess</a><a href="#auctions">Auctions</a><a href="#roads">Roads</a><a href="#compare">Compare</a>
   </nav>
   <div data-rd="missing"></div>
   <section class="section rd-section" id="now" aria-labelledby="now-h"><h2 id="now-h">Now</h2><div data-rd="now"></div></section>
@@ -48,6 +50,7 @@ render('[data-page-root]', `
   <section class="section rd-section" id="register" aria-labelledby="register-h"><h2 id="register-h">Register</h2>
     <div data-rd="card"></div><div data-rd="register"></div></section>
   <section class="section rd-section" id="assess" aria-labelledby="assess-h"><h2 id="assess-h">Assess</h2><div data-rd="assess"></div></section>
+  <section class="section rd-section" id="auctions" aria-labelledby="auctions-h"><h2 id="auctions-h">Auctions</h2><div data-rd="auctions"></div></section>
   <section class="section rd-section" id="roads" aria-labelledby="roads-h"><h2 id="roads-h">Roads</h2><div data-rd="roads"></div></section>
   <section class="section rd-section" id="compare" aria-labelledby="compare-h"><h2 id="compare-h">Compare</h2><div data-rd="compare"></div></section>
 `);
@@ -72,6 +75,10 @@ setHeight(host('bar'), '--rd-bar-h');
 // Now is where things stand, before any what-if.
 const base = resolve(data, fallback);
 render(host('now'), base.missing.length ? '' : nowHtml(data, base));
+
+// The auctions answer to the calendar, not to a scenario: drawn once,
+// counting from London's today (the demo's own day in demo mode).
+render(host('auctions'), auctionsHtml(data, isDemo() ? data.meta.generated : londonToday()));
 
 function cardFor(rows, ctx, runs) {
   const x = state.listing ? rows.find((r) => r.row.code === state.listing) : null;
@@ -173,6 +180,11 @@ host('register').addEventListener('click', (e) => {
     const dir = state.sort === key ? (state.dir === 'asc' ? 'desc' : 'asc') : NUMERIC.has(key) ? 'desc' : 'asc';
     update({ sort: key, dir });
   }
+  const l = e.target.closest('[data-listing]');
+  if (l) openCard(l.dataset.listing);
+});
+
+host('auctions').addEventListener('click', (e) => {
   const l = e.target.closest('[data-listing]');
   if (l) openCard(l.dataset.listing);
 });

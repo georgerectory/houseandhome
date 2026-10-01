@@ -86,8 +86,13 @@ async function loadLive() {
     sb.from('knowledge_links').select('*').is('valid_to', null),
     // THE DOCUMENT. Sections in reading order, so plan.html can render
     // the handbook rather than linking to a PDF that nothing can query
-    // and nothing keeps in step.
-    scoped(sb.from('document_sections').select('*')).order('sort_order'),
+    // and nothing keeps in step. Only the house in view's own handbook:
+    // household-wide documents (Road Ahead's plan, the Rectory kit's
+    // text) are reference for Claude through the connector, not reading
+    // for this page, and with no house in view there is no handbook.
+    property
+      ? sb.from('document_sections').select('*').eq('property_id', property.id).order('sort_order')
+      : Promise.resolve({ data: [], error: null }),
     sb.from('theme_book').select('*').order('sort_order'),
     // WHY each job cannot be started yet, derived from the same edges
     // that drive the shopping list. The roadmap says what matters most;

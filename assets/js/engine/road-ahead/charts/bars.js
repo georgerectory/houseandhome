@@ -1,7 +1,8 @@
 // bars.js - the forever-home budget, one bar per road, with where the
 // other headline scenarios would put it. HTML, not SVG: a bar's label
 // and its figures stay real text at any width, and a screen reader reads
-// the list as a list. Pure: returns markup.
+// the list as a list. Each row is its bar's hover target, its tooltip the
+// figures again, value first. Pure: returns markup.
 
 import { escape } from '../../../core/format.js';
 import { linear, pct, niceCeil, kilo } from './scale.js';
@@ -17,7 +18,9 @@ export function budgetBars(rows, { caption, target = null, targetLabel = 'Target
   const x = linear(0, max);
   const row = (r) => {
     const marks = r.markers.filter((m) => Number.isFinite(m.value));
-    return `<li class="rd-bars__row rd-s${r.series}">
+    const tipLabel = [`${r.code} ${r.name}`, ...marks.map((m) => `${m.label} ${kilo(m.value)}`)].join(' · ');
+    return `<li class="rd-bars__row rd-s${r.series}" data-tip-value="${Number.isFinite(r.value) ? kilo(r.value) : 'No forever home'}"
+      data-tip-label="${escape(tipLabel)}">
       <span class="rd-bars__label"><span class="rd-code">${escape(r.code)}</span> ${escape(r.name)}</span>
       <span class="rd-bars__value num">${Number.isFinite(r.value) ? kilo(r.value) : 'no forever home'}</span>
       <span class="rd-bars__track" aria-hidden="true">

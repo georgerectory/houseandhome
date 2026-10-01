@@ -21,6 +21,7 @@ import { cardHtml } from './road/card.js';
 import { roadsHtml } from './road/roads.js';
 import { compareHtml } from './road/compare.js';
 import { assessHtml } from './road/assess.js';
+import { wireTips } from './road/tips.js';
 
 const user = await requireAuth();
 if (!user) throw new Error('redirecting to login');
@@ -158,6 +159,9 @@ wireBar(host('bar'), {
     else host('bar').querySelector('[data-status]').textContent = 'No what-ifs yet: move a control under Adjust first.';
   },
 });
+
+// The charts' tooltips, wherever a chart is drawn.
+wireTips([host('register'), host('roads'), host('compare')]);
 
 const NUMERIC = new Set(['buy', 'profit', 'profit_opt', 'bid']);
 host('register').addEventListener('click', (e) => {

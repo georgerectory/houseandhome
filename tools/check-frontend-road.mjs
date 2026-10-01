@@ -1,12 +1,12 @@
 // check-frontend-road.mjs - drive the Road Ahead page in the browser gate.
 //
 // Measuring the default render proves the page draws; it does not prove
-// the what-ifs do anything. So this switches a scenario, moves a slider,
-// resets, copies, sorts, filters, opens and closes a card, asks for an
-// assessment, opens a money ladder and follows a shared link - and after
-// each asks whether the figures actually moved, whether the URL kept up
-// and whether the page still fits. Called once per viewport and theme by
-// check-frontend.mjs.
+// the what-ifs do anything. So this hovers the charts, switches a
+// scenario, moves a slider, resets, copies, sorts, filters, opens and
+// closes a card, asks for an assessment, opens a money ladder and follows
+// a shared link - and after each asks whether the figures actually moved,
+// whether the URL kept up and whether the page still fits. Called once per
+// viewport and theme by check-frontend.mjs.
 
 const wait = (page, ms = 180) => page.waitForTimeout(ms);
 
@@ -51,6 +51,41 @@ export async function driveRoad(page, { label, failures, errors, measure, url })
   const base = await look(page);
   if (!base.sum.includes('£')) fail('the bar shows no forever-home budgets');
   if (!base.on || base.on !== base.pressed) fail(`the scenario on (${base.on}) and the one pressed (${base.pressed}) disagree`);
+
+  // The hover layer: a bar shows its figure, a cash line the month under
+  // the pointer with a crosshair; the tooltip stays inside the window, and
+  // Escape or moving away puts it away.
+  const tipNow = () => page.evaluate(() => {
+    const t = document.querySelector('.rd-tip');
+    const box = t?.getBoundingClientRect();
+    return { shown: !!t && !t.hidden, text: t?.textContent ?? '', inside: !box || (box.left >= 0 && box.right <= innerWidth + 1) };
+  });
+  const hoverOn = async (sel, what) => {
+    const el = page.locator(sel).first();
+    try {
+      await el.scrollIntoViewIfNeeded({ timeout: 4000 });
+      await wait(page, 120);
+      await el.hover({ timeout: 4000 });
+      await wait(page, 60);
+      return true;
+    } catch { fail(`could not hover ${what}`); return false; }
+  };
+  if (await hoverOn('.rd-bars__row', 'a budget bar')) {
+    const t = await tipNow();
+    if (!t.shown || !/£\d+k|No forever home/.test(t.text)) fail(`hovering a budget bar showed no figure ("${t.text}")`);
+    if (!t.inside) fail('the tooltip runs out of the window');
+    await page.keyboard.press('Escape');
+    if ((await tipNow()).shown) fail('Escape did not put the tooltip away');
+  }
+  if (await hoverOn('.rd-multi [data-spark]', 'a cash line')) {
+    const t = await tipNow();
+    const cross = await page.evaluate(() => document.querySelector('.rd-multi .rd-spark__cross')?.getAttribute('visibility'));
+    if (!t.shown || !/[A-Z][a-z]{2} \d{4}/.test(t.text)) fail(`hovering a cash line showed no month ("${t.text}")`);
+    if (cross !== 'visible') fail('hovering a cash line drew no crosshair');
+    await page.mouse.move(1, 1);
+    await wait(page, 60);
+    if ((await tipNow()).shown) fail('moving away left the tooltip up');
+  }
 
   // A scenario pill changes the figures, the pressed pill and the URL.
   await tap('[data-scenario="promotion"]', 'press the Promotion pill');

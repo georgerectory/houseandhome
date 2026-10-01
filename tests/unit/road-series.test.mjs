@@ -3,11 +3,14 @@
 //   * Every colour token has its hex twin in the fallback block, in both
 //     themes, and the system dark theme and the chosen one agree. (The
 //     tokens file has always said so; this is what makes it true.)
-//   * The road series - one colour per road in Road Ahead's charts - reads
-//     at 3:1 or better against the paper in both themes (WCAG 1.4.11 for
-//     graphics), and its colours stay apart in normal vision and for the
-//     three colour-vision deficiencies, simulated with Machado et al.
-//     (2009) at full severity and measured in OKLab.
+//   * The road series - one colour per road in Road Ahead's charts - meets
+//     the data-viz gates in both themes: OKLCH lightness inside the theme's
+//     band, chroma at least 0.10 (below it a hue reads as grey), 3:1 or
+//     better on every paper it sits on (WCAG 1.4.11 for graphics), each
+//     road apart from its neighbour in the roads' order for colour-blind
+//     readers (8, protanopia and deuteranopia simulated with Machado et al.
+//     2009 at full severity), and every pair apart in normal vision (15).
+//     Distances are OKLab x100.
 //   * Each fallback hex is its oklch colour, to within rounding.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -86,38 +89,45 @@ const MACHADO = {
   tritanopia: [[1.255528, -0.076749, -0.178779], [-0.078411, 0.930809, 0.147602], [0.004733, 0.691367, 0.303900]],
 };
 const simulate = (M, v) => M.map((row) => Math.min(1, Math.max(0, row[0] * v[0] + row[1] * v[1] + row[2] * v[2])));
-const closestPair = (cols, view) => {
-  let min = Infinity;
-  for (let i = 0; i < cols.length; i += 1) {
-    for (let j = i + 1; j < cols.length; j += 1) {
-      const [a, b] = [linearToOklab(view(cols[i])), linearToOklab(view(cols[j]))];
-      min = Math.min(min, Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]));
-    }
-  }
-  return min;
+const distance = (p, q, view) => {
+  const [a, b] = [linearToOklab(view(p)), linearToOklab(view(q))];
+  return 100 * Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 };
+const lch = (lin) => { const [L, a, b] = linearToOklab(lin); return { L, C: Math.hypot(a, b) }; };
 
-const THEMES = [['light', light, fbLight], ['dark', darkChosen, fbDark]];
+const THEMES = [['light', light, fbLight, [0.43, 0.77]], ['dark', darkChosen, fbDark, [0.48, 0.67]]];
 const roadsOf = (t) => Object.keys(t).filter((k) => /^road-\d$/.test(k)).sort();
 
-test('the road series reads at 3:1 against the paper in both themes', () => {
-  for (const [name, t] of THEMES) {
+test('each road sits in its theme\'s lightness band, carries real colour, and reads at 3:1 on every paper', () => {
+  for (const [name, t, , band] of THEMES) {
     assert.equal(roadsOf(t).length, 5, `${name}: five roads`);
-    const paper = oklchToLinear(t.paper);
     for (const k of roadsOf(t)) {
-      const c = contrast(oklchToLinear(t[k]), paper);
-      assert.ok(c >= 3, `${name} --${k} ${t[k]}: contrast ${c.toFixed(2)} against the paper`);
+      const c = oklchToLinear(t[k]);
+      const { L, C } = lch(c);
+      assert.ok(L >= band[0] - 1e-6 && L <= band[1] + 1e-6, `${name} --${k}: lightness ${L.toFixed(3)} outside ${band.join('-')}`);
+      assert.ok(C >= 0.10 - 1e-6, `${name} --${k}: chroma ${C.toFixed(3)} reads as grey`);
+      for (const paper of ['paper', 'paper-raised', 'paper-sunken']) {
+        const r = contrast(c, oklchToLinear(t[paper]));
+        assert.ok(r >= 3, `${name} --${k}: contrast ${r.toFixed(2)} on --${paper}`);
+      }
     }
   }
 });
 
-test('the road series stays apart in normal vision and for each colour-vision deficiency', () => {
+test('neighbouring roads stay apart for colour-blind readers, and every pair for everyone', () => {
   for (const [name, t] of THEMES) {
     const cols = roadsOf(t).map((k) => oklchToLinear(t[k]));
-    assert.ok(closestPair(cols, (v) => v) >= 0.10, `${name}: normal vision`);
-    for (const [kind, M] of Object.entries(MACHADO)) {
-      const d = closestPair(cols, (v) => simulate(M, v));
-      assert.ok(d >= 0.06, `${name}: ${kind} brings two roads within ${d.toFixed(3)}`);
+    for (let i = 0; i + 1 < cols.length; i += 1) {
+      for (const kind of ['protanopia', 'deuteranopia']) {
+        const d = distance(cols[i], cols[i + 1], (v) => simulate(MACHADO[kind], v));
+        assert.ok(d >= 8, `${name}: ${kind} brings roads ${i + 1} and ${i + 2} within ${d.toFixed(1)}`);
+      }
+    }
+    for (let i = 0; i < cols.length; i += 1) {
+      for (let j = i + 1; j < cols.length; j += 1) {
+        const d = distance(cols[i], cols[j], (v) => v);
+        assert.ok(d >= 15, `${name}: roads ${i + 1} and ${j + 1} are ${d.toFixed(1)} apart in normal vision`);
+      }
     }
   }
 });

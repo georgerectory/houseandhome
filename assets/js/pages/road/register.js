@@ -68,10 +68,11 @@ export function registerHtml(rows, state, ctx) {
     ${scored.length ? fitHeatmap(scored.map((x) => ({ code: x.row.code, name: x.row.name, fit: x.fit })), ctx.roads,
       { caption: 'How well each listing fits each road: your score from 0 to 3, and the check worked out from the road\'s own criteria where it states them.' }) : ''}
     ${scored.length ? scatter(scored.map((x) => ({
-      code: x.row.code, x: x.L.likely_buy, y: x.now.profit_opt, series: series.get(x.now.best_road) ?? null,
-      title: `${x.row.code} ${x.row.name}: ${money(x.L.likely_buy)}, optimistic profit ${money(x.now.profit_opt)}`,
+      code: x.row.code, x: x.L.likely_buy, y: x.now.profit_opt,
+      tipValue: `${kilo(x.now.profit_opt)} optimistic profit`,
+      title: `${x.row.code} ${x.row.name}, likely to go for ${kilo(x.L.likely_buy)}`,
     })), {
-      caption: 'Likely price against optimistic profit. Each point is coloured by its best road and named by its code.',
+      caption: 'Likely price against optimistic profit, each listing named by its code. The table above has every figure.',
       xLabel: 'Likely buy', yLabel: 'Optimistic profit',
       xLines: [{ value: ctx.P['ceiling.practical'], label: 'Comfortable' }, { value: ctx.V.ceiling_hard, label: 'Ceiling' }]
         .filter((l) => Number.isFinite(l.value)),

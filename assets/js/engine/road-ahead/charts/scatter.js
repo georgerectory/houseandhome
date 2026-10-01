@@ -1,8 +1,9 @@
 // scatter.js - the register as price against optimistic profit, with the
 // ceilings and the profit target drawn from the variables. SVG: a point's
-// position is the message. Every point carries its listing code as text
-// and the table beside it has every figure, so colour (the listing's best
-// road) is never the only way to tell two points apart. Pure: markup.
+// position is the message. One series in one colour: in a scatter every
+// pair of colours meets, which five road colours cannot survive, so each
+// point is named by its listing's code instead and the table beside it
+// has every figure. Each point has a 24px hover target. Pure: markup.
 
 import { escape } from '../../../core/format.js';
 import { linear, ticks, kilo } from './scale.js';
@@ -72,7 +73,7 @@ function uprightLabels(lines, x) {
 }
 
 /**
- * @param {Array<{code:string, x:number, y:number, series:number|null, title:string}>} points
+ * @param {Array<{code:string, x:number, y:number, title:string, tipValue?:string}>} points
  * @param {{caption:string, xLines?:Array<{value:number, label:string}>, yLines?:Array<{value:number, label:string}>,
  *          xLabel:string, yLabel:string}} opts
  */
@@ -97,7 +98,8 @@ export function scatter(points, { caption, xLines = [], yLines = [], xLabel, yLa
     <text x="${u.tx.toFixed(1)}" y="${u.y}"${u.anchor === 'end' ? ' text-anchor="end"' : ''}>${escape(u.l.label)}</text></g>`;
   const hline = (h) => `<g class="rd-sc__rule"><line x1="${M.left}" x2="${W - M.right}" y1="${h.at.toFixed(1)}" y2="${h.at.toFixed(1)}"/>
     <text x="${W - M.right - 4}" y="${(h.at - 4).toFixed(1)}" text-anchor="end">${escape(h.l.label)}</text></g>`;
-  const dot = (p, i) => `<g class="rd-sc__pt${p.series ? ` rd-s${p.series}` : ''}"><title>${escape(p.title)}</title>
+  const dot = (p, i) => `<g class="rd-sc__pt" data-tip-value="${escape(p.tipValue ?? '')}" data-tip-label="${escape(p.title)}">
+    <circle class="rd-sc__hit" cx="${cs[i].cx.toFixed(1)}" cy="${cs[i].cy.toFixed(1)}" r="12"/>
     <circle cx="${cs[i].cx.toFixed(1)}" cy="${cs[i].cy.toFixed(1)}" r="5"/>
     <text x="${labels[i].x.toFixed(1)}" y="${labels[i].y.toFixed(1)}"${labels[i].anchor === 'start' ? '' : ` text-anchor="${labels[i].anchor}"`}>${escape(p.code)}</text></g>`;
   return `<figure class="rd-sc">

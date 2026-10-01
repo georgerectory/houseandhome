@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { linear, pct, niceCeil, ticks, kilo, seriesOf } from '../../assets/js/engine/road-ahead/charts/scale.js';
 import { budgetBars } from '../../assets/js/engine/road-ahead/charts/bars.js';
-import { roadPhases, timeline, shortMonth } from '../../assets/js/engine/road-ahead/charts/timeline.js';
+import { roadPhases, timeline, shortMonth, KINDS, TRACK_MIN_PX } from '../../assets/js/engine/road-ahead/charts/timeline.js';
 import { cashSpark } from '../../assets/js/engine/road-ahead/charts/spark.js';
 import { scatter, placeLabels } from '../../assets/js/engine/road-ahead/charts/scatter.js';
 import { fitHeatmap } from '../../assets/js/engine/road-ahead/charts/heatmap.js';
@@ -48,6 +48,12 @@ test('budget bars: each bar is its share of the axis, markers and target placed,
   runs.forEach((r, i) => assert.ok(Math.abs(widths[i] - (100 * r.head.forever_today) / max) < 0.01, r.road.code));
   assert.match(html, /no forever home/);
   assert.match(html, /The line is target: £450k/);
+  // Each row is its bar's hover target: the value first, then the road and the other scenarios.
+  const tips = [...html.matchAll(/data-tip-value="([^"]+)"\s+data-tip-label="([^"]+)"/g)];
+  assert.equal(tips.length, 6);
+  assert.equal(tips[1][1], kilo(runs[1].head.forever_today));
+  assert.match(tips[1][2], new RegExp(`^${runs[1].road.code} .* · Optimistic £\\d+k$`));
+  assert.equal(tips[5][1], 'No forever home');
 });
 
 test('a road\'s phases follow its steps: family, renting, each house, the forever home', () => {
@@ -74,6 +80,15 @@ test('the timeline places every phase inside the axis and says it in words', () 
     assert.ok(Number(from) >= 0 && Number(from) + Number(width) <= 100.01, `${from} + ${width}`);
   }
   assert.match(html, /visually-hidden">Family stay [A-Z][a-z]{2} \d{4} to/);
+  // No borders and no clipping: a label sits in its segment only where it fits at the
+  // narrowest track, and the key names every kind.
+  for (const [, width, label] of html.matchAll(/--width:([\d.]+)%"[^>]*>(?:<span class="rd-tl__seg-label">([^<]+)<\/span>)?<\/span>/g)) {
+    if (label) assert.ok((Number(width) / 100) * TRACK_MIN_PX >= label.length * 7 + 10, `${label} in ${width}%`);
+  }
+  assert.ok(html.includes('rd-tl__seg-label">Forever home<'), 'a long phase is labelled');
+  assert.equal((html.match(/class="rd-tl__swatch /g) ?? []).length, KINDS.length);
+  assert.ok(!/ title="/.test(html), 'tooltips, not native titles');
+  assert.match(html, /data-tip-value="[A-Z][a-z]{2} \d{4} to [A-Z][a-z]{2} \d{4}"/);
 });
 
 test('the cash line marks the true lowest month and draws the floor', () => {
@@ -85,6 +100,11 @@ test('the cash line marks the true lowest month and draws the floor', () => {
   const low = Math.min(...h1.trace.map(([, c]) => c));
   assert.match(svg, new RegExp(`lowest ${kilo(low).replace('£', '£')}`));
   assert.equal(cashSpark([], { label: 'x' }), '');
+  // The series rides on the chart for the crosshair: the first month and one cash figure a month.
+  assert.match(svg, new RegExp(`data-start="${h1.trace[0][0]}"`));
+  const carried = /data-cash="([^"]+)"/.exec(svg)[1].split(',').map(Number);
+  assert.deepEqual(carried, h1.trace.map(([, c]) => Math.round(c)));
+  assert.match(svg, /class="rd-spark__ring"[^>]*\/>\s*<line class="rd-spark__low"/, 'the low point is ringed in the surface');
 });
 
 test('the scatter plots every listing with its code, and the ceiling and target lines', () => {
@@ -94,7 +114,9 @@ test('the scatter plots every listing with its code, and the ceiling and target 
   const svg = scatter(pts, { caption: 'Price against optimistic profit.', xLabel: 'Likely buy', yLabel: 'Profit, optimistic',
     xLines: [{ value: ctx.V.ceiling_hard, label: 'Ceiling' }], yLines: [{ value: ctx.V.target_profit, label: 'Target' }] });
   noNaN(svg);
-  assert.equal((svg.match(/<circle/g) ?? []).length, pts.length);
+  assert.equal((svg.match(/class="rd-sc__hit"/g) ?? []).length, pts.length, 'every point has a 24px hit area');
+  assert.equal((svg.match(/<circle cx/g) ?? []).length, pts.length, 'and one dot');
+  assert.ok(!/rd-s\d/.test(svg), 'one series: no road colours in a scatter');
   for (const p of pts) assert.ok(svg.includes(`>${p.code}</text>`), p.code);
   assert.match(svg, /Ceiling/);
   assert.match(svg, /Target/);

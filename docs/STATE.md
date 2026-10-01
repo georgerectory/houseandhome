@@ -24,11 +24,11 @@ private**: `source_documents` 'Road Ahead build plan'. No house is active.
    not a read - a route tree (now, the options, their sub-options, where
    each leads) with its breakdowns, and less text; then a sit-down on
    every walk-away, so none rests on an assertion no longer true.
-4. **L29** (Rightmove 93774177) is the assessment protocol's first live
-   run, once the owner pastes its text and floor plan.
-5. **Open with the owner**, largest first, in a sit-down's order (the
-   page's Calibration section lists them): the nine `ra-` kit
-   contradictions, then the household four.
+4. **L29** (Rightmove 93774177) and Rightmove 90274116 (S-55) are
+   assessed once the owner pastes their text and floor plans.
+5. **Open with the owner**, in a sit-down's order: `ra-deposit-rule`
+   first (it decides whether Hedge End and Warsash are a stretch), then
+   the nine kit `ra-` contradictions, then the household four.
 
 ## Known and deliberately left
 

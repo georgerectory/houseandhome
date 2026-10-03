@@ -85,8 +85,11 @@ Links (my notes in brackets):
    new-build is written `dropped`, its rule as the reason, and named in
    one line of the answer.
 4. **The facts go on the listing.** Each `sold_nearby` row is a
-   comparable (`kind` 'sold', its link the source, its date the sale's);
-   `my_note` is the owner's words, a signal.
+   comparable (`kind` 'sold', its link the source, its date the sale's).
+   `my_note` is the owner's words: already a signal when they came with
+   the link, so that signal is linked to the listing (`about`), never
+   written twice. Where no sold price came back, Claude searches for
+   one, and a sale seen only in a search result says so in its source.
 5. **Then steps 4 to 8** as for any listing: the inputs with their
    labels, the numbers, the appraisal, the answer, the owner's reaction.
    Each listing is judged against its type, its class and its road,

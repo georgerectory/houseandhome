@@ -127,13 +127,17 @@ All as a first-time buyer, on today's variables:
   factor (`appraisal.works_factor` by default), rounded again.
 - **Fee** = max(buy x the percentage, the fixed fee) where there is a
   percentage, else the fixed fee.
-- **Profit** = finished value - (buy + fee + stamp duty + 
+- **Profit** = finished value - (buy + fee + stamp duty +
   `appraisal.buy_costs` + works + finished value x `appraisal.sell_pct`
-  + `appraisal.sell_fixed`), to the thousand. Base on the low finished
-  value, optimistic on the high, with the optimistic works.
+  + `appraisal.sell_fixed`), to the thousand, with the finished value at
+  the midpoint of the low and the high. Base takes the works after help,
+  optimistic the optimistic works; one more, at the top, takes the high
+  finished value with the optimistic works.
 - **Walk-away** = the highest buy, searched upward from
   `appraisal.walk_from` in `appraisal.walk_step` steps to
-  `appraisal.walk_to`, that still makes `appraisal.target_profit`.
+  `appraisal.walk_to`, whose optimistic profit (the midpoint, the
+  optimistic works, rounded to the thousand) still makes
+  `appraisal.target_profit`.
 - **Cash left** = `appraisal.cash_at_purchase` - (buy x
   `appraisal.deposit_pct` + stamp duty + `appraisal.buy_costs` +
   `appraisal.day_one_kit` + fee), to the thousand.

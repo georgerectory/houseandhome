@@ -24,8 +24,8 @@ private**: `source_documents` 'Road Ahead build plan'. No house is active.
    not a read - a route tree (now, the options, their sub-options, where
    each leads) with its breakdowns, and less text; then a sit-down on
    every walk-away, so none rests on an assertion no longer true.
-4. **Nineteen Rightmove links** (L29, and S-55 and S-57 to S-59) wait for
-   the owner's JSON from Claude chat (`EXTRACT_LISTINGS.md`), then assessing.
+4. **Extraction part 1 is in** (L29-L34, 3 Oct). Thirteen links of S-57
+   to S-59 wait for the rest of the owner's JSON (`EXTRACT_LISTINGS.md`).
 5. **Open with the owner**, in a sit-down's order: `ra-deposit-rule`
    first (5% on a private sale, 10% down at auction, less cash for an
    October completion), then the nine kit `ra-` ones, then the household four.

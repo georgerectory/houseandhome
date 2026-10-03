@@ -246,8 +246,10 @@ this repository, which holds the code and the variable schema only.
   a guide - needs a dated source. A comparable is a real sale or
   listing, or it is not used; a modelled figure is labelled ESTIMATE.
 - **A listing** the owner sends is assessed by
-  `docs/road-ahead/ASSESS_PROPERTY.md`. The portals are never fetched:
-  the owner pastes the text and the floor plan.
+  `docs/road-ahead/ASSESS_PROPERTY.md`. Claude reads the listings and
+  searches the owner sends, Rightmove included, a page at a time (R-06).
+  Where this environment cannot reach a portal, a Claude chat session
+  extracts them to JSON by `docs/road-ahead/EXTRACT_LISTINGS.md`.
 - **A sit-down.** "Let's go through it", or "make it more accurate", is
   a defined session shape like a review: ground with
   `road_ahead_context` and `road_ahead_agenda`, open by saying what is

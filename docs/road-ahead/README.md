@@ -90,7 +90,7 @@ is passed explicitly, because the connector has no signed-in user.
 - search before adding: a listing by postcode, address or link;
 - a money figure changes only with `house.change_why` (and `house.change_source`) set in the same statement;
 - never assert a market fact without a dated source, and label every figure STATED, VERIFIED, ESTIMATE or CHECK;
-- the portals are never fetched: the owner pastes a listing's text and floor plan.
+- a listing is read from the link the owner sends, Rightmove included, a page at a time (R-06); where this environment cannot reach it, a Claude chat session extracts it to JSON (`EXTRACT_LISTINGS.md`).
 
 **End:** re-read every write; accept new runs only on the owner's word
 (`snapshot --note`), explaining every move of £1k or more; `npm test`;
@@ -99,6 +99,7 @@ update `docs/STATE.md`; commit and push.
 | The owner wants | Read |
 |---|---|
 | A listing assessed | `ASSESS_PROPERTY.md` |
+| A batch of links turned into JSON by Claude chat | `EXTRACT_LISTINGS.md` |
 | A sit-down, a re-base, or a finer model | `CALIBRATION.md` |
 | A rule changed | `RULES.md` |
 | How a figure is worked out | `FORMULAS.md`, then `VARIABLES.md` |

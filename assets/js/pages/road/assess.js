@@ -72,7 +72,7 @@ export function assessHtml(rows, data, ctx, shown = 3) {
   return `<div class="rd-assess">
       <p>Found a house? Paste its details here and copy them for Claude, who assesses it the kit's way: the rules
         first, dated comparables, the works from the floor plan, then the profit, the walk-away and the bid limit, with
-        where every figure came from. Claude cannot open Rightmove, so paste the text and attach the floor plan.
+        where every figure came from. Or just send Claude the link.
         Nothing here is kept.</p>
       <label for="rd-assess-text">The listing, as pasted</label>
       <textarea id="rd-assess-text" rows="6" data-assess-text></textarea>

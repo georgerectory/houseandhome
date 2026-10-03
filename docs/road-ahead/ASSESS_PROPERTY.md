@@ -10,10 +10,11 @@ listing there and copying it for Claude.
 
 Five rules bind it:
 
-- **No scraping.** Rightmove and the other portals forbid it. The owner
-  pastes the listing's text and a floor-plan screenshot. An auctioneer's
-  catalogue or a lot page is read only when the owner asks, one page at
-  a time, never crawled.
+- **Read what the owner sends.** Claude opens the listing links the owner
+  sends, Rightmove included, and runs the searches the owner asks for, a
+  page at a time, never a bulk crawl (R-06). Where this environment
+  cannot reach a site, a Claude chat session extracts the listings to
+  JSON (`EXTRACT_LISTINGS.md`), or the owner pastes the text and floor plan.
 - **No invented market facts.** Every comparable has an address, a
   price, a date and a source. A figure worked out rather than found is
   labelled ESTIMATE, and the answer says so.
@@ -79,8 +80,8 @@ Comparables are rows, one per price:
     values ('<household>', <listing id or null>, '<address>', '<type>', <price>, 'sold',
             '<month year>', '<date>', '<where it was found>', '<url>');
 
-A sold price the owner pastes from a portal is sourced to that portal and
-the date it was pasted. Nothing comes from memory.
+A sold price read or pasted from a portal is sourced to that portal and
+the date it was read. Nothing comes from memory.
 
 ## 5. Compute
 

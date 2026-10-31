@@ -31,35 +31,53 @@ export function buildRoof(roof, palette) {
   const alongX = roof.ridgeAxis === 'x';
   const across = alongX ? (y2 - y1) : (x2 - x1);
   const ridgeH = eaves + rise(across, roof.pitchDeg ?? 35);
-  // A hip pulls the ridge in by the same run at each end; a gable does
-  // not pull it in at all.
-  const inset = roof.kind === 'hipped' ? across / 2 : 0;
+  // A hip pulls the ridge in by the same run at its end; a gable does
+  // not pull it in at all. `hipEnds` names which ends are hipped ('start'
+  // is x1/y1, 'end' is x2/y2); without it a hipped roof is hipped at both
+  // ends, which is what every roof before Forest View assumed.
+  const hipped = roof.kind === 'hipped';
+  const hipAt = (end) => hipped && (!roof.hipEnds || roof.hipEnds.includes(end));
+  const inset1 = hipAt('start') ? across / 2 : 0;
+  const inset2 = hipAt('end') ? across / 2 : 0;
 
   // Corners of the eaves, and the two ends of the ridge, in plan.
   const mid = alongX ? (y1 + y2) / 2 : (x1 + x2) / 2;
-  const r1 = alongX ? [x1 + inset, mid] : [mid, y1 + inset];
-  const r2 = alongX ? [x2 - inset, mid] : [mid, y2 - inset];
+  const r1 = alongX ? [x1 + inset1, mid] : [mid, y1 + inset1];
+  const r2 = alongX ? [x2 - inset2, mid] : [mid, y2 - inset2];
 
   const P = (p, h) => [p[0], h, p[1]];
   const c = {
     a: [x1, y1], b: [x2, y1], c: [x2, y2], d: [x1, y2],
   };
   const tris = [];
+  if (roof.kind === 'mono') {
+    // One slope: high along the start edge (y1 for an x ridge, x1 for a y
+    // ridge, i.e. against the wall it leans on), falling to eaves at the
+    // far edge. Used for lean-tos.
+    const highH = eaves + rise(2 * across, roof.pitchDeg ?? 15);
+    if (alongX) tris.push(...quad(P(c.a, highH), P(c.b, highH), P(c.c, eaves), P(c.d, eaves)));
+    else tris.push(...quad(P(c.a, highH), P(c.d, highH), P(c.c, eaves), P(c.b, eaves)));
+    const slopes = faces(tris, palette.roof);
+    slopes.userData.kind = 'roof';
+    group.add(slopes);
+    const ends = alongX
+      ? [[P(c.a, eaves), P(c.a, highH), P(c.d, eaves)], [[x2, eaves, y1], [x2, highH, y1], [x2, eaves, y2]]]
+      : [[P(c.a, eaves), P(c.a, highH), P(c.b, eaves)], [[x1, eaves, y2], [x1, highH, y2], [x2, eaves, y2]]];
+    group.add(faces(ends, palette.external));
+    group.userData.kind = 'roof';
+    return group;
+  }
   if (alongX) {
     // North slope, south slope.
     tris.push(...quad(P(c.a, eaves), P(c.b, eaves), P(r2, ridgeH), P(r1, ridgeH)));
     tris.push(...quad(P(c.d, eaves), P(r1, ridgeH), P(r2, ridgeH), P(c.c, eaves)));
-    if (inset) {
-      tris.push([P(c.a, eaves), P(r1, ridgeH), P(c.d, eaves)]);
-      tris.push([P(c.b, eaves), P(c.c, eaves), P(r2, ridgeH)]);
-    }
+    if (inset1) tris.push([P(c.a, eaves), P(r1, ridgeH), P(c.d, eaves)]);
+    if (inset2) tris.push([P(c.b, eaves), P(c.c, eaves), P(r2, ridgeH)]);
   } else {
     tris.push(...quad(P(c.a, eaves), P(r1, ridgeH), P(r2, ridgeH), P(c.d, eaves)));
     tris.push(...quad(P(c.b, eaves), P(c.c, eaves), P(r2, ridgeH), P(r1, ridgeH)));
-    if (inset) {
-      tris.push([P(c.a, eaves), P(c.b, eaves), P(r1, ridgeH)]);
-      tris.push([P(c.d, eaves), P(r2, ridgeH), P(c.c, eaves)]);
-    }
+    if (inset1) tris.push([P(c.a, eaves), P(c.b, eaves), P(r1, ridgeH)]);
+    if (inset2) tris.push([P(c.d, eaves), P(r2, ridgeH), P(c.c, eaves)]);
   }
   const slopes = faces(tris, palette.roof);
   slopes.userData.kind = 'roof';
@@ -67,13 +85,11 @@ export function buildRoof(roof, palette) {
 
   // A gable end is a wall, not a roof: brick up to the underside of the
   // tiles. Built here because only the roof knows where that line is.
-  if (!inset) {
-    const ends = alongX
-      ? [[[c.a, c.d], r1], [[c.b, c.c], r2]]
-      : [[[c.a, c.b], r1], [[c.d, c.c], r2]];
-    for (const [[p, q], apex] of ends) {
-      group.add(faces([[P(p, eaves), P(q, eaves), P(apex, ridgeH)]], palette.external));
-    }
+  const ends = alongX
+    ? [[[c.a, c.d], r1, inset1], [[c.b, c.c], r2, inset2]]
+    : [[[c.a, c.b], r1, inset1], [[c.d, c.c], r2, inset2]];
+  for (const [[p, q], apex, inset] of ends) {
+    if (!inset) group.add(faces([[P(p, eaves), P(q, eaves), P(apex, ridgeH)]], palette.external));
   }
   group.userData.kind = 'roof';
   return group;

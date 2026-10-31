@@ -9,7 +9,8 @@ this file is only what is not yet finished. Keep it under 40 lines.
 Built, proved against every figure the Rectory kit published, and on
 the published site from `main` (1 Oct 2026). Start from CLAUDE.md's
 Road Ahead section and `docs/road-ahead/README.md`. **The plan is
-private**: `source_documents` 'Road Ahead build plan'. No house is active.
+private**: `source_documents` 'Road Ahead build plan'. Active: P-003
+Forest View (RA-05); see `docs/FOREST-VIEW-PLAN.md`.
 
 ## Next steps
 

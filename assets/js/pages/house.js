@@ -172,7 +172,7 @@ function legendHtml(level) {
 function body() {
   if (!building) {
     return `<p class="notice"><span class="notice__title">The model could not be loaded</span>
-      The building lives at <code>data/buildings/48-ameysford-road/</code>.</p>`;
+      The building lives at <code>data/buildings/forest-view/</code>.</p>`;
   }
   return `
   <section class="section section--flush">

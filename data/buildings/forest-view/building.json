@@ -1,0 +1,176 @@
+{
+ "id": "forest-view",
+ "name": "Forest View",
+ "addressLine": "Forest View, Tiptoe Road, Wootton, New Milton",
+ "status": "considering",
+ "bought": false,
+ "surveyed": false,
+ "defaultStage": "as-bought",
+ "walls": {
+  "construction": "solid",
+  "confidence": "drafted",
+  "basis": "Period red-brick cottage (particulars and photos); solid 9in brick expected, not yet seen. Lime plaster follows (standing full-restoration scope)."
+ },
+ "note": "A candidate property under offer by tender (closing midday 30 Nov 2026), not a purchase. Every dimension is read off the agent's drawing or derived from it; none may size a real job or order a real material until it is measured on site.",
+ "orientation": {
+  "planUpIs": "north",
+  "street": "Tiptoe Road",
+  "note": "The front door faces north onto Tiptoe Road; the rear garden faces south (particulars). The Wootton & Bashley Club is to the west and the lane (Wootton Rough) to the east. Orientation is to be checked with a compass at the viewing."
+ },
+ "grid": {
+  "cell": 1,
+  "originX": 0,
+  "originY": 0
+ },
+ "defaults": {
+  "wallExternal": 0.3,
+  "wallInternal": 0.1,
+  "wallParty": 0.3,
+  "floorThickness": 0.3,
+  "doorHeight": 1.98,
+  "doorWidth": 0.78,
+  "windowSill": 0.9,
+  "windowHead": 2.1,
+  "garageDoorHeight": 2.13,
+  "eavesHeight": 5.3,
+  "roofPitchDeg": 40
+ },
+ "envelope": {
+  "widthM": 9.91,
+  "depthM": 9.45
+ },
+ "plot": {
+  "widthM": 31,
+  "depthM": 33,
+  "originX": -9,
+  "originY": -6.5,
+  "confidence": "drafted",
+  "source": "particulars",
+  "note": "Schematic. The particulars state about a quarter of an acre with a south-facing rear garden and off-road parking; the rectangle and the house's position in it are traced from the aerial photograph. An overhead line crosses the garden (photos). Replace with the title plan.",
+  "neighbours": {
+   "north": "Tiptoe Road",
+   "west": "Wootton & Bashley Club (to check)",
+   "east": "Wootton Rough (lane)",
+   "south": "Fields and gardens"
+  }
+ },
+ "sources": [
+  {
+   "id": "agent-plan",
+   "kind": "floor_plan",
+   "label": "Mitchells floor plan (in the particulars, NWM260479)",
+   "confidence": "researched",
+   "supplies": [
+    "room clear sizes to the centimetre",
+    "room adjacency",
+    "window, door and stair positions",
+    "fireplaces",
+    "level areas (72.5 and 59.8 m2, 132.3 total)"
+   ],
+   "storageKey": "house-private/forest-view/particulars-NWM260479.pdf"
+  },
+  {
+   "id": "particulars",
+   "kind": "particulars",
+   "label": "Mitchells particulars, 8 pages",
+   "confidence": "researched",
+   "supplies": [
+    "plot about a quarter of an acre",
+    "south-facing rear garden",
+    "off-road parking",
+    "mains gas, electricity, water and drainage",
+    "council tax band E"
+   ],
+   "storageKey": "house-private/forest-view/particulars-NWM260479.pdf"
+  },
+  {
+   "id": "listing-photos",
+   "kind": "photograph",
+   "label": "Listing photographs: front, rear, aerial and rooms",
+   "confidence": "researched",
+   "supplies": [
+    "window count and arrangement",
+    "slate roof, gable with chimney at the west end, hip at the east end",
+    "glazed porch",
+    "rear lean-to and store",
+    "kitchen sink, units and cooker; radiators"
+   ],
+   "storageKey": "house-private/forest-view/particulars-NWM260479.pdf"
+  }
+ ],
+ "statedDimensions": [
+  {
+   "of": "room:as-bought/sitting",
+   "kind": "clearSize",
+   "value": [
+    3.67,
+    3.66
+   ],
+   "source": "agent-plan",
+   "note": "Printed 3.66 x 3.67; which way round is not stated."
+  },
+  {
+   "of": "room:as-bought/family",
+   "kind": "clearSize",
+   "value": [
+    3.66,
+    3.66
+   ],
+   "source": "agent-plan"
+  },
+  {
+   "of": "room:as-bought/kitchen",
+   "kind": "clearSize",
+   "value": [
+    4.45,
+    2.74
+   ],
+   "source": "agent-plan"
+  },
+  {
+   "of": "room:as-bought/dining",
+   "kind": "clearSize",
+   "value": [
+    4.64,
+    2.74
+   ],
+   "source": "agent-plan",
+   "note": "Printed as a maximum."
+  },
+  {
+   "of": "room:as-bought/bed1",
+   "kind": "clearSize",
+   "value": [
+    3.67,
+    3.66
+   ],
+   "source": "agent-plan"
+  },
+  {
+   "of": "room:as-bought/bed2",
+   "kind": "clearSize",
+   "value": [
+    3.66,
+    3.66
+   ],
+   "source": "agent-plan"
+  },
+  {
+   "of": "room:as-bought/bed3",
+   "kind": "clearSize",
+   "value": [
+    3.66,
+    2.74
+   ],
+   "source": "agent-plan"
+  },
+  {
+   "of": "room:as-bought/bed4",
+   "kind": "areaM2",
+   "value": 10.06,
+   "source": "agent-plan",
+   "note": "Printed 2.74 x 3.67 overall (10.06 m2). The plan draws the bathroom taking a notch out of its south-east corner, so the L-shaped room is smaller by about the notch; the difference is reported, not absorbed."
+  }
+ ],
+ "schemaVersion": 2
+}

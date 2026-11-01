@@ -157,6 +157,10 @@ export const line = (key, label, quantity, unit, basis, opts = {}) => ({
  * carries rather than from a rule of thumb.
  */
 export function newWallFaceM2(diff, building) {
+  // Measured per wall at its own storey's height where the diff carries
+  // it (stageDiff does); plan length times eaves is the fallback, which
+  // over-counts any single-storey wall.
+  if (Number.isFinite(diff?.newExternalWallFaceM2)) return diff.newExternalWallFaceM2;
   const planM = diff?.newExternalWallPlanM ?? 0;
   const eaves = building?.defaults?.eavesHeight ?? 5;
   return planM * eaves;
@@ -178,11 +182,14 @@ export function brickTakeoff(diff, building, opts = {}) {
   const perM2 = bricksPerM2Skin(size);
   const brickSkins = construction === 'cavity' ? 1 : RATES.skinsSolid9in;
   const bricks = faceM2 * perM2 * brickSkins;
-  const basis = `${round(diff?.newExternalWallPlanM ?? 0, 2)}m of new outer wall on plan `
-    + `x ${building?.defaults?.eavesHeight ?? 5}m to the eaves = ${round(faceM2, 1)} m2 of face, `
+  const height = Number.isFinite(diff?.newExternalWallFaceM2)
+    ? 'each wall at its own storey height'
+    : `x ${building?.defaults?.eavesHeight ?? 5}m to the eaves`;
+  const basis = `${round(diff?.newExternalWallPlanM ?? 0, 2)}m of new outer wall on plan, `
+    + `${height} = ${round(faceM2, 1)} m2 of face, `
     + `x ${round(perM2, 1)} bricks/m2 x ${brickSkins} skin${brickSkins > 1 ? 's' : ''} `
     + `(${construction === 'cavity' ? 'cavity, brick outer and block inner' : 'solid 9in, matching the original'}). `
-    + `${size.label} brick at ${size.lengthM * 1000} x ${size.heightM * 1000}mm plus a `
+    + `${size.label} brick at ${round(size.lengthM * 1000, 1)} x ${round(size.heightM * 1000, 1)}mm plus a `
     + `${JOINT_M * 1000}mm joint - NOT the 60/m2 rate, which is for a metric brick and `
     + 'over-orders an imperial one by about a tenth.';
   return [

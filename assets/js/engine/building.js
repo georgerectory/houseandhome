@@ -129,6 +129,31 @@ export function newExternalWallPlanLength(stage) {
   return total;
 }
 
+/**
+ * New external wall FACE, in square metres: each new external wall at
+ * the height of its own storey. Multiplying the plan length by the whole
+ * house's eaves height is right for a two-storey extension and doubles a
+ * single-storey one, so the height comes from the level the wall is on:
+ * up to the next level's floor, or for the top level up to the main
+ * roof's eaves.
+ */
+export function newExternalWallFaceM2(stage) {
+  const levels = [...(stage.levels ?? [])].sort((a, b) => (a.elevation ?? 0) - (b.elevation ?? 0));
+  const mainEaves = Math.max(0, ...(stage.roofs ?? []).filter((r) => !r.coversLevel)
+    .map((r) => r.eavesHeight ?? 0));
+  const storey = (levelId) => {
+    const i = levels.findIndex((l) => l.id === levelId);
+    if (i < 0) return 0;
+    const here = levels[i].elevation ?? 0;
+    const next = levels[i + 1];
+    if (next) return (next.elevation ?? here) - here;
+    return mainEaves > here ? mainEaves - here : (levels[i].ceilingHeight ?? 2.4);
+  };
+  return (stage.walls ?? [])
+    .filter((w) => w.provenance === 'new' && w.kind === 'external')
+    .reduce((sum, w) => sum + wallLength(w) * storey(w.level), 0);
+}
+
 // --- The difference between two stages -------------------------------
 
 const round = (v, dp = 2) => Math.round(v * 10 ** dp) / 10 ** dp;
@@ -224,6 +249,7 @@ export function stageDiff(from, to) {
     areaAddedM2: round(stageArea(to) - stageArea(from)),
     newExternalWallM: round(newExternalWallLength(to)),
     newExternalWallPlanM: round(newExternalWallPlanLength(to)),
+    newExternalWallFaceM2: round(newExternalWallFaceM2(to)),
     demolitionWallM: round(wallsRemoved.reduce((s, w) => s + wallLength(w), 0)
       + wallsShortened.reduce((s, d) => s + Math.max(0, d.wasM - d.isM), 0)),
     newRoofAreaM2: round(roofsAdded.reduce((s, r) => s + roofArea(r), 0)),

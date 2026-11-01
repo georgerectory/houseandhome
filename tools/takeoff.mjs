@@ -111,9 +111,14 @@ for (const meta of index.stages) {
     add(`${label}: ${first[0]} - matching the ${walls} original`, face, first[1], first[2]);
     add(`${label}: ${second[0]} - the alternative`, 'An open decision until the original walls are seen.', second[1], second[2]);
   }
+  // Only rooms THIS stage creates: a child stage that still has its
+  // parent's kitchen-diner must not price its floor heating again.
+  const parentIds = new Set((from.rooms ?? []).map((r) => r.id));
+  const created = new Set((stage.rooms ?? []).map((r) => r.id).filter((id) => !parentIds.has(id)));
+  const ufhHere = UFH_ROOMS.filter((r) => created.has(r));
   add(`${label}: underfloor heating`,
-    `Rooms: ${UFH_ROOMS.join(', ')}, where the stage has them.`,
-    ufhTakeoff(stage, UFH_ROOMS), `${tag}ufh:`);
+    `Rooms this stage creates: ${ufhHere.join(', ') || 'none'}.`,
+    ufhTakeoff(stage, ufhHere), `${tag}ufh:`);
 }
 
 // Garden quantities are sized off the owner's intent, not off the

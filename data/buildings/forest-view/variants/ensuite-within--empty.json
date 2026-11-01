@@ -1,0 +1,10 @@
+{
+ "id": "ensuite-within--empty",
+ "schemaVersion": 2,
+ "building": "forest-view",
+ "stage": "ensuite-within",
+ "name": "Empty shell",
+ "summary": "S2a, with nothing in it.",
+ "changes": [],
+ "furniture": []
+}

@@ -1,0 +1,10 @@
+{
+ "id": "ground-floor-open--empty",
+ "schemaVersion": 2,
+ "building": "forest-view",
+ "stage": "ground-floor-open",
+ "name": "Empty shell",
+ "summary": "S1, with nothing in it.",
+ "changes": [],
+ "furniture": []
+}

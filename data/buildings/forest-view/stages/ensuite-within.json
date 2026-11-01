@@ -1,0 +1,1322 @@
+{
+ "id": "ensuite-within",
+ "schemaVersion": 2,
+ "building": "forest-view",
+ "name": "S2a - En-suite to bedroom 1, from bedroom 4",
+ "sequence": 30,
+ "status": "planned",
+ "derivedFrom": "ground-floor-open",
+ "summary": "S1, plus an en-suite to bedroom 1 taken from the west end of bedroom 4 and entered through a new door in bedroom 1's south wall. Bedroom 4 stays, smaller, as a study or nursery. Inside the existing footprint: building control only.",
+ "changes": [
+  "Build two new stud walls in the west end of bedroom 4, making an en-suite of about 2.0 x 1.2m against bedroom 1's south wall.",
+  "Cut a new door through bedroom 1's south wall (mid-w) into the en-suite.",
+  "Add a small obscured window in the west gable for the en-suite.",
+  "Bedroom 4 keeps its landing door and becomes a study or nursery of about 6.1 m2."
+ ],
+ "derivation": [
+  {
+   "id": "width",
+   "question": "How wide is the house, and the hall?",
+   "working": "0.3 + 3.67 (sitting) + 0.1 + hall + 0.1 + 3.66 (family) + 0.3 = width; hall scaled off the plan at 1.78",
+   "result": "width = 9.91",
+   "residualMm": 120,
+   "note": "The front rooms are printed; the hall is scaled. The rear rooms (kitchen 4.45 + dining 4.64 + a 0.10 partition = 9.19) come out 120mm short of the front (9.31). The model keeps the printed dining width and lets the kitchen take the difference, so the Survey view reports 120mm on the kitchen rather than hiding it."
+  },
+  {
+   "id": "depth",
+   "question": "How deep is the house?",
+   "working": "0.3 + 3.66 (front rooms) + 0.1 + 2.74 (rear rooms) + 0.3 = 7.1",
+   "result": "depth = 7.1",
+   "residualMm": 0,
+   "note": "Both room depths are printed; scaling the plan gives 7.1 to 7.2m."
+  },
+  {
+   "id": "areas",
+   "question": "Do the areas agree with the agent?",
+   "working": "Ground: main rooms about 58.2 + store + lean-to + porch, against 72.5 stated. First: bedrooms about 46.1 + landing about 8.9 + bathroom about 3.6, against 59.8 stated.",
+   "result": "ground about +0.3 m2; first about -1.2 m2",
+   "residualMm": 0,
+   "note": "Reported, not absorbed. The agent's areas are approximate by their own label."
+  }
+ ],
+ "levels": [
+  {
+   "id": "ground",
+   "name": "Ground floor",
+   "code": "G",
+   "elevation": 0,
+   "ceilingHeight": 2.6
+  },
+  {
+   "id": "first",
+   "name": "First floor",
+   "code": "1",
+   "elevation": 2.9,
+   "ceilingHeight": 2.4
+  }
+ ],
+ "rooms": [
+  {
+   "id": "sitting",
+   "level": "ground",
+   "name": "Sitting Room",
+   "rect": [
+    0.3,
+    0.3,
+    3.97,
+    3.96
+   ],
+   "areaM2": 13.43,
+   "roomKey": "lounge",
+   "roomType": "living",
+   "clearSize": [
+    3.67,
+    3.66
+   ]
+  },
+  {
+   "id": "hall",
+   "level": "ground",
+   "name": "Hall",
+   "rect": [
+    4.07,
+    0.3,
+    5.85,
+    3.96
+   ],
+   "areaM2": 6.52,
+   "roomKey": "hallway",
+   "roomType": "hallway",
+   "clearSize": [
+    1.78,
+    3.66
+   ]
+  },
+  {
+   "id": "family",
+   "level": "ground",
+   "name": "Family Room",
+   "rect": [
+    5.95,
+    0.3,
+    9.61,
+    3.96
+   ],
+   "areaM2": 13.4,
+   "roomType": "living",
+   "clearSize": [
+    3.66,
+    3.66
+   ]
+  },
+  {
+   "id": "kitchen-diner",
+   "level": "ground",
+   "name": "Kitchen-diner",
+   "rect": [
+    0.3,
+    4.06,
+    9.61,
+    6.8
+   ],
+   "areaM2": 25.51,
+   "was": "kitchen",
+   "roomKey": "kitchen",
+   "roomType": "kitchen",
+   "clearSize": [
+    9.31,
+    2.74
+   ]
+  },
+  {
+   "id": "boot",
+   "level": "ground",
+   "name": "Boot room",
+   "rect": [
+    4.66,
+    7.1,
+    7.01,
+    9.3
+   ],
+   "areaM2": 5.17,
+   "was": "leanto",
+   "roomKey": "boot-room",
+   "roomType": "boot_room",
+   "clearSize": [
+    2.35,
+    2.2
+   ]
+  },
+  {
+   "id": "wc",
+   "level": "ground",
+   "name": "WC",
+   "rect": [
+    7.11,
+    7.1,
+    8.16,
+    9.3
+   ],
+   "areaM2": 2.31,
+   "was": "store",
+   "roomType": "wc",
+   "clearSize": [
+    1.05,
+    2.2
+   ]
+  },
+  {
+   "id": "utility",
+   "level": "ground",
+   "name": "Utility",
+   "rect": [
+    8.26,
+    7.1,
+    9.61,
+    9.3
+   ],
+   "areaM2": 2.97,
+   "roomType": "utility",
+   "clearSize": [
+    1.35,
+    2.2
+   ]
+  },
+  {
+   "id": "bed1",
+   "level": "first",
+   "name": "Bedroom 1",
+   "rect": [
+    0.3,
+    0.3,
+    3.97,
+    3.96
+   ],
+   "areaM2": 13.43,
+   "roomKey": "bedroom",
+   "roomType": "bedroom",
+   "clearSize": [
+    3.67,
+    3.66
+   ]
+  },
+  {
+   "id": "landing",
+   "level": "first",
+   "name": "Landing",
+   "rect": [
+    4.07,
+    0.3,
+    5.85,
+    5.2
+   ],
+   "areaM2": 8.72,
+   "roomType": "landing",
+   "clearSize": [
+    1.78,
+    4.9
+   ]
+  },
+  {
+   "id": "bed2",
+   "level": "first",
+   "name": "Bedroom 2",
+   "rect": [
+    5.95,
+    0.3,
+    9.61,
+    3.96
+   ],
+   "areaM2": 13.4,
+   "roomKey": "bedroom",
+   "roomType": "bedroom",
+   "clearSize": [
+    3.66,
+    3.66
+   ]
+  },
+  {
+   "id": "bathroom",
+   "level": "first",
+   "name": "Bathroom",
+   "rect": [
+    3.42,
+    5.3,
+    5.85,
+    6.8
+   ],
+   "areaM2": 3.65,
+   "roomKey": "bathroom",
+   "roomType": "bathroom",
+   "clearSize": [
+    2.43,
+    1.5
+   ]
+  },
+  {
+   "id": "bed3",
+   "level": "first",
+   "name": "Bedroom 3",
+   "rect": [
+    5.95,
+    4.06,
+    9.61,
+    6.8
+   ],
+   "areaM2": 10.03,
+   "roomKey": "bedroom",
+   "roomType": "bedroom",
+   "clearSize": [
+    3.66,
+    2.74
+   ]
+  },
+  {
+   "id": "ensuite",
+   "level": "first",
+   "name": "En-suite",
+   "rect": [
+    0.3,
+    4.06,
+    2.32,
+    5.26
+   ],
+   "areaM2": 2.42,
+   "roomType": "bathroom",
+   "clearSize": [
+    2.02,
+    1.2
+   ]
+  },
+  {
+   "id": "bed4",
+   "level": "first",
+   "name": "Study (bedroom 4)",
+   "rect": [
+    0.3,
+    4.06,
+    3.97,
+    6.8
+   ],
+   "rects": [
+    [
+     2.42,
+     4.06,
+     3.97,
+     5.2
+    ],
+    [
+     0.3,
+     5.36,
+     3.32,
+     6.8
+    ]
+   ],
+   "areaM2": 6.12,
+   "roomKey": "bedroom",
+   "roomType": "office",
+   "clearSize": [
+    3.02,
+    1.44
+   ]
+  }
+ ],
+ "walls": [
+  {
+   "id": "ground-x-w-main",
+   "level": "ground",
+   "line": "w-main",
+   "axis": "x",
+   "a": [
+    0.15,
+    0.15
+   ],
+   "b": [
+    0.15,
+    6.95
+   ],
+   "kind": "external",
+   "thickness": 0.3,
+   "provenance": "existing",
+   "structural": true,
+   "removable": false
+  },
+  {
+   "id": "ground-x-hall-w",
+   "level": "ground",
+   "line": "hall-w",
+   "axis": "x",
+   "a": [
+    4.02,
+    0.15
+   ],
+   "b": [
+    4.02,
+    4.01
+   ],
+   "kind": "internal",
+   "thickness": 0.1,
+   "provenance": "existing",
+   "structural": false,
+   "removable": true
+  },
+  {
+   "id": "ground-x-hall-e",
+   "level": "ground",
+   "line": "hall-e",
+   "axis": "x",
+   "a": [
+    5.9,
+    0.15
+   ],
+   "b": [
+    5.9,
+    4.01
+   ],
+   "kind": "internal",
+   "thickness": 0.1,
+   "provenance": "existing",
+   "structural": false,
+   "removable": true
+  },
+  {
+   "id": "ground-x-e-main",
+   "level": "ground",
+   "line": "e-main",
+   "axis": "x",
+   "a": [
+    9.76,
+    0.15
+   ],
+   "b": [
+    9.76,
+    6.95
+   ],
+   "kind": "external",
+   "thickness": 0.3,
+   "provenance": "existing",
+   "structural": true,
+   "removable": false
+  },
+  {
+   "id": "ground-x-r-w",
+   "level": "ground",
+   "line": "r-w",
+   "axis": "x",
+   "a": [
+    4.585,
+    6.95
+   ],
+   "b": [
+    4.585,
+    9.375
+   ],
+   "kind": "external",
+   "thickness": 0.15,
+   "provenance": "existing",
+   "structural": true,
+   "removable": false,
+   "note": "Rear range rebuilt on the same line."
+  },
+  {
+   "id": "ground-x-r-mid",
+   "level": "ground",
+   "line": "r-mid",
+   "axis": "x",
+   "a": [
+    7.06,
+    6.95
+   ],
+   "b": [
+    7.06,
+    9.375
+   ],
+   "kind": "internal",
+   "thickness": 0.1,
+   "provenance": "existing",
+   "structural": false,
+   "removable": true
+  },
+  {
+   "id": "ground-x-r-e",
+   "level": "ground",
+   "line": "r-e",
+   "axis": "x",
+   "a": [
+    9.76,
+    6.95
+   ],
+   "b": [
+    9.76,
+    9.375
+   ],
+   "kind": "external",
+   "thickness": 0.3,
+   "provenance": "existing",
+   "structural": true,
+   "removable": false,
+   "note": "Rear range rebuilt; continues the house's east wall line."
+  },
+  {
+   "id": "ground-x-wc-e",
+   "level": "ground",
+   "line": "wc-e",
+   "axis": "x",
+   "a": [
+    8.21,
+    6.95
+   ],
+   "b": [
+    8.21,
+    9.375
+   ],
+   "kind": "internal",
+   "thickness": 0.1,
+   "provenance": "existing",
+   "structural": false,
+   "removable": true
+  },
+  {
+   "id": "ground-y-front",
+   "level": "ground",
+   "line": "front",
+   "axis": "y",
+   "a": [
+    0.15,
+    0.15
+   ],
+   "b": [
+    9.76,
+    0.15
+   ],
+   "kind": "external",
+   "thickness": 0.3,
+   "provenance": "existing",
+   "structural": true,
+   "removable": false
+  },
+  {
+   "id": "ground-y-mid",
+   "level": "ground",
+   "line": "mid",
+   "axis": "y",
+   "a": [
+    0.15,
+    4.01
+   ],
+   "b": [
+    9.76,
+    4.01
+   ],
+   "kind": "internal",
+   "thickness": 0.1,
+   "provenance": "existing",
+   "structural": false,
+   "removable": true
+  },
+  {
+   "id": "ground-y-rear",
+   "level": "ground",
+   "line": "rear",
+   "axis": "y",
+   "a": [
+    0.15,
+    6.95
+   ],
+   "b": [
+    9.76,
+    6.95
+   ],
+   "kind": "external",
+   "thickness": 0.3,
+   "provenance": "existing",
+   "structural": true,
+   "removable": false
+  },
+  {
+   "id": "ground-y-r-s",
+   "level": "ground",
+   "line": "r-s",
+   "axis": "y",
+   "a": [
+    4.585,
+    9.375
+   ],
+   "b": [
+    9.76,
+    9.375
+   ],
+   "kind": "external",
+   "thickness": 0.15,
+   "provenance": "existing",
+   "structural": true,
+   "removable": false,
+   "note": "Rear range rebuilt on the same line."
+  },
+  {
+   "id": "first-x-w-main",
+   "level": "first",
+   "line": "w-main",
+   "axis": "x",
+   "a": [
+    0.15,
+    0.15
+   ],
+   "b": [
+    0.15,
+    6.95
+   ],
+   "kind": "external",
+   "thickness": 0.3,
+   "provenance": "existing",
+   "structural": true,
+   "removable": false
+  },
+  {
+   "id": "first-x-land-w",
+   "level": "first",
+   "line": "land-w",
+   "axis": "x",
+   "a": [
+    4.02,
+    0.15
+   ],
+   "b": [
+    4.02,
+    5.25
+   ],
+   "kind": "internal",
+   "thickness": 0.1,
+   "provenance": "existing",
+   "structural": false,
+   "removable": true
+  },
+  {
+   "id": "first-x-bath-w",
+   "level": "first",
+   "line": "bath-w",
+   "axis": "x",
+   "a": [
+    3.37,
+    5.25
+   ],
+   "b": [
+    3.37,
+    6.95
+   ],
+   "kind": "internal",
+   "thickness": 0.1,
+   "provenance": "existing",
+   "structural": false,
+   "removable": true
+  },
+  {
+   "id": "first-x-land-e",
+   "level": "first",
+   "line": "land-e",
+   "axis": "x",
+   "a": [
+    5.9,
+    0.15
+   ],
+   "b": [
+    5.9,
+    6.95
+   ],
+   "kind": "internal",
+   "thickness": 0.1,
+   "provenance": "existing",
+   "structural": false,
+   "removable": true
+  },
+  {
+   "id": "first-x-e-main",
+   "level": "first",
+   "line": "e-main",
+   "axis": "x",
+   "a": [
+    9.76,
+    0.15
+   ],
+   "b": [
+    9.76,
+    6.95
+   ],
+   "kind": "external",
+   "thickness": 0.3,
+   "provenance": "existing",
+   "structural": true,
+   "removable": false
+  },
+  {
+   "id": "first-x-ens-e",
+   "level": "first",
+   "line": "ens-e",
+   "axis": "x",
+   "a": [
+    2.37,
+    4.01
+   ],
+   "b": [
+    2.37,
+    5.31
+   ],
+   "kind": "internal",
+   "thickness": 0.1,
+   "provenance": "new",
+   "structural": false,
+   "removable": true
+  },
+  {
+   "id": "first-y-front",
+   "level": "first",
+   "line": "front",
+   "axis": "y",
+   "a": [
+    0.15,
+    0.15
+   ],
+   "b": [
+    9.76,
+    0.15
+   ],
+   "kind": "external",
+   "thickness": 0.3,
+   "provenance": "existing",
+   "structural": true,
+   "removable": false
+  },
+  {
+   "id": "first-y-mid-w",
+   "level": "first",
+   "line": "mid-w",
+   "axis": "y",
+   "a": [
+    0.15,
+    4.01
+   ],
+   "b": [
+    4.02,
+    4.01
+   ],
+   "kind": "internal",
+   "thickness": 0.1,
+   "provenance": "existing",
+   "structural": false,
+   "removable": true
+  },
+  {
+   "id": "first-y-mid-e",
+   "level": "first",
+   "line": "mid-e",
+   "axis": "y",
+   "a": [
+    5.9,
+    4.01
+   ],
+   "b": [
+    9.76,
+    4.01
+   ],
+   "kind": "internal",
+   "thickness": 0.1,
+   "provenance": "existing",
+   "structural": false,
+   "removable": true
+  },
+  {
+   "id": "first-y-bath-n",
+   "level": "first",
+   "line": "bath-n",
+   "axis": "y",
+   "a": [
+    3.37,
+    5.25
+   ],
+   "b": [
+    5.9,
+    5.25
+   ],
+   "kind": "internal",
+   "thickness": 0.1,
+   "provenance": "existing",
+   "structural": false,
+   "removable": true
+  },
+  {
+   "id": "first-y-rear",
+   "level": "first",
+   "line": "rear",
+   "axis": "y",
+   "a": [
+    0.15,
+    6.95
+   ],
+   "b": [
+    9.76,
+    6.95
+   ],
+   "kind": "external",
+   "thickness": 0.3,
+   "provenance": "existing",
+   "structural": true,
+   "removable": false
+  },
+  {
+   "id": "first-y-ens-s",
+   "level": "first",
+   "line": "ens-s",
+   "axis": "y",
+   "a": [
+    0.15,
+    5.31
+   ],
+   "b": [
+    2.37,
+    5.31
+   ],
+   "kind": "internal",
+   "thickness": 0.1,
+   "provenance": "new",
+   "structural": false,
+   "removable": true
+  }
+ ],
+ "openings": [
+  {
+   "id": "g-win-sitting-n",
+   "wall": "ground-y-front",
+   "type": "window",
+   "at": 1.76,
+   "width": 1.4
+  },
+  {
+   "id": "g-door-front",
+   "wall": "ground-y-front",
+   "type": "door",
+   "at": 4.81,
+   "width": 0.82,
+   "leaf": "single",
+   "swing": {
+    "hinge": "a",
+    "toward": "south"
+   },
+   "note": "Inner front door, inside the glazed porch."
+  },
+  {
+   "id": "g-win-family-n",
+   "wall": "ground-y-front",
+   "type": "window",
+   "at": 7.86,
+   "width": 1.4
+  },
+  {
+   "id": "g-win-kitchen-s",
+   "wall": "ground-y-rear",
+   "type": "window",
+   "at": 2.71,
+   "width": 1.3,
+   "note": "Over the sink (photo)."
+  },
+  {
+   "id": "g-door-dining-leanto",
+   "wall": "ground-y-rear",
+   "type": "door",
+   "at": 5.25,
+   "width": 0.76,
+   "leaf": "single",
+   "swing": {
+    "hinge": "a",
+    "toward": "south"
+   },
+   "note": "Dining room out to the lean-to (particulars: a door leading outside)."
+  },
+  {
+   "id": "g-win-kitchen-w",
+   "wall": "ground-x-w-main",
+   "type": "window",
+   "at": 5.25,
+   "width": 1,
+   "note": "Kitchen is double aspect (particulars)."
+  },
+  {
+   "id": "g-win-dining-e",
+   "wall": "ground-x-e-main",
+   "type": "window",
+   "at": 5.25,
+   "width": 1,
+   "note": "Dining room is double aspect (particulars)."
+  },
+  {
+   "id": "g-door-sitting",
+   "wall": "ground-x-hall-w",
+   "type": "door",
+   "at": 0.65,
+   "width": 0.78,
+   "leaf": "single",
+   "swing": {
+    "hinge": "a",
+    "toward": "west"
+   }
+  },
+  {
+   "id": "g-door-family",
+   "wall": "ground-x-hall-e",
+   "type": "door",
+   "at": 3.2,
+   "width": 0.78,
+   "leaf": "single",
+   "swing": {
+    "hinge": "b",
+    "toward": "east"
+   }
+  },
+  {
+   "id": "g-door-hall-dining",
+   "wall": "ground-y-mid",
+   "type": "door",
+   "at": 5.25,
+   "width": 0.76,
+   "leaf": "single",
+   "swing": {
+    "hinge": "a",
+    "toward": "south"
+   },
+   "note": "Off the back of the hall; the agent's plan draws a small lobby with doors to the kitchen and dining room here."
+  },
+  {
+   "id": "g-door-back",
+   "wall": "ground-x-r-w",
+   "type": "door",
+   "at": 1.35,
+   "width": 0.8,
+   "leaf": "single",
+   "swing": {
+    "hinge": "a",
+    "toward": "east"
+   },
+   "note": "Lean-to door to the garden (plan and rear photo)."
+  },
+  {
+   "id": "g-win-leanto-s",
+   "wall": "ground-y-r-s",
+   "type": "window",
+   "at": 1.265,
+   "width": 1.2
+  },
+  {
+   "id": "g-door-wc",
+   "wall": "ground-x-r-mid",
+   "type": "door",
+   "at": 0.65,
+   "width": 0.76,
+   "leaf": "single",
+   "swing": {
+    "hinge": "a",
+    "toward": "east"
+   },
+   "note": "WC off the boot room, moved north of the old store door so the pan clears the swing."
+  },
+  {
+   "id": "g-door-utility",
+   "wall": "ground-y-rear",
+   "type": "door",
+   "at": 8.83,
+   "width": 0.76,
+   "leaf": "single",
+   "swing": {
+    "hinge": "a",
+    "toward": "south"
+   },
+   "note": "New: kitchen-diner to utility."
+  },
+  {
+   "id": "g-win-wc-s",
+   "wall": "ground-y-r-s",
+   "type": "window",
+   "at": 3.045,
+   "width": 0.5,
+   "sill": 1.4,
+   "note": "New, high: WC with an extract fan."
+  },
+  {
+   "id": "g-win-utility-s",
+   "wall": "ground-y-r-s",
+   "type": "window",
+   "at": 4.415,
+   "width": 0.8,
+   "note": "New."
+  },
+  {
+   "id": "f-win-bed1-n",
+   "wall": "first-y-front",
+   "type": "window",
+   "at": 1.76,
+   "width": 1.4
+  },
+  {
+   "id": "f-win-landing-n",
+   "wall": "first-y-front",
+   "type": "window",
+   "at": 4.81,
+   "width": 0.9
+  },
+  {
+   "id": "f-win-bed2-n",
+   "wall": "first-y-front",
+   "type": "window",
+   "at": 7.86,
+   "width": 1.4
+  },
+  {
+   "id": "f-win-bed4-s",
+   "wall": "first-y-rear",
+   "type": "window",
+   "at": 1.66,
+   "width": 1.4
+  },
+  {
+   "id": "f-win-bath-s",
+   "wall": "first-y-rear",
+   "type": "window",
+   "at": 4.36,
+   "width": 0.8,
+   "sill": 1.35
+  },
+  {
+   "id": "f-win-bed3-s",
+   "wall": "first-y-rear",
+   "type": "window",
+   "at": 8.66,
+   "width": 1.4
+  },
+  {
+   "id": "f-door-bed1",
+   "wall": "first-x-land-w",
+   "type": "door",
+   "at": 0.8,
+   "width": 0.75,
+   "leaf": "single",
+   "swing": {
+    "hinge": "a",
+    "toward": "west"
+   }
+  },
+  {
+   "id": "f-door-bed2",
+   "wall": "first-x-land-e",
+   "type": "door",
+   "at": 0.8,
+   "width": 0.75,
+   "leaf": "single",
+   "swing": {
+    "hinge": "a",
+    "toward": "east"
+   }
+  },
+  {
+   "id": "f-door-bed4",
+   "wall": "first-x-land-w",
+   "type": "door",
+   "at": 4.45,
+   "width": 0.72,
+   "leaf": "single",
+   "swing": {
+    "hinge": "b",
+    "toward": "west"
+   }
+  },
+  {
+   "id": "f-door-bed3",
+   "wall": "first-x-land-e",
+   "type": "door",
+   "at": 4.45,
+   "width": 0.72,
+   "leaf": "single",
+   "swing": {
+    "hinge": "b",
+    "toward": "east"
+   }
+  },
+  {
+   "id": "f-door-bath",
+   "wall": "first-y-bath-n",
+   "type": "door",
+   "at": 1.23,
+   "width": 0.7,
+   "leaf": "single",
+   "swing": {
+    "hinge": "a",
+    "toward": "south"
+   }
+  },
+  {
+   "id": "f-door-ensuite",
+   "wall": "first-y-mid-w",
+   "type": "door",
+   "at": 1.4,
+   "width": 0.76,
+   "leaf": "single",
+   "swing": {
+    "hinge": "a",
+    "toward": "north"
+   },
+   "note": "New, opening into bedroom 1 so the swing clears the en-suite's fittings."
+  },
+  {
+   "id": "f-win-ensuite-w",
+   "wall": "first-x-w-main",
+   "type": "window",
+   "at": 4.51,
+   "width": 0.6,
+   "sill": 1.4,
+   "note": "New, obscured."
+  }
+ ],
+ "stairs": [
+  {
+   "id": "main-stair",
+   "level": "ground",
+   "from": "hall",
+   "to": "landing",
+   "footprint": [
+    4.07,
+    1.36,
+    4.85,
+    3.96
+   ],
+   "upperVoid": [
+    4.07,
+    1.36,
+    4.85,
+    3.96
+   ],
+   "direction": "+y",
+   "width": 0.78,
+   "risers": 14,
+   "rise": 0.2071,
+   "going": 0.2,
+   "winders": 0,
+   "note": "14 risers at 0.2071 make the assumed 2.90m storey; 13 goings at 0.20 make the 2.60m run, from just inside the sitting-room door to the back of the hall."
+  }
+ ],
+ "roofs": [
+  {
+   "id": "roof-main",
+   "kind": "hipped",
+   "hipEnds": [
+    "end"
+   ],
+   "over": [
+    0,
+    0,
+    9.91,
+    7.1
+   ],
+   "ridgeAxis": "x",
+   "pitchDeg": 40,
+   "eavesHeight": 5.3,
+   "overhang": 0.3,
+   "covering": "slate",
+   "provenance": "existing",
+   "note": "Gable at the west (sitting-room) end with the chimney; hip at the east (family-room) end, as the photos show.",
+   "spanAcross": 7.1,
+   "ridgeHeight": 8.279
+  },
+  {
+   "id": "roof-rear-new",
+   "kind": "mono",
+   "over": [
+    4.51,
+    7.1,
+    9.91,
+    9.45
+   ],
+   "ridgeAxis": "x",
+   "pitchDeg": 15,
+   "eavesHeight": 2.65,
+   "overhang": 0.15,
+   "covering": "slate",
+   "coversLevel": "ground",
+   "provenance": "new",
+   "note": "The rear range's roof rebuilt as one slope off the rear wall, in slate to match (National Park materials).",
+   "spanAcross": 2.35,
+   "ridgeHeight": 2.965
+  }
+ ],
+ "chimneys": [
+  {
+   "id": "chimney-w",
+   "footprint": [
+    0,
+    3.15,
+    0.6,
+    3.95
+   ],
+   "topHeight": 9.3,
+   "pots": 2,
+   "provenance": "existing",
+   "note": "West gable, the only stack visible in the photos. Serves the sitting room and bedroom 1."
+  }
+ ],
+ "features": [
+  {
+   "id": "breast-sitting",
+   "level": "ground",
+   "room": "sitting",
+   "kind": "chimney_breast",
+   "rect": [
+    0.3,
+    1.25,
+    0.72,
+    2.65
+   ],
+   "height": 2.6,
+   "note": "Timber surround with tiled backing (particulars)."
+  },
+  {
+   "id": "breast-family",
+   "level": "ground",
+   "room": "family",
+   "kind": "chimney_breast",
+   "rect": [
+    9.19,
+    1.25,
+    9.61,
+    2.65
+   ],
+   "height": 2.6,
+   "note": "Cast-iron fireplace (particulars). Flue route through the hip unknown."
+  },
+  {
+   "id": "breast-bed1",
+   "level": "first",
+   "room": "bed1",
+   "kind": "chimney_breast",
+   "rect": [
+    0.3,
+    1.25,
+    0.72,
+    2.65
+   ],
+   "height": 2.4
+  },
+  {
+   "id": "breast-bed2",
+   "level": "first",
+   "room": "bed2",
+   "kind": "chimney_breast",
+   "rect": [
+    9.19,
+    1.25,
+    9.61,
+    2.65
+   ],
+   "height": 2.4
+  },
+  {
+   "id": "porch",
+   "level": "ground",
+   "room": "hall",
+   "kind": "porch",
+   "rect": [
+    4.01,
+    -1.45,
+    5.91,
+    0
+   ],
+   "height": 2.95,
+   "eavesM": 2.3,
+   "cheekM": 0.12,
+   "overhang": 0.08,
+   "note": "A small gabled, glazed porch over the front door (photos), about 1.9 x 1.45m, scaled. Modelled with the engine's porch: cheeks and a pitched roof."
+  }
+ ],
+ "assumptions": [
+  {
+   "id": "wall-external",
+   "severity": "medium",
+   "note": "External walls modelled at 0.3m solid brick with plaster. Not measured: measure a window reveal at the viewing."
+  },
+  {
+   "id": "wall-internal",
+   "severity": "low",
+   "note": "Internal partitions modelled at 0.1m. Not measured."
+  },
+  {
+   "id": "storey-heights",
+   "severity": "medium",
+   "note": "Ceilings of 2.60 (ground) and 2.40 (first) and eaves at 5.30 are typical for the age, not measured. Everything vertical rests on them."
+  },
+  {
+   "id": "rear-range",
+   "severity": "medium",
+   "note": "The store and lean-to are scaled off the plan (about 5.4 x 2.35m outside) with lightweight 0.15m outer walls; their roof is a single mono-pitch slope off the rear wall, as the photos show."
+  },
+  {
+   "id": "openings",
+   "severity": "medium",
+   "note": "Window and door positions and widths are scaled off the drawing, not dimensioned on it."
+  },
+  {
+   "id": "stairs",
+   "severity": "medium",
+   "note": "A straight flight up the west side of the hall rising south, 0.78 wide, 14 risers at 0.207 (2.90m) and 13 goings at 0.20. The plan shows the flight; nothing dimensions it."
+  },
+  {
+   "id": "chimneys",
+   "severity": "medium",
+   "note": "One stack is visible, on the west gable. Both front rooms upstairs and down have chimney breasts; the east breasts' flue route through the hip is unknown - check in the loft."
+  },
+  {
+   "id": "orientation",
+   "severity": "high",
+   "note": "Front assumed to face north (particulars: south-facing rear garden). Check with a compass; if wrong, the sun study and every elevation label are wrong too."
+  },
+  {
+   "id": "s1-beam",
+   "severity": "high",
+   "note": "The kitchen | dining partition (kit-e) is assumed load-bearing (bedroom 4 and the bathroom sit over it), so removing it needs a steel beam on padstones, a structural engineer and building control. Assumed, not designed."
+  },
+  {
+   "id": "s1-no-island",
+   "severity": "medium",
+   "note": "The kitchen-diner is 2.74m deep. An island with 0.9m clear round it needs about 3.3m (0.6 run + 0.9 + 0.9 island + 0.9), so an island does NOT fit; the lived-in arrangement uses a run and a table. A peninsula or a deeper room (S2b does not deepen it) are the alternatives."
+  },
+  {
+   "id": "s1-range",
+   "severity": "medium",
+   "note": "The owner wants a range \"in the heart of the home\". The particulars give the dining room a feature fireplace, but its position is not on the plan; the range is placed on the kitchen end until the viewing finds the flue."
+  },
+  {
+   "id": "s1-rear-range",
+   "severity": "high",
+   "note": "The rear range is rebuilt on the existing footprint and lines (walls still modelled at 0.15m, so the rooms keep their drawn size; a real insulated wall is thicker and takes from them). Rebuilding on the same footprint MAY be permitted development in the National Park: check with the NFNPA before relying on it. Asbestos survey before the old roof sheeting is touched."
+  },
+  {
+   "id": "s1-wc-drain",
+   "severity": "medium",
+   "note": "The WC drains to the rear; where the existing drain runs is unknown until the viewing (soil-stack position)."
+  },
+  {
+   "id": "s1-front-boot-room",
+   "severity": "low",
+   "note": "Alternative noted for the sit-down (owner, 1 Nov 2026): a boot room at the FRONT by the porch with the WC off the hall, as in the owner's earlier layouts. Not drawn here, because nothing on the plan supports it yet."
+  },
+  {
+   "id": "s2a-size",
+   "severity": "medium",
+   "note": "The en-suite is about 2.0 x 1.2m clear: shower, WC and basin, no bath. Bedroom 4 is left at about 6.1 m2 - below the 6.5 m2 asked for and below the national space standard's 7.5 m2 single bedroom, so it is a study or nursery, not a bedroom, in this stage. Reported, not enlarged."
+  },
+  {
+   "id": "s2a-drain",
+   "severity": "high",
+   "note": "The en-suite sits on the west gable, away from the bathroom; its waste is assumed to drop down the gable to the kitchen's drain. If the soil stack is at the bathroom (east of bedroom 4), a macerator or a longer run is needed. The soil-stack position is a viewing question."
+  },
+  {
+   "id": "s2a-why-west",
+   "severity": "low",
+   "note": "Taking the en-suite from bedroom 4's EAST end (next to the bathroom) would cut bedroom 4 off from the landing: its only door is in that end. The west end keeps bedroom 4's door and still touches bedroom 1."
+  }
+ ]
+}

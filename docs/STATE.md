@@ -11,14 +11,13 @@ Active since 31 Oct 2026 (RA-05). The plan of record is
 The purchase comes first (R-10): nothing here touches the tender. Money
 figures are private: Supabase only.
 
-**Done (1 Nov):** A model and tools; B viewpoints, plot, map,
-`plan_building_key`; C stages S1, S2a, S2b with measured changes and
-quantities. D (data) - 14 dated, sourced rates (two drafted: thin
-sources); 17 new work items and 8 enriched, 25 costed from `priced_lines`
-(rate x quantity, nothing typed); day-one cases tagged `case:low/mid/
-high` (Low reproduces the chat's figure; Mid and High come out lower -
-figures in Supabase only); 11 `realises`, 5 `must_precede`; 3 conflicts
-flagged `review:scope-conflict` for the owner; priorities recomputed.
+**Done (1 Nov):** A model and tools; B viewpoints, plot, map; C stages
+S1, S2a, S2b, measured. D (data) - 14 sourced rates, 25 items costed from
+`priced_lines`, day-one cases as tags, `realises` links, 3 scope
+conflicts for the owner (figures in Supabase only).
+Photo review (1 Nov): E71-E76, 7 room conditions, 8 house facts, three
+new contradictions (walls look cavity, heating exists, east stack gone),
+dining and bedroom 3 breasts added; see `docs/properties/P-003/`.
 
 ## Next steps
 
@@ -29,8 +28,8 @@ flagged `review:scope-conflict` for the owner; priorities recomputed.
 
 ## Waiting on the owner
 
-- The five open `fv-` contradictions (tender event vs R-10, the live DIP,
-  cash now, mortgage term, garden quantities).
+- Eight open `fv-` contradictions (five money and diary, three from the
+  photo review).
 - Four 31 Oct `scheduled_events` still `planned`; close or move them.
 - The viewing: compass, a window reveal, ceiling heights, soil stack.
 

@@ -790,9 +790,9 @@
    "id": "g-win-dining-e",
    "wall": "ground-x-e-main",
    "type": "window",
-   "at": 5.25,
-   "width": 1,
-   "note": "Dining room is double aspect (particulars)."
+   "at": 6.27,
+   "width": 0.6,
+   "note": "Dining room is double aspect (particulars). Small, beside the chimney breast near the south corner (photo 3), so not centred."
   },
   {
    "id": "g-door-sitting",
@@ -1140,6 +1140,34 @@
    "height": 2.4
   },
   {
+   "id": "breast-dining",
+   "level": "ground",
+   "room": "dining",
+   "kind": "chimney_breast",
+   "rect": [
+    9.19,
+    4.86,
+    9.61,
+    6.06
+   ],
+   "height": 2.6,
+   "note": "Cabinet gas fire of the back-boiler type; a cast-iron copper or range in the north alcove (photo 3). Flue route unknown: no east stack."
+  },
+  {
+   "id": "breast-bed3",
+   "level": "first",
+   "room": "bed3",
+   "kind": "chimney_breast",
+   "rect": [
+    9.19,
+    4.86,
+    9.61,
+    6.06
+   ],
+   "height": 2.4,
+   "note": "Drawn on the agent's plan; stacked over the dining room's breast."
+  },
+  {
    "id": "porch",
    "level": "ground",
    "room": "hall",
@@ -1160,8 +1188,8 @@
  "assumptions": [
   {
    "id": "wall-external",
-   "severity": "medium",
-   "note": "External walls modelled at 0.3m solid brick with plaster. Not measured: measure a window reveal at the viewing."
+   "severity": "high",
+   "note": "External walls modelled at 0.3m solid brick with plaster. Not measured. The front brickwork in the listing photo reads as stretcher bond (no headers), which usually means a CAVITY wall (ra_evidence E72, contradiction fv-wall-construction): measure a window reveal at the viewing before the plaster spec (lime or gypsum) is decided."
   },
   {
    "id": "wall-internal",
@@ -1190,8 +1218,8 @@
   },
   {
    "id": "chimneys",
-   "severity": "medium",
-   "note": "One stack is visible, on the west gable. Both front rooms upstairs and down have chimney breasts; the east breasts' flue route through the hip is unknown - check in the loft."
+   "severity": "high",
+   "note": "One stack only, on the west gable (every external and aerial photo). The plan and photos put fireplaces on the EAST wall in the family room, dining room, bedroom 2 and bedroom 3, so the east stack has been taken down (E74). Check in the loft that what remains is supported and the flues are capped and vented; the west gable shows salt bloom along its flue line (E75)."
   },
   {
    "id": "orientation",
@@ -1211,7 +1239,7 @@
   {
    "id": "s1-range",
    "severity": "medium",
-   "note": "The owner wants a range \"in the heart of the home\". The particulars give the dining room a feature fireplace, but its position is not on the plan; the range is placed on the kitchen end until the viewing finds the flue."
+   "note": "The owner wants a range \"in the heart of the home\". The dining room's east breast has an old cast-iron copper or range in its north alcove (photo 3): the natural place for one. But that breast's stack is gone (E74), so a range there needs a new flue (twin-wall, or a reinstated stack: NFNPA). Until that is settled the range is drawn on the kitchen end."
   },
   {
    "id": "s1-rear-range",

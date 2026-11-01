@@ -21,13 +21,16 @@ Supabase behind row-level security.
 
 ## The active property
 
-**None.** P-001 (48 Ameysford Road) and P-002 (1 Walnut Tree Cottages)
-were archived on 30 Sep 2026 on the owner's instruction; the owner had
-closed both on 27 Sep (Road to the Rectory decisions G-K09 and G-K11).
-The next house comes through Road Ahead (below): a listing is assessed
-there, promoted to a property with `ra_promote_listing`, and becomes
-"the house" only through `make_active()`. Until then every
-default view shows only the household's own rows.
+**P-003 Forest View, Tiptoe Road, Wootton** (`building_key`
+`forest-view`), promoted from Road Ahead listing L45 and made active on
+31 Oct 2026 BEFORE purchase (decision RA-05), so it can be modelled and
+costed while the tender runs. **The purchase comes first** (R-10):
+nothing here may delay the broker, the viewing or the tender, and if the
+purchase fails it is archived like P-001 and P-002 (archived 30 Sep
+2026, G-K09 and G-K11). Its plan of record is `docs/FOREST-VIEW-PLAN.md`;
+its specifics are `docs/properties/P-003/`. Photographs, particulars and
+every money figure are private (RA-06): Supabase only, never this
+repository. The Handbook PDF is printed from the Handbook page (RA-07).
 
 The system is property-agnostic. Five scopes: **USER** (the household,
 `property_id` null), **BRIEF** (what a house is looked for against),
@@ -75,7 +78,8 @@ when the work touches it:
 | `docs/STATE.md` | Always, straight after this. What is in flight. |
 | `docs/RENOVATION-SYSTEM.md` | Anything touching properties, the lifecycle, scopes, the template or the library. |
 | `docs/road-ahead/README.md` | Road Ahead: listings, roads, scenarios, variables, auctions, a sit-down or a re-base. |
-| `docs/properties/<ref>/` | One property's specifics. Archived ones move to `docs/properties-archive/`. |
+| `docs/properties/<ref>/` | One property's specifics (P-003 now). Archived ones move to `docs/properties-archive/`. |
+| `docs/FOREST-VIEW-PLAN.md` | Anything about Forest View: stages, ideas, costs, the Handbook. |
 | `docs/DECISIONS.md` | Priority, money, the roadmap, the shopping list, quantities, stockpiles, links. |
 | `docs/REVIEW.md` | A review session. |
 | `docs/BUILDING-MODEL.md` | Anything under `model3d/`, `planner/` or `data/buildings/`. |

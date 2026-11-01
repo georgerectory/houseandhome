@@ -4,37 +4,37 @@ What is in flight. Overwritten in place, never appended to - git history
 is the record of what changed, `docs/PLAN.md` is the design record, and
 this file is only what is not yet finished. Keep it under 40 lines.
 
-## Road Ahead: live, waiting on the owner
+## Forest View (P-003): active, not bought
 
-Built, proved against every figure the Rectory kit published, and on
-the published site from `main` (1 Oct 2026). Start from CLAUDE.md's
-Road Ahead section and `docs/road-ahead/README.md`. **The plan is
-private**: `source_documents` 'Road Ahead build plan'. Active: P-003
-Forest View (RA-05); see `docs/FOREST-VIEW-PLAN.md`.
+Active since 31 Oct 2026 (RA-05). The plan of record is
+`docs/FOREST-VIEW-PLAN.md`; the property is `docs/properties/P-003/`.
+The purchase comes first (R-10): nothing here touches the tender. Money
+figures are private: Supabase only.
+
+**Done (phase A, 1 Nov):** as-bought model landed (patch f0ac4b6, with
+its private figures stripped before it reached git); the browser gate
+made building-aware; `takeoff.mjs` measures any building and stage
+(`--stage`), garden opt-in; 13 rooms and 2 levels synced from the
+geometry (`tools/rooms-sql.mjs`); five `fv-` contradictions raised.
 
 ## Next steps
 
-1. **The owner's 1 Oct figures are in** (start cash, saving, cash at
-   purchase, `ra-takehome-156` resolved) with the chased listings' prices
-   and a fresh sensitivity snapshot. The roads have moved since the last
-   accepted run; accept new runs only on the owner's word.
-2. **Supabase's connector now holds `update` statements** for a
-   confirmation a cloud session cannot show, so they time out. How to
-   change rows through it is the owner's decision, not yet recorded.
-3. **Deferred review** (the owner, 1 Oct): Road Ahead as a dashboard,
-   not a read - a route tree (now, the options, their sub-options, where
-   each leads) with its breakdowns, and less text; then a sit-down on
-   every walk-away, so none rests on an assertion no longer true.
-4. **L29** (Rightmove 93774177) is the assessment protocol's first live
-   run, once the owner pastes its text and floor plan.
-5. **Open with the owner**, largest first, in a sit-down's order (the
-   page's Calibration section lists them): the nine `ra-` kit
-   contradictions, then the household four.
+1. **B** plot, overhead line, parking, bird's-eye viewpoints, OSM map.
+2. **C** stages S1, S2a, S2b; `building_stages`, `building_changes`.
+3. **D** six price references, per-room templates (PLAN D5), day one,
+   cost roll-ups, cash over time.
+4. **E** House, Plan, Money, the Handbook, print CSS and a PDF gate.
+5. **F** the owner's sit-down agenda.
+
+## Waiting on the owner
+
+- The five open `fv-` contradictions (tender event vs R-10, the live DIP,
+  cash now, mortgage term, garden quantities).
+- Four 31 Oct `scheduled_events` still `planned`; close or move them.
+- The viewing: compass, a window reveal, ceiling heights, soil stack.
 
 ## Known and deliberately left
 
-- No rent-and-invest line in Compare: the route model (`ladder.js`) and
-  the roads disagree on one and the same plan, so it waits for an invest
-  step in the roads (a Model decision). No live road states fit criteria.
-- Over 400 lines: `check-frontend.mjs`, `pages/house.js`. Twelve live
-  tables order columns unlike a fresh install (no view sees it).
+- The connector holds bare `update`s: use `insert ... on conflict`.
+- Over 400 lines: `check-frontend.mjs`, `pages/house.js`. Road Ahead's
+  deferred dashboard review and kit contradictions stand.

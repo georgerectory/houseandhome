@@ -22,6 +22,13 @@ import { mkdirSync, existsSync } from 'node:fs';
 import { PAGES as PAGE_LIST, PUBLIC_PAGES } from '../assets/js/core/pages.js';
 import { driveRoad } from './check-frontend-road.mjs';
 
+// The building the site shows, read the way the site reads it, so the
+// sweep checks THIS building's stages rather than a remembered count.
+const ACTIVE_BUILDING = (await readFile(new URL('../assets/js/core/building-data.js', import.meta.url), 'utf8'))
+  .match(/const BUILDING = '([^']+)'/)[1];
+const ACTIVE_STAGES = JSON.parse(await readFile(
+  new URL(`../data/buildings/${ACTIVE_BUILDING}/index.json`, import.meta.url), 'utf8')).stages;
+
 const ROOT = new URL('..', import.meta.url).pathname;
 // Port 0 asks the OS for a free one. A fixed port made this gate fail
 // intermittently when a previous run's server was still holding it -
@@ -316,7 +323,12 @@ for (const theme of THEMES) {
           scrollW: document.documentElement.scrollWidth,
           clientW: document.documentElement.clientWidth,
         }));
-        if (stageIds.length < 2) failures.push(`${label}: only ${stageIds.length} version offered`);
+        // Every stage the building declares must be offered - no more, no
+        // fewer. A one-stage building offers one; switching is then
+        // proved the moment a second stage exists.
+        if (stageIds.length !== ACTIVE_STAGES.length) {
+          failures.push(`${label}: ${stageIds.length} version(s) offered, the building has ${ACTIVE_STAGES.length}`);
+        }
         const before = await shape();
         if (!before.swings) failures.push(`${label}: no door swings drawn`);
         if (!before.walls) failures.push(`${label}: no walls drawn`);
@@ -512,8 +524,9 @@ for (const theme of THEMES) {
             p.showPlot(false);
             return { spec: true, want: spec.heightM, tallest };
           });
-          if (!hedge.spec) failures.push(`${label}: the plot carries no hedge`);
-          else if (Math.abs(hedge.tallest - hedge.want) > 0.01) {
+          // A hedge is drawn only where the plot declares one: the
+          // drawings decide, and an unsurveyed hedge is not drawn.
+          if (hedge.spec && Math.abs(hedge.tallest - hedge.want) > 0.01) {
             failures.push(`${label}: the hedge builds ${hedge.tallest.toFixed(2)}m tall, not ${hedge.want}`);
           }
         }

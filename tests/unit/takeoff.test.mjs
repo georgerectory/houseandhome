@@ -332,3 +332,32 @@ test('an empty stage orders nothing at all', () => {
   assert.equal(internalFaceM2(empty), 0);
   assert.equal(ceilingAreaM2(empty), 0);
 });
+
+// THE TOOL, not just the engine. The CLI once hard-coded one house's two
+// stage files and its garden; these pin that it now measures whichever
+// building it is pointed at, keys every design option by its stage, and
+// carries no garden figure nobody asked for.
+import { execFileSync } from 'node:child_process';
+const takeoff = (...a) => JSON.parse(execFileSync('node', ['tools/takeoff.mjs', '--json', ...a], { encoding: 'utf8' }));
+
+test('the tool defaults to the building the site shows', () => {
+  const site = readFileSync('assets/js/core/building-data.js', 'utf8').match(/const BUILDING = '([^']+)'/)[1];
+  assert.equal(takeoff().building, site);
+});
+
+test('every non-base stage is keyed by its own stage id', () => {
+  const out = takeoff('--building', '48-ameysford-road');
+  const options = out.sections.filter((s) => s.prefix);
+  assert.ok(options.length > 0);
+  for (const s of options) assert.match(s.prefix, /^post-extension:/);
+});
+
+test('garden lines are opt-in, not carried from another house', () => {
+  assert.ok(!takeoff().sections.some((s) => s.prefix === 'garden:'));
+  const withPatio = takeoff('--patio', '24');
+  assert.ok(withPatio.sections.some((s) => s.title === 'Garden: patio'));
+});
+
+test('an unknown stage is refused, not silently measured', () => {
+  assert.throws(() => execFileSync('node', ['tools/takeoff.mjs', '--stage', 'nope'], { stdio: 'pipe' }));
+});

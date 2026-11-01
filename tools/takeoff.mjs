@@ -15,10 +15,18 @@
 // only form that actually works: the derived figure is recomputed and
 // the stored one is challenged by it.
 //
-//   node tools/takeoff.mjs                 the default building
+//   node tools/takeoff.mjs                 the building the site shows
 //   node tools/takeoff.mjs --json          machine-readable
 //   node tools/takeoff.mjs --building <id>
+//   node tools/takeoff.mjs --stage <id>    one design stage only
 //   node tools/takeoff.mjs --sql           upsert into property_quantities
+//   node tools/takeoff.mjs --patio 24 --gravel 18   garden intent, opt-in
+//
+// The restoration section is measured off the building's base stage
+// (the one derived from nothing). Every other stage in index.json is
+// diffed against the stage it was forked from, and its lines are keyed
+// `<stage>:` so each design option prices separately and the base set
+// is never overwritten by an option nobody has chosen.
 //
 // --sql prints the statements that write this takeoff into
 // property_quantities for the property whose building_key is this
@@ -41,7 +49,12 @@ const flag = (name, fallback) => {
 const asJson = args.includes('--json');
 const asSql = args.includes('--sql');
 
-const id = flag('building', '48-ameysford-road');
+// The default is the building the site shows, read from the one place
+// that says so, so this tool never silently measures a house that has
+// been archived.
+const ACTIVE = readFileSync(new URL('../assets/js/core/building-data.js', import.meta.url), 'utf8')
+  .match(/const BUILDING = '([^']+)'/)[1];
+const id = flag('building', ACTIVE);
 const dir = join('data', 'buildings', id);
 if (!existsSync(dir)) {
   console.error(`No such building: ${dir}`);
@@ -49,9 +62,15 @@ if (!existsSync(dir)) {
 }
 const read = (f) => JSON.parse(readFileSync(join(dir, f), 'utf8'));
 const property = read('building.json');
-const asBought = read('stages/as-bought.json');
-const post = existsSync(join(dir, 'stages/post-extension.json'))
-  ? read('stages/post-extension.json') : null;
+const index = read('index.json');
+const stageOf = (sid) => read(`stages/${sid}.json`);
+const baseId = (index.stages.find((s) => !s.derivedFrom) ?? index.stages[0]).id;
+const only = flag('stage', null);
+if (only && !index.stages.some((s) => s.id === only)) {
+  console.error(`No stage ${only} in ${id}: ${index.stages.map((s) => s.id).join(', ')}`);
+  process.exit(1);
+}
+const asBought = stageOf(baseId);
 
 // The rooms the owner has asked for underfloor heating in. Named here
 // rather than guessed, because heating a room nobody stands in is how
@@ -63,46 +82,63 @@ const add = (title, note, lines, prefix = '') => {
   if (lines.length) sections.push({ title, note, lines, prefix });
 };
 
-// The wall build-up the building states. The extension's primary
-// brickwork section follows it, and the other construction is shown as
-// the alternative - an open decision until the brick bond is seen.
+// The wall build-up the building states. New brickwork follows it, and
+// the other construction is shown as the alternative - an open decision
+// until the brick bond is seen.
 const walls = property.walls?.construction ?? 'solid';
 
-add('Restoration: strip back to brick', 
-  `${floorAreaM2(asBought).toFixed(1)} m2 of floor, `
-  + `${internalFaceM2(asBought).toFixed(1)} m2 of internal wall face, `
-  + `${ceilingAreaM2(asBought).toFixed(1)} m2 of ceiling.`,
-  restorationTakeoff(asBought, property, { skipRoomIds: UFH_ROOMS }));
+if (!only || only === baseId) {
+  add('Restoration: strip back to brick',
+    `${floorAreaM2(asBought).toFixed(1)} m2 of floor, `
+    + `${internalFaceM2(asBought).toFixed(1)} m2 of internal wall face, `
+    + `${ceilingAreaM2(asBought).toFixed(1)} m2 of ceiling.`,
+    restorationTakeoff(asBought, property, { skipRoomIds: UFH_ROOMS }));
+}
 
-if (post) {
-  const diff = stageDiff(asBought, post);
-  const face = `${diff.newExternalWallPlanM.toFixed(2)}m of new outer wall on plan, `
-    + `${newWallFaceM2(diff, property).toFixed(1)} m2 of face.`;
-  const solid = ['Extension: brickwork, solid 9in', brickTakeoff(diff, property, { construction: 'solid9' }), 'ext-solid:'];
-  const cavity = ['Extension: brickwork, cavity (brick outer, block inner)', brickTakeoff(diff, property, { construction: 'cavity' }), 'ext-cavity:'];
-  const [first, second] = walls === 'cavity' ? [cavity, solid] : [solid, cavity];
-  add(`${first[0]} - matching the ${walls} original`, face, first[1], first[2]);
-  add(`${second[0]} - the alternative`, 'An open decision until the original walls are seen.', second[1], second[2]);
-  add('Extension: underfloor heating',
-    `Rooms: ${UFH_ROOMS.join(', ')}.`,
-    ufhTakeoff(post, UFH_ROOMS), 'ufh:');
+for (const meta of index.stages) {
+  if (meta.id === baseId || (only && meta.id !== only)) continue;
+  const stage = stageOf(meta.id);
+  const from = stageOf(meta.derivedFrom ?? baseId);
+  const diff = stageDiff(from, stage);
+  const tag = `${meta.id}:`;
+  const label = `${meta.name ?? meta.id} (from ${meta.derivedFrom ?? baseId})`;
+  if (diff.newExternalWallPlanM > 0) {
+    const face = `${diff.newExternalWallPlanM.toFixed(2)}m of new outer wall on plan, `
+      + `${newWallFaceM2(diff, property).toFixed(1)} m2 of face.`;
+    const solid = ['brickwork, solid 9in', brickTakeoff(diff, property, { construction: 'solid9' }), `${tag}ext-solid:`];
+    const cavity = ['brickwork, cavity (brick outer, block inner)', brickTakeoff(diff, property, { construction: 'cavity' }), `${tag}ext-cavity:`];
+    const [first, second] = walls === 'cavity' ? [cavity, solid] : [solid, cavity];
+    add(`${label}: ${first[0]} - matching the ${walls} original`, face, first[1], first[2]);
+    add(`${label}: ${second[0]} - the alternative`, 'An open decision until the original walls are seen.', second[1], second[2]);
+  }
+  add(`${label}: underfloor heating`,
+    `Rooms: ${UFH_ROOMS.join(', ')}, where the stage has them.`,
+    ufhTakeoff(stage, UFH_ROOMS), `${tag}ufh:`);
 }
 
 // Garden quantities are sized off the owner's intent, not off the
-// model - there is no paved area in the geometry to measure. They are
-// here so the figure and its assumption travel together.
-const PATIO_M2 = Number(flag('patio', 24));
-const GRAVEL_M2 = Number(flag('gravel', 18));
-add('Garden: patio',
-  `Assumes ${PATIO_M2} m2 of 600x600 slabs. NOT measured off the model - `
-  + 'there is no paved area in the geometry. Change it with --patio.',
-  pavingTakeoff({ areaM2: PATIO_M2, slabW: 0.6, slabH: 0.6 }), 'garden:');
-add('Garden: gravel path',
-  `Assumes ${GRAVEL_M2} m2 at 50mm. Change it with --gravel.`,
-  gravelTakeoff({ areaM2: GRAVEL_M2 }), 'garden:');
+// model - there is no paved area in the geometry to measure. So they
+// are opt-in: a figure carried from one house's garden is not another
+// house's intent. Pass --patio and --gravel to include them.
+if (args.includes('--patio')) {
+  const PATIO_M2 = Number(flag('patio', 0));
+  add('Garden: patio',
+    `Assumes ${PATIO_M2} m2 of 600x600 slabs. NOT measured off the model - `
+    + 'there is no paved area in the geometry.',
+    pavingTakeoff({ areaM2: PATIO_M2, slabW: 0.6, slabH: 0.6 }), 'garden:');
+}
+if (args.includes('--gravel')) {
+  const GRAVEL_M2 = Number(flag('gravel', 0));
+  add('Garden: gravel path', `Assumes ${GRAVEL_M2} m2 at 50mm.`,
+    gravelTakeoff({ areaM2: GRAVEL_M2 }), 'garden:');
+}
 
 if (asSql) {
   const q = (v) => `'${String(v).replace(/'/g, "''")}'`;
+  // A --stage run owns only that stage's keys; a full run owns them all.
+  const scopeSql = !only ? 'true'
+    : only === baseId ? "(q.package_key not like '%:%' or q.package_key like 'garden:%')"
+      : `q.package_key like ${q(`${only}:%`)}`;
   const rows = sections.flatMap((s) => s.lines.map((l) =>
     `(${q(s.prefix + l.key)}, ${q(l.label)}, ${Number(l.quantity)}, ${q(l.unit)}, ${q(l.basis)})`));
   console.log(`-- property_quantities for ${id}, from npm run takeoff. Overwrites; never edit by hand.
@@ -119,6 +155,7 @@ on conflict (property_id, package_key) do update
 -- Lines this takeoff no longer produces are stale shadows of an old geometry.
 delete from public.property_quantities q using public.properties p
  where q.property_id = p.id and p.building_key = ${q(id)} and q.source = 'takeoff'
+   and ${scopeSql}
    and q.package_key not in (${sections.flatMap((s) => s.lines.map((l) => q(s.prefix + l.key))).join(', ')});`);
   process.exit(0);
 }

@@ -22,7 +22,9 @@ kitchen and bathroom in place (stages parked); R-15 essentials first;
 R-16 offer: win it, then cover day one. Room quantities, 13 make-good
 jobs, two refits and the essentials are live; `engine/offer.js` and
 `docs/OFFER.md` give the tender and its shortcomings on Money and in the
-Handbook. Next: an offer sit-down - completion month, saving rate, quotes.
+Handbook. Offer sit-down 1 (S-95, S-96, R-17): DIP final, December
+completion, saving range, bid the guide; quote shortlist in `contractors`.
+Next: Giles (lender gate, retention), Tom (probate), the quotes.
 
 ## Waiting on the owner
 

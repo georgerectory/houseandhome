@@ -51,7 +51,7 @@ Plan, Roadmap, Backlog and Money pages, and the property lifecycle
 |---|---|
 | Derived set-out (walls, rooms, residuals) | `data/buildings/forest-view/spec.mjs` + `sources/README.md` |
 | Room schedule and quantities | Recomputed by `takeoff.mjs` into `property_quantities` (never typed) |
-| Cost plan, day-one enablement cases (£4,150 / £8,250 / £14,300) | `work_items` priced by `price_references` |
+| Cost plan, day-one enablement cases (Low, Mid, High; figures in Supabase) | `work_items` priced by `price_references` |
 | Purchase, DIP, offer, budget | Already in `ra_variables`; shown on Money and Road Ahead |
 | Agent intel, particulars, research | Already in `ra_evidence` and `ra_judgements` |
 | Photos, floor plan, particulars screenshots | Private storage bucket, referenced by key (never committed) |

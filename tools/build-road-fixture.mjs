@@ -62,6 +62,16 @@ const EXTRA = [
   ['rules.forever_max_minutes', 45, 'minutes', 'The forever home is within this many minutes of home.'],
   ['rules.rent_max_months', 9, 'months', 'Renting lasts no more than this many months.'],
   ['targets.endgame_today_target', 450000, '£', 'The forever-home budget aimed for, in model-start money.'],
+  // The offer section's inputs (engine/offer.js), invented like the rest.
+  ['mortgage.dip_max_expected', 300000, '£', 'Decision in principle'],
+  ['cash.isa_balance_est', 30000, '£', 'Savings now'],
+  ['cash.saving_rate_observed', 1000, '£/month', 'Saved each month'],
+  ['offer.completion_month', '2027-02', 'month', 'Completion month assumed'],
+  ['offer.guide_price', 320000, '£', 'Guide price'],
+  ['fees.conveyancing', 1500, '£', 'Conveyancing'],
+  ['fees.searches', 400, '£', 'Searches and disbursements'],
+  ['fees.land_registry', 45, '£', 'Land Registry'],
+  ['fees.removals', 500, '£', 'Removals'],
 ];
 
 const meaning = new Map(REGISTRY.map((r) => [r.key, r]));

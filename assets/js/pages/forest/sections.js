@@ -5,20 +5,23 @@
 // it can be trusted. Nothing here says "affordable": a total of drafted
 // figures is a model, and the page says so beside the number.
 import { escape, money, titleCase } from '../../core/format.js';
-import { variable } from '../../engine/cash-plan.js';
+import { variable, cashPlan } from '../../engine/cash-plan.js';
 
 const share = (s) => (s == null ? '' : `<span class="chip">${Math.round(Number(s) * 100)}% unconfirmed</span>`);
 const row = (cells) => `<tr>${cells.map((c, i) => `<td${i ? ' class="num"' : ''}>${c}</td>`).join('')}</tr>`;
 
 const ROLLUP_TITLES = {
-  stage: 'By design stage',
+  plan: 'The realistic plan, by step',
+  room: 'Room by room',
+  stage: 'Design stages (parked, R-14)',
   idea: 'By idea',
   case: 'Day one, by case',
   condition: 'Condition work',
   phase: 'By phase',
 };
 const ROLLUP_NOTES = {
-  stage: 'S2a and S2b are two routes to one en-suite: read them side by side, never add them.',
+  room: 'Each room brought up to scratch on its own: made good, stripped only where it has failed. The kitchen and bathroom carry their refits.',
+  stage: 'Parked by R-14 (no extensions, no structural work); kept for comparison. S2a and S2b are two routes to one en-suite: never add them.',
   idea: 'Ideas share items (the rear range carries the boot room, the WC and the store at once), so these do not add up to a total.',
   case: 'Each case is the whole day-one list for one condition of the services: alternatives, not addends. The services answer picks one.',
 };
@@ -54,6 +57,12 @@ const monthName = (ym) => {
   const [y, m] = ym.split('-').map(Number);
   return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString('en-GB', { month: 'short', year: 'numeric', timeZone: 'UTC' });
 };
+
+/** The realistic cash plan for the house in view, with room names. */
+export function realisticPlan(vars, rollup, rooms) {
+  const roomNames = Object.fromEntries((rooms ?? []).map((r) => [r.key, r.name]));
+  return cashPlan(vars ?? [], rollup ?? [], { roomNames });
+}
 
 /** When each group of work could be funded from the planned budget. */
 export function cashHtml(plan) {

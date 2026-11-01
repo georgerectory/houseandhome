@@ -4,7 +4,8 @@
 -- One view, several dimensions, because the owner asks the same money
 -- question from different directions: by phase (when), by trade (who),
 -- by room (where), and by the tags that carry a design idea, a design
--- stage, a day-one case or a condition (why).
+-- stage, a day-one case, a condition or a step of the realistic plan
+-- (why).
 --
 -- Every figure here is a SUM OF ROWS. Nothing is typed: each work item's
 -- cost comes from priced_lines (rate x quantity), and this view only adds
@@ -39,7 +40,7 @@ d as (
   union all
   select w.*, split_part(t, ':', 1), split_part(t, ':', 2)
     from w cross join lateral unnest(w.tags) t
-   where t ~ '^(stage|idea|case|condition):'
+   where t ~ '^(stage|idea|case|condition|plan):'
 )
 select household_id,
        property_id,
@@ -60,4 +61,4 @@ select household_id,
  group by household_id, property_id, dim, key;
 
 comment on view public.cost_rollup is
-  'Open work cost by phase, trade, room and tag (stage, idea, case, condition), with the share resting on unconfirmed figures. Sums of priced rows only; stage and case totals are alternatives, not addends.';
+  'Open work cost by phase, trade, room and tag (stage, idea, case, condition, plan), with the share resting on unconfirmed figures. Sums of priced rows only; stage and case totals are alternatives, not addends.';

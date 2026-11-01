@@ -9,8 +9,8 @@ import { placeAll, roomLabel, spreadInferred } from '../engine/floorplan.js';
 import { loadComposed } from '../core/building-data.js';
 import { loadRoadAhead } from '../core/store.js';
 import { levelSvg } from '../engine/floorplan-svg.js';
-import { cashPlan } from '../engine/cash-plan.js';
-import { costsHtml, cashHtml, purchaseHtml, conditionHtml } from './forest/sections.js';
+import { costsHtml, cashHtml, purchaseHtml, conditionHtml, realisticPlan } from './forest/sections.js';
+import { offerHtml } from './forest/offer.js';
 
 const user = await requireAuth();
 if (!user) throw new Error('redirecting to login');
@@ -67,12 +67,14 @@ const house = d.property ? `<article class="hb-doc">
   <section class="section hb-sec"><h2>2. Condition, and what is still open</h2>
     ${conditionHtml(d.rooms ?? [], d.house_facts ?? [], road?.contradictions ?? [])}</section>
   <section class="section hb-sec"><h2>3. The drawings</h2>
-    <p class="lede">As bought, and stage S1. The other stages and the 3D views are on the House page.</p>
+    <p class="lede">As bought, and the parked stage S1 for comparison. The other stages and the 3D views are on the House page.</p>
     ${plans.map((pl) => `<figure class="hb-plan"><figcaption>${escape(pl.title)}</figcaption>${pl.svg}</figure>`).join('')}</section>
-  <section class="section hb-sec"><h2>4. What the ideas cost</h2>
-    ${costsHtml(d.cost_rollup ?? [], ['stage', 'idea', 'case', 'condition', 'phase'])}</section>
+  <section class="section hb-sec"><h2>4. What the plan costs</h2>
+    ${costsHtml(d.cost_rollup ?? [], ['plan', 'room', 'case', 'condition', 'stage'])}</section>
   <section class="section hb-sec"><h2>5. When the money exists</h2>
-    ${cashHtml(cashPlan(road?.variables ?? [], d.cost_rollup ?? []))}</section>
+    ${cashHtml(realisticPlan(road?.variables, d.cost_rollup, d.rooms))}</section>
+  <section class="section hb-sec"><h2>6. The offer</h2>
+    ${offerHtml(road?.variables ?? [], d.cost_rollup ?? [])}</section>
 </article>` : '';
 
 render('[data-page-root]', `

@@ -25,7 +25,7 @@ const vars = [
 ];
 
 test('groups partition the work: one case, no ideas, services summed', () => {
-  const g = planGroups(rollup);
+  const g = planGroups(rollup, { plan: 'design' });
   assert.deepEqual(g.map((x) => x.id), ['day-one', 'condition', 'services', 's1']);
   assert.equal(g[0].cost, 4000);
   assert.equal(g[2].cost, 19000);
@@ -51,4 +51,20 @@ test('missing inputs are named, not guessed', () => {
   const p = cashPlan([], rollup);
   assert.equal(p.ready, false);
   assert.ok(p.missing.some((m) => m.includes('cash.works_buffer')));
+});
+
+test('the realistic plan: day one, essentials, then rooms in the owner\'s order, stages left out', () => {
+  const rows = [
+    ...rollup,
+    { dim: 'plan', key: 'essentials', cost_base: 6000, cost_base_unconfirmed: 6000 },
+    { dim: 'room', key: 'whole-house', cost_base: 99999, cost_base_unconfirmed: 0 },
+    { dim: 'room', key: 'sitting', cost_base: 900, cost_base_unconfirmed: 900 },
+    { dim: 'room', key: 'kitchen', cost_base: 5000, cost_base_unconfirmed: 5000 },
+    { dim: 'room', key: 'bathroom', cost_base: 4000, cost_base_unconfirmed: 4000 },
+    { dim: 'room', key: 'store', cost_base: 300, cost_base_unconfirmed: 300 },
+  ];
+  const g = planGroups(rows, { roomOrder: ['bathroom', 'kitchen', 'sitting'], roomNames: { sitting: 'Sitting Room' } });
+  assert.deepEqual(g.map((x) => x.id), ['day-one', 'essentials', 'room:bathroom', 'room:kitchen', 'room:sitting', 'room:store']);
+  assert.equal(g[4].label, 'Sitting Room');
+  assert.ok(!g.some((x) => x.id === 's1' || x.id === 'room:whole-house'));
 });

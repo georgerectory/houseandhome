@@ -11,26 +11,23 @@ Active since 31 Oct 2026 (RA-05). The plan of record is
 The purchase comes first (R-10): nothing here touches the tender. Money
 figures are private: Supabase only.
 
-**Done (1 Nov):** A model, tools; B viewpoints, plot, map; C stages;
-D 14 sourced rates, 25 items costed; photo review E71-E76 (P-003 README).
-Chat extraction ingested (E77-E81, S-87-S-92, budget lines, act-by
-diary). D2: `cost_rollup` view (live, fingerprint matched) and the
-`cash-over-time` engine. No template names a room type, so per-room
-instantiation is a library gap, not built. E: Plan and Money show
-costs and cash over time; the Handbook is the house document (purchase,
-condition, drawings, costs, cash) and prints to A4 via `print.css`;
-the browser gate prints it (PDF, <10 MB, >2 pages).
+**Done (1 Nov):** A-F merged (#2-#8): model, plot, map, stages, rates,
+`cost_rollup`, cash over time, Plan/Money/Handbook as the printable house
+document, chat ingested, the sit-down (R-11 to R-13).
 
 ## Next steps
 
-Sit-down done (1 Nov): R-11 fund by going slower, DIY (`diy:candidate`)
-and borrowing on added value; R-12 day one only what a lender needs;
-R-13 both en-suite routes open; cash now confirmed. Next: the viewing,
-Tom Miller's and Giles's answers - each updates the spec and the data.
+Phase G (1 Nov): the realistic plan. R-14 no extensions, room by room,
+kitchen and bathroom in place (stages parked); R-15 essentials first;
+R-16 offer: win it, then cover day one. Room quantities, 13 make-good
+jobs, two refits and the essentials are live; `engine/offer.js` and
+`docs/OFFER.md` give the tender and its shortcomings on Money and in the
+Handbook. Next: an offer sit-down - completion month, saving rate, quotes.
 
 ## Waiting on the owner
 
 - Ten open `fv-` contradictions; five act-by diary items from the chat.
+- `plan.room_order`, `offer.completion_month` and most `fees.*` are drafted.
 - Four 31 Oct `scheduled_events` still `planned`; close or move them.
 - The viewing: compass, a window reveal, ceiling heights, soil stack.
 

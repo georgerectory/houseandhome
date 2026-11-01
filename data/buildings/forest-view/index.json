@@ -31,6 +31,87 @@
      "file": "variants/as-bought--as-drawn.json"
     }
    ]
+  },
+  {
+   "id": "ground-floor-open",
+   "name": "S1 - Kitchen-diner, boot room, WC and utility",
+   "sequence": 20,
+   "status": "planned",
+   "derivedFrom": "as-bought",
+   "summary": "The kitchen and dining room opened into one kitchen-diner across the garden side (about 25.5 m2), and the store and lean-to rebuilt on their own footprint as a boot room by the back door, a downstairs WC and a utility. First floor unchanged.",
+   "file": "stages/ground-floor-open.json",
+   "variants": [
+    {
+     "id": "ground-floor-open--empty",
+     "name": "Empty shell",
+     "derivedFrom": null,
+     "summary": "S1, with nothing in it.",
+     "furnitureCount": 0,
+     "file": "variants/ground-floor-open--empty.json"
+    },
+    {
+     "id": "ground-floor-open--lived-in",
+     "name": "Lived in",
+     "derivedFrom": "ground-floor-open--empty",
+     "summary": "S1 furnished: a kitchen run under the rear window, a range on the kitchen end, a table at the dining end, a bench by the back door, and the WC and utility fitted.",
+     "furnitureCount": 12,
+     "file": "variants/ground-floor-open--lived-in.json"
+    }
+   ]
+  },
+  {
+   "id": "ensuite-within",
+   "name": "S2a - En-suite to bedroom 1, from bedroom 4",
+   "sequence": 30,
+   "status": "planned",
+   "derivedFrom": "ground-floor-open",
+   "summary": "S1, plus an en-suite to bedroom 1 taken from the west end of bedroom 4 and entered through a new door in bedroom 1's south wall. Bedroom 4 stays, smaller, as a study or nursery. Inside the existing footprint: building control only.",
+   "file": "stages/ensuite-within.json",
+   "variants": [
+    {
+     "id": "ensuite-within--lived-in",
+     "name": "Lived in",
+     "derivedFrom": "ensuite-within--empty",
+     "summary": "S2a furnished: S1, plus the en-suite fitted and bedroom 4 as a study.",
+     "furnitureCount": 16,
+     "file": "variants/ensuite-within--lived-in.json"
+    },
+    {
+     "id": "ensuite-within--empty",
+     "name": "Empty shell",
+     "derivedFrom": null,
+     "summary": "S2a, with nothing in it.",
+     "furnitureCount": 0,
+     "file": "variants/ensuite-within--empty.json"
+    }
+   ]
+  },
+  {
+   "id": "rear-two-storey",
+   "name": "S2b - Two-storey addition with an en-suite to bedroom 3",
+   "sequence": 31,
+   "status": "planned",
+   "derivedFrom": "ground-floor-open",
+   "summary": "S1, plus a first floor built over the old store (about 2.7 x 2.4m outside) holding an en-suite to bedroom 3, under its own gabled slate roof tied into the main roof. Needs planning permission and counts towards the National Park's 30% limit.",
+   "file": "stages/rear-two-storey.json",
+   "variants": [
+    {
+     "id": "rear-two-storey--lived-in",
+     "name": "Lived in",
+     "derivedFrom": "rear-two-storey--empty",
+     "summary": "S2b furnished: S1, plus the en-suite over the store fitted.",
+     "furnitureCount": 15,
+     "file": "variants/rear-two-storey--lived-in.json"
+    },
+    {
+     "id": "rear-two-storey--empty",
+     "name": "Empty shell",
+     "derivedFrom": null,
+     "summary": "S2b, with nothing in it.",
+     "furnitureCount": 0,
+     "file": "variants/rear-two-storey--empty.json"
+    }
+   ]
   }
  ]
 }

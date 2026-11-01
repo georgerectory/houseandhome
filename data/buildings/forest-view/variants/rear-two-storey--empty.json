@@ -1,0 +1,10 @@
+{
+ "id": "rear-two-storey--empty",
+ "schemaVersion": 2,
+ "building": "forest-view",
+ "stage": "rear-two-storey",
+ "name": "Empty shell",
+ "summary": "S2b, with nothing in it.",
+ "changes": [],
+ "furniture": []
+}

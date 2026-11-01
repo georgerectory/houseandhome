@@ -11,21 +11,21 @@ Active since 31 Oct 2026 (RA-05). The plan of record is
 The purchase comes first (R-10): nothing here touches the tender. Money
 figures are private: Supabase only.
 
-**Done (1 Nov):** A - model landed (private figures stripped before git),
-tools building-aware, 13 rooms synced, five `fv-` contradictions raised.
-B - viewpoints follow `orientation.frontFaces` (Front was showing the
-garden) plus four bird's-eye corners and top-down; drafted plot zones,
-parking and the overhead line (3D on poles); an on-demand OSM map
-(Leaflet vendored); `plan_building_key` so pins measured at Ameysford
-are never drawn as positions here (live, 14 backfilled, fingerprint ok).
+**Done (1 Nov):** A - model landed, tools building-aware, rooms synced,
+five `fv-` contradictions. B - true-front viewpoints, bird's-eye, plot
+features, OSM map, `plan_building_key`. C - design stages S1
+`ground-floor-open` (kitchen-diner 25.5 m2, boot room, WC, utility;
+no island fits a 2.74m room), S2a `ensuite-within` (en-suite from bedroom
+4's west end; bedroom 4 left about 6.1 m2, a study), S2b
+`rear-two-storey` (+5.45 m2, DP36); stages, 14 measured changes and 20
+stage quantities live (`tools/stages-sql.mjs`, `takeoff --stage`).
 
 ## Next steps
 
-1. **C** stages S1, S2a, S2b; `building_stages`, `building_changes`.
-2. **D** six price references, per-room templates (PLAN D5), day one,
+1. **D** six price references, per-room templates (PLAN D5), day one,
    cost roll-ups, cash over time.
-3. **E** House, Plan, Money, the Handbook, print CSS and a PDF gate.
-4. **F** the owner's sit-down agenda.
+2. **E** House, Plan, Money, the Handbook, print CSS and a PDF gate.
+3. **F** the owner's sit-down agenda.
 
 ## Waiting on the owner
 

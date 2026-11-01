@@ -360,13 +360,242 @@ const asBought = {
   ],
 };
 
-export const stages = [asBought];
+// ---------------------------------------------------------------------
+// THE DESIGN STAGES. The owner's five ideas (31 Oct 2026): kitchen and
+// dining opened into one room, a downstairs WC, a boot room, the best use
+// of the store and lean-to, and an en-suite upstairs. Each stage is a
+// FORK - a full copy of the stage it derives from, with its own geometry -
+// so stageDiff() measures what changed and a narrative that disagrees
+// with the geometry is caught. Nothing here is designed by an engineer or
+// agreed with the National Park; every structural move is an assumption,
+// and the checkers report what does not fit rather than moving it.
+// ---------------------------------------------------------------------
+const NEW = { provenance: 'new' };
+const copy = (o) => JSON.parse(JSON.stringify(o));
+const without = (list, ids) => list.filter((o) => !ids.includes(o.id));
+
+const X2 = {
+  wcE: 8.21,      // S1: WC | utility, in the old store
+  ensE: 2.37,     // S2a: en-suite east wall, in old bedroom 4
+};
+const Y2 = {
+  ensS: 5.31,     // S2a: en-suite south wall
+};
+
+// S1 - GROUND FLOOR OPENED. Kitchen and dining become one room; the rear
+// range is rebuilt on its own footprint as boot room, WC and utility.
+const s1Ground = copy(asBought.grid.ground);
+delete s1Ground.x['kit-e'];
+s1Ground.x['r-w'] = ext(X.rW, { t: T_LIGHT, span: ['rear', 'r-s'], ...NEW, note: 'Rear range rebuilt on the same line.' });
+s1Ground.x['r-e'] = ext(X.eMain, { span: ['rear', 'r-s'], ...NEW, note: 'Rear range rebuilt; continues the house\'s east wall line.' });
+s1Ground.x['wc-e'] = int(X2.wcE, { span: ['rear', 'r-s'], ...NEW });
+s1Ground.y['r-s'] = ext(Y.rS, { t: T_LIGHT, span: ['r-w', 'r-e'], ...NEW, note: 'Rear range rebuilt on the same line.' });
+
+const groundOpen = {
+  id: 'ground-floor-open',
+  name: 'S1 - Kitchen-diner, boot room, WC and utility',
+  sequence: 20,
+  status: 'planned',
+  derivedFrom: 'as-bought',
+  summary: 'The kitchen and dining room opened into one kitchen-diner across the garden side (about 25.5 m2), and the store and lean-to rebuilt on their own footprint as a boot room by the back door, a downstairs WC and a utility. First floor unchanged.',
+  derivation: DERIVATION,
+  assumptions: [
+    ...SHARED_ASSUMPTIONS,
+    { id: 's1-beam', severity: 'high', note: 'The kitchen | dining partition (kit-e) is assumed load-bearing (bedroom 4 and the bathroom sit over it), so removing it needs a steel beam on padstones, a structural engineer and building control. Assumed, not designed.' },
+    { id: 's1-no-island', severity: 'medium', note: 'The kitchen-diner is 2.74m deep. An island with 0.9m clear round it needs about 3.3m (0.6 run + 0.9 + 0.9 island + 0.9), so an island does NOT fit; the lived-in arrangement uses a run and a table. A peninsula or a deeper room (S2b does not deepen it) are the alternatives.' },
+    { id: 's1-range', severity: 'medium', note: 'The owner wants a range "in the heart of the home". The particulars give the dining room a feature fireplace, but its position is not on the plan; the range is placed on the kitchen end until the viewing finds the flue.' },
+    { id: 's1-rear-range', severity: 'high', note: 'The rear range is rebuilt on the existing footprint and lines (walls still modelled at 0.15m, so the rooms keep their drawn size; a real insulated wall is thicker and takes from them). Rebuilding on the same footprint MAY be permitted development in the National Park: check with the NFNPA before relying on it. Asbestos survey before the old roof sheeting is touched.' },
+    { id: 's1-wc-drain', severity: 'medium', note: 'The WC drains to the rear; where the existing drain runs is unknown until the viewing (soil-stack position).' },
+    { id: 's1-front-boot-room', severity: 'low', note: 'Alternative noted for the sit-down (owner, 1 Nov 2026): a boot room at the FRONT by the porch with the WC off the hall, as in the owner\'s earlier layouts. Not drawn here, because nothing on the plan supports it yet.' },
+  ],
+  changes: [
+    'Remove the partition between the kitchen and the dining room (kit-e) on a steel beam, making one kitchen-diner across the garden side.',
+    'Remove the kitchen to dining door, which no longer has a wall.',
+    'Rebuild the rear range on its own footprint: new west, south and east walls and a new slate mono-pitch roof.',
+    'Turn the lean-to into a boot room by the existing back door, reached from the kitchen-diner through the existing rear door.',
+    'Divide the store into a WC (off the boot room) and a utility (off the kitchen-diner, through a new door in the rear wall).',
+    'Block the dining room\'s small rear window, which would open into the WC; give the WC and the utility windows in the new south wall.',
+  ],
+  levels: LEVELS,
+  grid: { ground: s1Ground, first: copy(asBought.grid.first) },
+  rooms: [
+    ...without(asBought.rooms, ['kitchen', 'dining', 'leanto', 'store']),
+    { id: 'kitchen-diner', was: 'kitchen', level: 'ground', name: 'Kitchen-diner', roomKey: 'kitchen', roomType: 'kitchen', bounds: { w: 'w-main', e: 'e-main', n: 'mid', s: 'rear' } },
+    { id: 'boot', was: 'leanto', level: 'ground', name: 'Boot room', roomKey: 'boot-room', roomType: 'boot_room', bounds: { w: 'r-w', e: 'r-mid', n: 'rear', s: 'r-s' } },
+    { id: 'wc', was: 'store', level: 'ground', name: 'WC', roomType: 'wc', bounds: { w: 'r-mid', e: 'wc-e', n: 'rear', s: 'r-s' } },
+    { id: 'utility', level: 'ground', name: 'Utility', roomType: 'utility', bounds: { w: 'wc-e', e: 'r-e', n: 'rear', s: 'r-s' } },
+  ],
+  openings: [
+    ...without(asBought.openings, ['g-door-kitchen-dining', 'g-win-dining-s', 'g-door-store']),
+    { id: 'g-door-wc', level: 'ground', axis: 'x', line: 'r-mid', y: 7.60, width: 0.76, type: 'door', leaf: 'single', swing: { hinge: 'a', toward: 'east' }, note: 'WC off the boot room, moved north of the old store door so the pan clears the swing.' },
+    { id: 'g-door-utility', level: 'ground', axis: 'y', line: 'rear', x: 8.98, width: 0.76, type: 'door', leaf: 'single', swing: { hinge: 'a', toward: 'south' }, note: 'New: kitchen-diner to utility.' },
+    { id: 'g-win-wc-s', level: 'ground', axis: 'y', line: 'r-s', x: 7.63, width: 0.50, type: 'window', sill: 1.40, note: 'New, high: WC with an extract fan.' },
+    { id: 'g-win-utility-s', level: 'ground', axis: 'y', line: 'r-s', x: 9.00, width: 0.80, type: 'window', note: 'New.' },
+  ],
+  stairs: copy(asBought.stairs),
+  roofs: [
+    asBought.roofs[0],
+    { id: 'roof-rear-new', kind: 'mono', over: [4.51, D_ENV, W_ENV, 9.45], ridgeAxis: 'x', pitchDeg: 15, eavesHeight: 2.65, overhang: 0.15, covering: 'slate', coversLevel: 'ground', provenance: 'new', note: 'The rear range\'s roof rebuilt as one slope off the rear wall, in slate to match (National Park materials).' },
+  ],
+  chimneys: copy(asBought.chimneys),
+  features: copy(asBought.features),
+};
+
+// A child of S1 inherits S1's rebuilt walls as EXISTING: provenance is
+// relative to the stage a fork derives from, so a child's takeoff prices
+// only what the child adds, and the rear range is never counted twice.
+const asBuilt = (grid) => {
+  const g = copy(grid);
+  for (const axis of ['x', 'y']) {
+    for (const w of Object.values(g[axis])) if (w.provenance === 'new') w.provenance = 'existing';
+  }
+  return g;
+};
+
+// S2a - EN-SUITE WITHIN THE FOOTPRINT. Taken from the west end of bedroom
+// 4, against bedroom 1's south wall, entered from bedroom 1.
+const s2aFirst = copy(asBought.grid.first);
+s2aFirst.x['ens-e'] = int(X2.ensE, { span: ['mid-w', 'ens-s'], ...NEW });
+s2aFirst.y['ens-s'] = int(Y2.ensS, { span: ['w-main', 'ens-e'], ...NEW });
+
+const ensuiteWithin = {
+  ...copy(groundOpen),
+  id: 'ensuite-within',
+  name: 'S2a - En-suite to bedroom 1, from bedroom 4',
+  sequence: 30,
+  derivedFrom: 'ground-floor-open',
+  summary: 'S1, plus an en-suite to bedroom 1 taken from the west end of bedroom 4 and entered through a new door in bedroom 1\'s south wall. Bedroom 4 stays, smaller, as a study or nursery. Inside the existing footprint: building control only.',
+  assumptions: [
+    ...groundOpen.assumptions,
+    { id: 's2a-size', severity: 'medium', note: 'The en-suite is about 2.0 x 1.2m clear: shower, WC and basin, no bath. Bedroom 4 is left at about 6.1 m2 - below the 6.5 m2 asked for and below the national space standard\'s 7.5 m2 single bedroom, so it is a study or nursery, not a bedroom, in this stage. Reported, not enlarged.' },
+    { id: 's2a-drain', severity: 'high', note: 'The en-suite sits on the west gable, away from the bathroom; its waste is assumed to drop down the gable to the kitchen\'s drain. If the soil stack is at the bathroom (east of bedroom 4), a macerator or a longer run is needed. The soil-stack position is a viewing question.' },
+    { id: 's2a-why-west', severity: 'low', note: 'Taking the en-suite from bedroom 4\'s EAST end (next to the bathroom) would cut bedroom 4 off from the landing: its only door is in that end. The west end keeps bedroom 4\'s door and still touches bedroom 1.' },
+  ],
+  changes: [
+    'Build two new stud walls in the west end of bedroom 4, making an en-suite of about 2.0 x 1.2m against bedroom 1\'s south wall.',
+    'Cut a new door through bedroom 1\'s south wall (mid-w) into the en-suite.',
+    'Add a small obscured window in the west gable for the en-suite.',
+    'Bedroom 4 keeps its landing door and becomes a study or nursery of about 6.1 m2.',
+  ],
+  grid: { ground: asBuilt(s1Ground), first: s2aFirst },
+  rooms: [
+    ...without(groundOpen.rooms, ['bed4']),
+    { id: 'ensuite', level: 'first', name: 'En-suite', roomType: 'bathroom', bounds: { w: 'w-main', e: 'ens-e', n: 'mid-w', s: 'ens-s' } },
+    { id: 'bed4', level: 'first', name: 'Study (bedroom 4)', roomKey: 'bedroom', roomType: 'office', rects: [
+      { w: 'ens-e', e: 'land-w', n: 'mid-w', s: 'bath-n' },
+      { w: 'w-main', e: 'bath-w', n: 'ens-s', s: 'rear' },
+    ] },
+  ],
+  openings: [
+    ...groundOpen.openings,
+    { id: 'f-door-ensuite', level: 'first', axis: 'y', line: 'mid-w', x: 1.55, width: 0.76, type: 'door', leaf: 'single', swing: { hinge: 'a', toward: 'north' }, note: 'New, opening into bedroom 1 so the swing clears the en-suite\'s fittings.' },
+    { id: 'f-win-ensuite-w', level: 'first', axis: 'x', line: 'w-main', y: 4.66, width: 0.60, type: 'window', sill: 1.40, note: 'New, obscured.' },
+  ],
+};
+
+// S2b - A TWO-STOREY ADDITION OVER THE STORE. The S1 ground floor, with a
+// first-floor en-suite to bedroom 3 built over the WC and utility.
+const s2bFirst = copy(asBought.grid.first);
+s2bFirst.x['r-mid'] = ext(X.rMid, { t: T_LIGHT, span: ['rear', 'r-s'], ...NEW });
+s2bFirst.x['r-e'] = ext(X.eMain, { span: ['rear', 'r-s'], ...NEW });
+s2bFirst.y['r-s'] = ext(Y.rS, { t: T_LIGHT, span: ['r-mid', 'r-e'], ...NEW });
+
+const rearTwoStorey = {
+  ...copy(groundOpen),
+  id: 'rear-two-storey',
+  name: 'S2b - Two-storey addition with an en-suite to bedroom 3',
+  sequence: 31,
+  derivedFrom: 'ground-floor-open',
+  summary: 'S1, plus a first floor built over the old store (about 2.7 x 2.4m outside) holding an en-suite to bedroom 3, under its own gabled slate roof tied into the main roof. Needs planning permission and counts towards the National Park\'s 30% limit.',
+  assumptions: [
+    ...groundOpen.assumptions,
+    { id: 's2b-planning', severity: 'high', note: 'New floor area in the New Forest National Park: full planning permission, and it counts against policy DP36\'s 30% cap over the 1982 floorspace (about 40 m2 of headroom if the house is unextended since 1982 - unconfirmed).' },
+    { id: 's2b-structure', severity: 'high', note: 'The store\'s light walls cannot carry a storey: the ground walls under the addition are assumed rebuilt in brick on new foundations. The upper walls are modelled at the existing 0.15m so the room keeps the store\'s footprint; a real build-up takes from it.' },
+    { id: 's2b-bed3-window', severity: 'medium', note: 'Bedroom 3\'s rear window becomes the en-suite door, so bedroom 3 gets a new window in the east wall.' },
+  ],
+  changes: [
+    'Build a first floor over the WC and utility: new west, south and east walls on the rear range\'s lines.',
+    'Fit an en-suite to bedroom 3 in it, entered where bedroom 3\'s rear window was.',
+    'Give bedroom 3 a new window in the east wall.',
+    'Roof the addition with a gabled slate roof tied into the main roof; the boot room keeps the rebuilt mono-pitch roof.',
+  ],
+  grid: { ground: asBuilt(s1Ground), first: s2bFirst },
+  rooms: [
+    ...groundOpen.rooms,
+    { id: 'ensuite3', level: 'first', name: 'En-suite (bedroom 3)', roomType: 'bathroom', bounds: { w: 'r-mid', e: 'r-e', n: 'rear', s: 'r-s' } },
+  ],
+  openings: [
+    ...without(groundOpen.openings, ['f-win-bed3-s']),
+    { id: 'f-door-ensuite3', level: 'first', axis: 'y', line: 'rear', x: 7.80, width: 0.76, type: 'door', leaf: 'single', swing: { hinge: 'a', toward: 'south' }, note: 'New, where bedroom 3\'s rear window was.' },
+    { id: 'f-win-bed3-e', level: 'first', axis: 'x', line: 'e-main', y: 5.40, width: 1.00, type: 'window', note: 'New.' },
+    { id: 'f-win-ensuite3-s', level: 'first', axis: 'y', line: 'r-s', x: 8.40, width: 0.60, type: 'window', sill: 1.40, note: 'New, obscured.' },
+  ],
+  roofs: [
+    asBought.roofs[0],
+    { id: 'roof-rear-new', kind: 'mono', over: [4.51, D_ENV, X.rMid, 9.45], ridgeAxis: 'x', pitchDeg: 15, eavesHeight: 2.65, overhang: 0.15, covering: 'slate', coversLevel: 'ground', provenance: 'existing', note: 'The boot room\'s slope, as rebuilt in S1, now stopping at the addition.' },
+    { id: 'roof-addition', kind: 'gabled', over: [X.rMid, D_ENV - 0.3, W_ENV, 9.45], ridgeAxis: 'y', pitchDeg: 40, eavesHeight: EAVES, overhang: 0.15, covering: 'slate', provenance: 'new', note: 'Gabled to the garden, ridge running back from the main roof\'s rear slope. Tie-in assumed, not designed.' },
+  ],
+};
+
+export const stages = [asBought, groundOpen, ensuiteWithin, rearTwoStorey];
 
 const F = (id, level, room, kind, name, rect, extra = {}) => ({
   id, level, room, kind, name, rect, confidence: 'drafted', ...extra,
 });
 
+const empty = (stage, name) => ({
+  id: `${stage}--empty`, stage, name: 'Empty shell',
+  summary: `${name}, with nothing in it.`, furniture: [],
+});
+
+// Lived-in furniture for the rooms each design stage creates. Sizes are
+// ordinary catalogue sizes; positions keep doors, swings and windows
+// clear. The clearance check REPORTS anything tight - it never moves
+// a piece, and nothing here is nudged to make a check pass.
+const S1_FURNITURE = [
+  F('s1-k-run-w', 'ground', 'kitchen-diner', 'worktop', 'Worktop', [0.30, 6.20, 2.31, 6.80], { height: 0.92, fixed: true, facing: 'n' }),
+  F('s1-k-sink', 'ground', 'kitchen-diner', 'sink', 'Sink', [2.31, 6.20, 3.41, 6.80], { height: 0.92, fixed: true, facing: 'n' }),
+  F('s1-k-run-e', 'ground', 'kitchen-diner', 'worktop', 'Worktop', [3.41, 6.20, 4.40, 6.80], { height: 0.92, fixed: true, facing: 'n' }),
+  F('s1-k-range', 'ground', 'kitchen-diner', 'oven', 'Range cooker', [0.30, 4.06, 1.30, 4.66], { height: 0.92, fixed: true, facing: 's', note: 'Placed on the kitchen end until the dining fireplace is found at the viewing (assumption s1-range).' }),
+  F('s1-k-fridge', 'ground', 'kitchen-diner', 'fridge', 'Fridge', [1.40, 4.06, 2.00, 4.66], { height: 1.85, fixed: true, facing: 's' }),
+  F('s1-k-table', 'ground', 'kitchen-diner', 'table', 'Dining table', [6.20, 4.90, 8.00, 5.80], { height: 0.75 }),
+  F('s1-b-bench', 'ground', 'boot', 'bench', 'Boot bench', [5.60, 8.90, 7.01, 9.30], { height: 0.45 }),
+  F('s1-b-coats', 'ground', 'boot', 'shelf', 'Coat and boot store', [4.66, 8.90, 5.50, 9.30], { height: 2.00, fixed: true, facing: 'n' }),
+  F('s1-w-wc', 'ground', 'wc', 'wc', 'WC', [7.40, 8.65, 7.85, 9.30], { height: 0.78, fixed: true, facing: 'n' }),
+  F('s1-w-basin', 'ground', 'wc', 'basin', 'Basin', [7.76, 8.20, 8.16, 8.60], { height: 0.85, fixed: true, facing: 'w' }),
+  F('s1-u-washer', 'ground', 'utility', 'washer', 'Washing machine', [8.26, 8.70, 8.86, 9.30], { height: 0.85, fixed: true, facing: 'n' }),
+  F('s1-u-sink', 'ground', 'utility', 'sink', 'Utility sink', [8.86, 8.70, 9.61, 9.30], { height: 0.92, fixed: true, facing: 'n' }),
+];
+
+const lived = (stage, name, summary, changes, furniture) => ({
+  id: `${stage}--lived-in`, stage, name: 'Lived in', derivedFrom: `${stage}--empty`,
+  summary, changes, furniture,
+});
+
 export const variants = [
+  empty('ground-floor-open', 'S1'),
+  lived('ground-floor-open', 'S1',
+    'S1 furnished: a kitchen run under the rear window, a range on the kitchen end, a table at the dining end, a bench by the back door, and the WC and utility fitted.',
+    ['Kitchen run, sink and range at the west end; table at the east end. No island: the room is 2.74m deep.',
+      'Boot bench and coat store by the back door.', 'WC pan and basin; washer and sink in the utility.'],
+    S1_FURNITURE),
+  lived('ensuite-within', 'S2a',
+    'S2a furnished: S1, plus the en-suite fitted and bedroom 4 as a study.',
+    ['As S1 downstairs.', 'En-suite: shower, WC and basin.', 'Study: a desk under the rear window.'],
+    [...S1_FURNITURE,
+      F('s2a-e-shower', 'first', 'ensuite', 'shower', 'Shower', [0.30, 4.06, 1.10, 5.26], { height: 2.00, fixed: true, facing: 'e' }),
+      F('s2a-e-wc', 'first', 'ensuite', 'wc', 'WC', [1.25, 4.58, 1.62, 5.26], { height: 0.78, fixed: true, facing: 'n' }),
+      F('s2a-e-basin', 'first', 'ensuite', 'basin', 'Basin', [1.82, 4.81, 2.32, 5.26], { height: 0.85, fixed: true, facing: 'n' }),
+      F('s2a-s-desk', 'first', 'bed4', 'desk', 'Desk', [1.10, 6.20, 2.50, 6.80], { height: 0.75, facing: 'n' })]),
+  lived('rear-two-storey', 'S2b',
+    'S2b furnished: S1, plus the en-suite over the store fitted.',
+    ['As S1 downstairs.', 'En-suite to bedroom 3: WC, basin and shower.'],
+    [...S1_FURNITURE,
+      F('s2b-e-wc', 'first', 'ensuite3', 'wc', 'WC', [7.20, 8.65, 7.65, 9.30], { height: 0.78, fixed: true, facing: 'n' }),
+      F('s2b-e-basin', 'first', 'ensuite3', 'basin', 'Basin', [7.80, 8.85, 8.30, 9.30], { height: 0.85, fixed: true, facing: 'n' }),
+      F('s2b-e-shower', 'first', 'ensuite3', 'shower', 'Shower', [8.71, 8.40, 9.61, 9.30], { height: 2.00, fixed: true, facing: 'w' })]),
+  empty('ensuite-within', 'S2a'),
+  empty('rear-two-storey', 'S2b'),
   {
     id: 'as-bought--empty',
     stage: 'as-bought',

@@ -10,6 +10,29 @@ after renovation, bird's-eye views, maps and plans, costed development options, 
 handbook PDF that always opens. It's the same machinery that produced the 48 Ameysford
 Road handbook and the Rectory Kit.
 
+**The realistic plan (owner, 1 November 2026; supersedes the design route below).**
+Decisions R-14 to R-16 replace the design study as the plan the money follows:
+
+- **R-14, scope.** No extensions and no structural work. The kitchen stays where it is
+  and is refitted in place; so is the bathroom. Each room is brought up to scratch one at
+  a time: make good, and strip to brick only where damp, rot or failed plaster demands it.
+  Everything else at the lowest cost, much of it by hand (R-11). S1, S2a and S2b are
+  parked (`scope:parked`), kept for comparison and for borrowing on added value later.
+- **R-15, the early essentials, in order.** Stop the wet (vegetation, ground below the
+  DPC, gutters, the rear range roofs); the damp and timber survey, then the dry rot;
+  heating working on the existing radiators; electrics made safe (EICR, then its
+  remedials; a rewire only if the report requires it). Roof and chimney are not early.
+- **R-16, the offer.** Win it, then cover day one: the most the funding allows on
+  completion day with the buying costs and the day-one reserve kept whole. The process is
+  `docs/OFFER.md`; the engine is `assets/js/engine/offer.js`.
+
+How it is built: `npm run takeoff` measures each room (`room:<key>:walls|ceiling|floor`);
+one "bring up to scratch" job per room is priced from those quantities and the DIY
+make-good rates; the kitchen and bathroom refits carry their own budget rates; the cash
+plan funds day one, then the essentials (`plan:essentials`), then the rooms in the order
+held in `plan.room_order`, which the owner changes by saying so. Every figure is in
+Supabase; none is in this file.
+
 ---
 
 ## 0. Why this fortnight went wrong, and the rules that fix it

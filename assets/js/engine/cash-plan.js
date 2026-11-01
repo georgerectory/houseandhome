@@ -6,9 +6,10 @@
 // THE GROUPS DO NOT OVERLAP. cost_rollup's idea totals share items (the
 // rear range carries the boot room, the WC and the store at once) and
 // its day-one cases are alternatives, so adding ideas or cases double
-// counts. The plan instead takes one day-one case, the condition work,
-// the whole-house services (first fix electrics and heating, phases P12
-// and P13) and then each design stage, which partition the work.
+// counts. The realistic plan (R-14) takes one day-one case, the early
+// essentials, then one room at a time; the design route takes the
+// condition work, the services and each design stage. Either way the
+// groups partition the work.
 //
 // Pure: no DOM, no fetch.
 import { cashOverTime, addMonths } from './cash-over-time.js';
@@ -21,24 +22,43 @@ export function variable(vars, key) {
   return row ? row.value : null;
 }
 
-/** The roadmap groups, in funding order, from cost_rollup rows. */
-export function planGroups(rollup, { dayOneCase = 'low' } = {}) {
-  const pick = (dim, key) => (rollup ?? []).find((r) => r.dim === dim && r.key === key);
+/**
+ * The roadmap groups, in funding order, from cost_rollup rows.
+ *
+ * 'realistic' (R-14, the default): day one, then the early essentials
+ * (tag plan:essentials), then each room in the owner's order - the room
+ * dimension holds that room's make-good and, for the kitchen and the
+ * bathroom, its refit. Rooms not named in the order follow, largest first.
+ * 'design': the earlier route through the design stages, kept so the
+ * parked options can still be read side by side.
+ */
+export function planGroups(rollup, { dayOneCase = 'low', plan = 'realistic', roomOrder = [], roomNames = {} } = {}) {
+  const rows = rollup ?? [];
+  const pick = (dim, key) => rows.find((r) => r.dim === dim && r.key === key);
   const groups = [];
-  const add = (id, label, rows) => {
-    const present = rows.filter(Boolean);
+  const add = (id, label, picked) => {
+    const present = picked.filter(Boolean);
     if (!present.length) return;
     const base = present.reduce((s, r) => s + (num(r.cost_base) ?? 0), 0);
     const unconfirmed = present.reduce((s, r) => s + (num(r.cost_base_unconfirmed) ?? 0), 0);
     if (base > 0) groups.push({ id, label, cost: base, unconfirmed: unconfirmed > 0, unconfirmedCost: unconfirmed });
   };
   add('day-one', `Day one (${dayOneCase} case)`, [pick('case', dayOneCase)]);
-  add('condition', 'Dry rot and condition work', [pick('condition', 'dry-rot')]);
-  add('services', 'Rewire and heating (first fix)', [pick('phase', 'P12'), pick('phase', 'P13')]);
-  add('s1', 'S1: kitchen-diner, boot room, WC, utility', [pick('stage', 'ground-floor-open')]);
-  add('s2a', 'S2a: en-suite within the footprint', [pick('stage', 'ensuite-within')]);
+  if (plan === 'design') {
+    add('condition', 'Dry rot and condition work', [pick('condition', 'dry-rot')]);
+    add('services', 'Rewire and heating (first fix)', [pick('phase', 'P12'), pick('phase', 'P13')]);
+    add('s1', 'S1: kitchen-diner, boot room, WC, utility', [pick('stage', 'ground-floor-open')]);
+    add('s2a', 'S2a: en-suite within the footprint', [pick('stage', 'ensuite-within')]);
+    return groups;
+  }
+  add('essentials', 'Essentials: stop the wet, damp and rot, electrics made safe', [pick('plan', 'essentials')]);
+  const rooms = rows.filter((r) => r.dim === 'room' && r.key !== 'whole-house');
+  const rank = (k) => { const i = roomOrder.indexOf(k); return i === -1 ? Infinity : i; };
+  rooms.sort((a, b) => rank(a.key) - rank(b.key) || Number(b.cost_base ?? 0) - Number(a.cost_base ?? 0));
+  for (const r of rooms) add(`room:${r.key}`, roomNames[r.key] ?? titleOf(r.key), [r]);
   return groups;
 }
+const titleOf = (k) => k.charAt(0).toUpperCase() + k.slice(1).replace(/-/g, ' ');
 
 /** The monthly spare: take-home less the planned budget, then the pay rise. */
 export function spareSteps(vars) {
@@ -60,11 +80,12 @@ export function spareSteps(vars) {
  * Both scenarios the owner needs side by side: the planned budget alone,
  * and with an annual net bonus each April (never guaranteed).
  */
-export function cashPlan(vars, rollup, { start = '2027-04', horizon = 240 } = {}) {
+export function cashPlan(vars, rollup, { start = '2027-04', horizon = 240, plan = 'realistic', roomNames = {} } = {}) {
   const spare = spareSteps(vars);
   const startCash = num(variable(vars, 'cash.works_buffer'));
   const bonus = num(variable(vars, 'income.bonus_net'));
-  const items = planGroups(rollup);
+  const roomOrder = variable(vars, 'plan.room_order') ?? [];
+  const items = planGroups(rollup, { plan, roomOrder: Array.isArray(roomOrder) ? roomOrder : [], roomNames });
   if (!spare || startCash == null || !items.length) {
     return { ready: false, missing: [
       !spare && 'income.net_pay_now and costs.planned_post_move',

@@ -37,7 +37,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   brickTakeoff, ufhTakeoff, restorationTakeoff, pavingTakeoff, gravelTakeoff,
-  internalFaceM2, ceilingAreaM2, floorAreaM2, newWallFaceM2,
+  internalFaceM2, ceilingAreaM2, floorAreaM2, newWallFaceM2, roomTakeoff,
 } from '../assets/js/engine/takeoff.js';
 import { stageDiff } from '../assets/js/engine/building.js';
 
@@ -93,6 +93,11 @@ if (!only || only === baseId) {
     + `${internalFaceM2(asBought).toFixed(1)} m2 of internal wall face, `
     + `${ceilingAreaM2(asBought).toFixed(1)} m2 of ceiling.`,
     restorationTakeoff(asBought, property, { skipRoomIds: UFH_ROOMS }));
+  // The realistic plan works one room at a time (R-14), so each room's
+  // faces are lines of their own, keyed `room:<id>:`.
+  add('Room by room: wall face, ceiling and floor',
+    'Each room measured on its own, for the one-room-at-a-time plan.',
+    roomTakeoff(asBought));
 }
 
 for (const meta of index.stages) {
@@ -142,7 +147,7 @@ if (asSql) {
   const q = (v) => `'${String(v).replace(/'/g, "''")}'`;
   // A --stage run owns only that stage's keys; a full run owns them all.
   const scopeSql = !only ? 'true'
-    : only === baseId ? "(q.package_key not like '%:%' or q.package_key like 'garden:%')"
+    : only === baseId ? "(q.package_key not like '%:%' or q.package_key like 'garden:%' or q.package_key like 'room:%')"
       : `q.package_key like ${q(`${only}:%`)}`;
   const rows = sections.flatMap((s) => s.lines.map((l) =>
     `(${q(s.prefix + l.key)}, ${q(l.label)}, ${Number(l.quantity)}, ${q(l.unit)}, ${q(l.basis)})`));

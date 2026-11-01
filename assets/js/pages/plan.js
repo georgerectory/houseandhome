@@ -17,8 +17,7 @@ import { load, loadRoadAhead } from '../core/store.js';
 import { emptyState } from '../core/page.js';
 import { escape } from '../core/format.js';
 import { checklistFor, totalItems, tierOf, TIER_LABEL } from '../engine/checklist.js';
-import { cashPlan } from '../engine/cash-plan.js';
-import { costsHtml, cashHtml } from './forest/sections.js';
+import { costsHtml, cashHtml, realisticPlan } from './forest/sections.js';
 
 const user = await requireAuth();
 if (!user) throw new Error('redirecting to login');
@@ -35,10 +34,10 @@ const sections = checklistFor(d.items ?? [], 'viewing');
 const road = await loadRoadAhead().catch(() => null);
 const costPart = (d.cost_rollup ?? []).length
   ? `<div class="doc-part" id="costs">
-      <h2>What the ideas cost</h2>
-      ${costsHtml(d.cost_rollup)}
+      <h2>What the plan costs</h2>
+      ${costsHtml(d.cost_rollup, ['plan', 'room', 'case', 'condition', 'stage', 'idea'])}
       <h2>When the money exists</h2>
-      ${cashHtml(cashPlan(road?.variables ?? [], d.cost_rollup))}
+      ${cashHtml(realisticPlan(road?.variables, d.cost_rollup, d.rooms))}
     </div>`
   : '';
 const total = totalItems(sections);

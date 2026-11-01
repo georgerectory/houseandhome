@@ -318,6 +318,10 @@ const data = {
     { dim: 'phase', key: 'P13', items: 1, items_costed: 1, cost_low: 5000, cost_base: 7000, cost_high: 10000, cost_base_unconfirmed: 7000, unconfirmed_share: 1 },
     { dim: 'stage', key: 'ground-floor-open', items: 5, items_costed: 5, cost_low: 30000, cost_base: 40000, cost_high: 50000, cost_base_unconfirmed: 40000, unconfirmed_share: 1 },
     { dim: 'stage', key: 'ensuite-within', items: 1, items_costed: 1, cost_low: 2500, cost_base: 3500, cost_high: 4500, cost_base_unconfirmed: 3500, unconfirmed_share: 1 },
+    { dim: 'plan', key: 'essentials', items: 4, items_costed: 4, cost_low: 3000, cost_base: 4500, cost_high: 7000, cost_base_unconfirmed: 4500, unconfirmed_share: 1 },
+    { dim: 'room', key: 'kitchen', items: 2, items_costed: 2, cost_low: 3000, cost_base: 4200, cost_high: 6000, cost_base_unconfirmed: 4200, unconfirmed_share: 1 },
+    { dim: 'room', key: 'bathroom', items: 2, items_costed: 2, cost_low: 2500, cost_base: 3500, cost_high: 5000, cost_base_unconfirmed: 3500, unconfirmed_share: 1 },
+    { dim: 'room', key: 'sitting', items: 1, items_costed: 1, cost_low: 400, cost_base: 700, cost_high: 1200, cost_base_unconfirmed: 700, unconfirmed_share: 1 },
     { dim: 'idea', key: 'kitchen-diner', items: 3, items_costed: 3, cost_low: 10000, cost_base: 14000, cost_high: 18000, cost_base_unconfirmed: 14000, unconfirmed_share: 1 },
   ],
   house_facts: [

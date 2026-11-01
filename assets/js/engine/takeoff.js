@@ -9,6 +9,7 @@
 //
 //   ./takeoff/newbuild.js     brick, underfloor heating, paving, gravel
 //   ./takeoff/restoration.js  strip-out waste, lime, plumbing, wiring
+//   ./takeoff/rooms.js        each room's wall face, ceiling and floor
 //
 // The list below is the PUBLIC SURFACE, stated once. `round` and `line`
 // are shared between the two halves and are deliberately not in it:
@@ -38,3 +39,5 @@ export {
   radiatorTakeoff,
   restorationTakeoff,
 } from './takeoff/restoration.js';
+
+export { roomFaces, roomTakeoff } from './takeoff/rooms.js';

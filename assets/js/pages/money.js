@@ -10,8 +10,8 @@ import { fundable, totalOutstanding, confidenceSummary, houseFunds } from '../en
 import { emptyState } from '../core/page.js';
 import { money, preciseMoney, provenance, titleCase, escape } from '../core/format.js';
 import { allocate, projectFunding } from '../../js/engine/allocate.js';
-import { cashPlan } from '../engine/cash-plan.js';
-import { purchaseHtml, cashHtml } from './forest/sections.js';
+import { purchaseHtml, cashHtml, realisticPlan } from './forest/sections.js';
+import { offerHtml } from './forest/offer.js';
 
 /** What each carried group turns into once someone has been through it.
  *  Mirrors GROUPS in tools/carry-lib.mjs, which is what validates a blob
@@ -77,9 +77,13 @@ const housePart = d.property ? `<section class="section" id="purchase">
     <h2>${escape(d.property.name)}: the purchase</h2>
     ${purchaseHtml(road?.variables ?? [], road?.decisions ?? [])}
   </section>
+  <section class="section" id="offer">
+    <h2>The offer</h2>
+    ${offerHtml(road?.variables ?? [], d.cost_rollup ?? [])}
+  </section>
   <section class="section" id="cash-over-time">
     <h2>When the work could be paid for</h2>
-    ${cashHtml(cashPlan(road?.variables ?? [], d.cost_rollup ?? []))}
+    ${cashHtml(realisticPlan(road?.variables, d.cost_rollup, d.rooms))}
   </section>` : '';
 
 render('[data-page-root]', `

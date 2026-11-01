@@ -10,6 +10,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { roomFaces, roomTakeoff } from '../../assets/js/engine/takeoff.js';
 import {
   RATES, BRICK_SIZES, JOINT_M, bricksPerM2Skin,
   newWallFaceM2, brickTakeoff, ufhTakeoff, pavingTakeoff, gravelTakeoff,
@@ -360,4 +361,23 @@ test('garden lines are opt-in, not carried from another house', () => {
 
 test('an unknown stage is refused, not silently measured', () => {
   assert.throws(() => execFileSync('node', ['tools/takeoff.mjs', '--stage', 'nope'], { stdio: 'pipe' }));
+});
+
+// The realistic plan works one room at a time (R-14).
+
+test('room faces: perimeter x level height, and an L-shaped room is not walled inside', () => {
+  const stage = {
+    levels: [{ id: 'g', ceilingHeight: 2.5 }],
+    rooms: [
+      { id: 'a', level: 'g', rect: [0, 0, 4, 3] },
+      { id: 'l', level: 'g', rects: [[0, 0, 4, 1], [0, 1.1, 2, 3]] },
+    ],
+  };
+  const [a, l] = roomFaces(stage);
+  assert.equal(a.wallM2, 14 * 2.5);
+  assert.equal(a.floorM2, 12);
+  // Perimeters 10 + 7.8, less the 2 m seam counted twice.
+  assert.ok(Math.abs(l.wallM2 - (10 + 7.8 - 4) * 2.5) < 1e-9);
+  const keys = roomTakeoff(stage).map((x) => x.key);
+  assert.deepEqual(keys.slice(0, 3), ['room:a:walls', 'room:a:ceiling', 'room:a:floor']);
 });

@@ -56,6 +56,13 @@ assumption behind every quantity, total and sequence in this system, and
 it is recorded as a `decision` row so it can be argued with rather than
 inherited silently.
 
+**A property can set its own scope, and Forest View has (R-14, 1 Nov
+2026):** no extensions and no structural work; each room brought up to
+scratch one at a time - make good, strip to brick only where damp, rot
+or failed plaster demands it; the kitchen and bathroom refitted in
+place; the rest at the lowest cost. The design stages are parked, not
+dropped. The sequence rule below still binds inside each room.
+
 Two things follow from it, and neither is optional:
 
 - **Sequence beats keenness.** Paint, carpet, grout and draught-proofing
@@ -80,6 +87,7 @@ when the work touches it:
 | `docs/road-ahead/README.md` | Road Ahead: listings, roads, scenarios, variables, auctions, a sit-down or a re-base. |
 | `docs/properties/<ref>/` | One property's specifics (P-003 now). Archived ones move to `docs/properties-archive/`. |
 | `docs/FOREST-VIEW-PLAN.md` | Anything about Forest View: stages, ideas, costs, the Handbook. |
+| `docs/OFFER.md` | The offer: what to bid, what it rests on, an offer sit-down. |
 | `docs/DECISIONS.md` | Priority, money, the roadmap, the shopping list, quantities, stockpiles, links. |
 | `docs/REVIEW.md` | A review session. |
 | `docs/BUILDING-MODEL.md` | Anything under `model3d/`, `planner/` or `data/buildings/`. |

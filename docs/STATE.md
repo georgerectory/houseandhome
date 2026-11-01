@@ -11,19 +11,19 @@ Active since 31 Oct 2026 (RA-05). The plan of record is
 The purchase comes first (R-10): nothing here touches the tender. Money
 figures are private: Supabase only.
 
-**Done (1 Nov):** A - model landed, tools building-aware, rooms synced,
-five `fv-` contradictions. B - true-front viewpoints, bird's-eye, plot
-features, OSM map, `plan_building_key`. C - design stages S1
-`ground-floor-open` (kitchen-diner 25.5 m2, boot room, WC, utility;
-no island fits a 2.74m room), S2a `ensuite-within` (en-suite from bedroom
-4's west end; bedroom 4 left about 6.1 m2, a study), S2b
-`rear-two-storey` (+5.45 m2, DP36); stages, 14 measured changes and 20
-stage quantities live (`tools/stages-sql.mjs`, `takeoff --stage`).
+**Done (1 Nov):** A model and tools; B viewpoints, plot, map,
+`plan_building_key`; C stages S1, S2a, S2b with measured changes and
+quantities. D (data) - 14 dated, sourced rates (two drafted: thin
+sources); 17 new work items and 8 enriched, 25 costed from `priced_lines`
+(rate x quantity, nothing typed); day-one cases tagged `case:low/mid/
+high` (Low reproduces the chat's figure; Mid and High come out lower -
+figures in Supabase only); 11 `realises`, 5 `must_precede`; 3 conflicts
+flagged `review:scope-conflict` for the owner; priorities recomputed.
 
 ## Next steps
 
-1. **D** six price references, per-room templates (PLAN D5), day one,
-   cost roll-ups, cash over time.
+1. **D2** per-room templates (PLAN D5), cost roll-up views, cash over
+   time (engine + tests).
 2. **E** House, Plan, Money, the Handbook, print CSS and a PDF gate.
 3. **F** the owner's sit-down agenda.
 

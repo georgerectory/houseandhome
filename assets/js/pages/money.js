@@ -5,11 +5,13 @@
 // the same rows, so two pages can never disagree about the same money.
 import { requireAuth } from '../core/auth.js';
 import { mountShell, showProperty, render, confidenceBanner } from '../core/shell.js';
-import { load } from '../core/store.js';
+import { load, loadRoadAhead } from '../core/store.js';
 import { fundable, totalOutstanding, confidenceSummary, houseFunds } from '../engine/selectors.js';
 import { emptyState } from '../core/page.js';
 import { money, preciseMoney, provenance, titleCase, escape } from '../core/format.js';
 import { allocate, projectFunding } from '../../js/engine/allocate.js';
+import { cashPlan } from '../engine/cash-plan.js';
+import { purchaseHtml, cashHtml } from './forest/sections.js';
 
 /** What each carried group turns into once someone has been through it.
  *  Mirrors GROUPS in tools/carry-lib.mjs, which is what validates a blob
@@ -70,8 +72,19 @@ const carriedGroups = [...carried.reduce((m, r) => {
   return m;
 }, new Map())].sort((a, b) => b[1].length - a[1].length);
 
+const road = await loadRoadAhead().catch(() => null);
+const housePart = d.property ? `<section class="section" id="purchase">
+    <h2>${escape(d.property.name)}: the purchase</h2>
+    ${purchaseHtml(road?.variables ?? [], road?.decisions ?? [])}
+  </section>
+  <section class="section" id="cash-over-time">
+    <h2>When the work could be paid for</h2>
+    ${cashHtml(cashPlan(road?.variables ?? [], d.cost_rollup ?? []))}
+  </section>` : '';
+
 render('[data-page-root]', `
   ${confidenceBanner(confidenceSummary(d))}
+  ${housePart}
 
   ${!potProv.trusted ? `<div class="notice notice--warn" role="status">
     <span class="notice__title">The contribution figure is not confirmed</span>

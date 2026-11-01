@@ -3968,6 +3968,104 @@
       "confidence": "drafted"
     }
   ],
+  "cost_rollup": [
+    {
+      "dim": "case",
+      "key": "low",
+      "items": 5,
+      "items_costed": 5,
+      "cost_low": 2000,
+      "cost_base": 3000,
+      "cost_high": 5000,
+      "cost_base_unconfirmed": 3000,
+      "unconfirmed_share": 1
+    },
+    {
+      "dim": "case",
+      "key": "mid",
+      "items": 6,
+      "items_costed": 6,
+      "cost_low": 3500,
+      "cost_base": 5000,
+      "cost_high": 8000,
+      "cost_base_unconfirmed": 5000,
+      "unconfirmed_share": 1
+    },
+    {
+      "dim": "condition",
+      "key": "dry-rot",
+      "items": 2,
+      "items_costed": 2,
+      "cost_low": 1000,
+      "cost_base": 2500,
+      "cost_high": 4000,
+      "cost_base_unconfirmed": 2500,
+      "unconfirmed_share": 1
+    },
+    {
+      "dim": "phase",
+      "key": "P12",
+      "items": 1,
+      "items_costed": 1,
+      "cost_low": 6000,
+      "cost_base": 8000,
+      "cost_high": 11000,
+      "cost_base_unconfirmed": 8000,
+      "unconfirmed_share": 1
+    },
+    {
+      "dim": "phase",
+      "key": "P13",
+      "items": 1,
+      "items_costed": 1,
+      "cost_low": 5000,
+      "cost_base": 7000,
+      "cost_high": 10000,
+      "cost_base_unconfirmed": 7000,
+      "unconfirmed_share": 1
+    },
+    {
+      "dim": "stage",
+      "key": "ground-floor-open",
+      "items": 5,
+      "items_costed": 5,
+      "cost_low": 30000,
+      "cost_base": 40000,
+      "cost_high": 50000,
+      "cost_base_unconfirmed": 40000,
+      "unconfirmed_share": 1
+    },
+    {
+      "dim": "stage",
+      "key": "ensuite-within",
+      "items": 1,
+      "items_costed": 1,
+      "cost_low": 2500,
+      "cost_base": 3500,
+      "cost_high": 4500,
+      "cost_base_unconfirmed": 3500,
+      "unconfirmed_share": 1
+    },
+    {
+      "dim": "idea",
+      "key": "kitchen-diner",
+      "items": 3,
+      "items_costed": 3,
+      "cost_low": 10000,
+      "cost_base": 14000,
+      "cost_high": 18000,
+      "cost_base_unconfirmed": 14000,
+      "unconfirmed_share": 1
+    }
+  ],
+  "house_facts": [
+    {
+      "fact": "Demo fact: only one chimney stack is visible",
+      "detail": "Invented for demo mode.",
+      "category": "construction",
+      "confidence": "drafted"
+    }
+  ],
   "shopping_list": [
     {
       "id": "buy-0022",

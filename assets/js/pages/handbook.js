@@ -7,6 +7,10 @@ import { openItems, confidenceSummary } from '../engine/selectors.js';
 import { titleCase, escape } from '../core/format.js';
 import { placeAll, roomLabel, spreadInferred } from '../engine/floorplan.js';
 import { loadComposed } from '../core/building-data.js';
+import { loadRoadAhead } from '../core/store.js';
+import { levelSvg } from '../engine/floorplan-svg.js';
+import { cashPlan } from '../engine/cash-plan.js';
+import { costsHtml, cashHtml, purchaseHtml, conditionHtml } from './forest/sections.js';
 
 const user = await requireAuth();
 if (!user) throw new Error('redirecting to login');
@@ -36,7 +40,43 @@ const located = fixtures.filter((p) => p.fullRef).sort((a, b) =>
 const kinds = {};
 for (const i of openItems(d)) kinds[i.kind] = (kinds[i.kind] ?? 0) + 1;
 
+// THE HOUSE IN VIEW, as one document. The Handbook prints to the PDF
+// the owner keeps (decision RA-07: Safari, Share, Print, Save as PDF),
+// so it is generated here from the same rows and geometry as every other
+// page: one renderer, nothing assembled by hand. The plans are SVG so
+// they print sharp; money figures render only from the database.
+const road = await loadRoadAhead().catch(() => null);
+const stages = ['as-bought', 'ground-floor-open'];
+const plans = [];
+for (const id of stages) {
+  const m = await loadComposed(id, null).catch(() => null);
+  if (!m?.composed) continue;
+  for (const lv of m.composed.levels ?? []) {
+    plans.push({ title: `${m.composed.stage.name} - ${lv.name}`, svg: levelSvg(m.composed, lv.id, [], {}) });
+  }
+}
+const house = d.property ? `<article class="hb-doc">
+  <section class="section hb-sec">
+    <h2>${escape(d.property.name)}</h2>
+    <p class="lede">The house in view, generated from the database and the drawn model on the day it is
+      printed. Every figure says how far it can be trusted; a drafted figure is a model, not a fact.
+      Printed ${escape(new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }))}.</p>
+  </section>
+  <section class="section hb-sec"><h2>1. The purchase and the decisions</h2>
+    ${purchaseHtml(road?.variables ?? [], road?.decisions ?? [])}</section>
+  <section class="section hb-sec"><h2>2. Condition, and what is still open</h2>
+    ${conditionHtml(d.rooms ?? [], d.house_facts ?? [], road?.contradictions ?? [])}</section>
+  <section class="section hb-sec"><h2>3. The drawings</h2>
+    <p class="lede">As bought, and stage S1. The other stages and the 3D views are on the House page.</p>
+    ${plans.map((pl) => `<figure class="hb-plan"><figcaption>${escape(pl.title)}</figcaption>${pl.svg}</figure>`).join('')}</section>
+  <section class="section hb-sec"><h2>4. What the ideas cost</h2>
+    ${costsHtml(d.cost_rollup ?? [], ['stage', 'idea', 'case', 'condition', 'phase'])}</section>
+  <section class="section hb-sec"><h2>5. When the money exists</h2>
+    ${cashHtml(cashPlan(road?.variables ?? [], d.cost_rollup ?? []))}</section>
+</article>` : '';
+
 render('[data-page-root]', `
+  ${house}
   <section class="section">
     <h2>How this works</h2>
     <p>There is no interactive front end here, and that is deliberate. Everything

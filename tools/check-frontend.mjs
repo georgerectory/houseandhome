@@ -852,6 +852,44 @@ for (const theme of THEMES) {
   }
 }
 
+// THE HANDBOOK PRINTS. Decision RA-07: the owner's PDF is the Handbook
+// page printed from the browser, so the gate prints it here the same way
+// (A4, print stylesheet) and requires a real PDF, under 10 MB, of more
+// than one page. A PDF that will not open is the failure this replaced.
+{
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 }, colorScheme: 'light' });
+  const page = await ctx.newPage();
+  await page.addInitScript(() => { globalThis.__HH_CONFIG__ = { supabaseUrl: '', supabaseAnonKey: '' }; });
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  await page.goto(`http://localhost:${PORT}/login.html`, { waitUntil: 'networkidle' });
+  await page.fill('#username', 'homeowner');
+  await page.fill('#password', 'houseandhome');
+  await Promise.all([
+    page.waitForURL((u) => !u.pathname.endsWith('login.html'), { timeout: 5000 }),
+    page.click('#submit'),
+  ]);
+  await page.waitForTimeout(400);
+  await page.goto(`http://localhost:${PORT}/handbook.html`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(600);
+  const shape = await page.evaluate(() => ({
+    sections: document.querySelectorAll('.hb-sec').length,
+    plans: document.querySelectorAll('.hb-plan svg').length,
+  }));
+  const pdf = await page.pdf({ format: 'A4', printBackground: true, preferCSSPageSize: true });
+  const head = pdf.subarray(0, 5).toString('latin1');
+  const pages = (pdf.toString('latin1').match(/\/Type\s*\/Page[^s]/g) ?? []).length;
+  const mb = pdf.length / 1048576;
+  if (head !== '%PDF-') failures.push('handbook print: not a PDF');
+  if (mb >= 10) failures.push(`handbook print: ${mb.toFixed(1)} MB, over the 10 MB limit`);
+  if (pages < 3) failures.push(`handbook print: ${pages} page(s); the house document alone is several`);
+  if (shape.sections < 5) failures.push(`handbook print: ${shape.sections} house sections rendered, expected 6`);
+  if (!shape.plans) failures.push('handbook print: no plans drawn');
+  if (errors.length) failures.push(`handbook print: page error - ${errors[0].slice(0, 120)}`);
+  console.log(`Handbook PDF: ${pages} pages, ${mb.toFixed(2)} MB, ${shape.sections} house sections, ${shape.plans} plans`);
+  await ctx.close();
+}
+
 await browser.close();
 server.close();
 

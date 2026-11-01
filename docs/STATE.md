@@ -11,25 +11,26 @@ Active since 31 Oct 2026 (RA-05). The plan of record is
 The purchase comes first (R-10): nothing here touches the tender. Money
 figures are private: Supabase only.
 
-**Done (1 Nov):** A model and tools; B viewpoints, plot, map; C stages
-S1, S2a, S2b, measured. D (data) - 14 sourced rates, 25 items costed from
-`priced_lines`, day-one cases as tags, `realises` links, 3 scope
-conflicts for the owner (figures in Supabase only).
+**Done (1 Nov):** A model, tools; B viewpoints, plot, map; C stages;
+D 14 sourced rates, 25 items costed, day-one cases, 3 scope conflicts.
 Photo review (1 Nov): E71-E76, 7 room conditions, 8 house facts, three
 new contradictions (walls look cavity, heating exists, east stack gone),
 dining and bedroom 3 breasts added; see `docs/properties/P-003/`.
+Chat extraction ingested (E77-E81, S-87-S-92, budget lines, act-by
+diary). D2: `cost_rollup` view (live, fingerprint matched) and the
+`cash-over-time` engine. No template names a room type, so per-room
+instantiation is a library gap, not built.
 
 ## Next steps
 
-1. **D2** per-room templates (PLAN D5), cost roll-up views, cash over
-   time (engine + tests).
-2. **E** House, Plan, Money, the Handbook, print CSS and a PDF gate.
-3. **F** the owner's sit-down agenda.
+1. **E** House, Plan, Money, the Handbook, print CSS and a PDF gate.
+2. **F** the owner's sit-down agenda. Lead item: on the planned budget the
+   cash-over-time engine funds day one, then little else for years; the
+   restoration needs another funding route (DIY, further advance, uplift).
 
 ## Waiting on the owner
 
-- Eight open `fv-` contradictions (five money and diary, three from the
-  photo review).
+- Twelve open `fv-` contradictions; five act-by diary items from the chat.
 - Four 31 Oct `scheduled_events` still `planned`; close or move them.
 - The viewing: compass, a window reveal, ceiling heights, soil stack.
 

@@ -12,8 +12,7 @@ The purchase comes first (R-10): nothing here touches the tender. Money
 figures are private: Supabase only.
 
 **Done (1 Nov):** A model, tools; B viewpoints, plot, map; C stages;
-D 14 sourced rates, 25 items costed, day-one cases, 3 scope conflicts.
-Photo review: E71-E76, room conditions, house facts; see `docs/properties/P-003/`.
+D 14 sourced rates, 25 items costed; photo review E71-E76 (P-003 README).
 Chat extraction ingested (E77-E81, S-87-S-92, budget lines, act-by
 diary). D2: `cost_rollup` view (live, fingerprint matched) and the
 `cash-over-time` engine. No template names a room type, so per-room
@@ -24,17 +23,18 @@ the browser gate prints it (PDF, <10 MB, >2 pages).
 
 ## Next steps
 
-1. **F** the owner's sit-down agenda. Lead item: on the planned budget the
-   cash-over-time engine funds day one, then little else for years; the
-   restoration needs another funding route (DIY, further advance, uplift).
+Sit-down done (1 Nov): R-11 fund by going slower, DIY (`diy:candidate`)
+and borrowing on added value; R-12 day one only what a lender needs;
+R-13 both en-suite routes open; cash now confirmed. Next: the viewing,
+Tom Miller's and Giles's answers - each updates the spec and the data.
 
 ## Waiting on the owner
 
-- Twelve open `fv-` contradictions; five act-by diary items from the chat.
+- Ten open `fv-` contradictions; five act-by diary items from the chat.
 - Four 31 Oct `scheduled_events` still `planned`; close or move them.
 - The viewing: compass, a window reveal, ceiling heights, soil stack.
 
 ## Known and deliberately left
 
-- The connector holds bare `update`s: use `insert ... on conflict`.
-- Over 400: `check-frontend.mjs`, `pages/house.js`. Road Ahead review open.
+- Bare `update`s hang in the connector; over 400 lines: `check-frontend.mjs`,
+  `pages/house.js`. Use `insert ... on conflict`. Road Ahead review open.

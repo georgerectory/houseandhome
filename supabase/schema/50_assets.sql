@@ -206,3 +206,20 @@ create table if not exists public.recipe_ingredients (
 );
 
 create index if not exists recipe_ingredients_recipe_idx on public.recipe_ingredients (recipe_id);
+
+-- WHICH DRAWING A COORDINATE WAS MEASURED ON. Equipment and storage are
+-- the household's (USER scope) and outlive any one house, but plan_x_m
+-- and plan_y_m are metres on ONE building's plan. Without saying which,
+-- a pin recorded at 48 Ameysford Road lands inside Forest View whenever
+-- the numbers happen to fall within its walls - plausible, and wrong.
+-- So the coordinate carries its building_key, and the plan treats a
+-- coordinate from another building as foreign (engine/floorplan.js
+-- place()). Null means "not recorded", which is treated as before.
+alter table public.assets
+  add column if not exists plan_building_key text;
+alter table public.storage_locations
+  add column if not exists plan_building_key text;
+comment on column public.assets.plan_building_key is
+  'The building_key whose plan plan_x_m/plan_y_m were measured on. A coordinate from another building is never drawn as a position.';
+comment on column public.storage_locations.plan_building_key is
+  'The building_key whose plan plan_x_m/plan_y_m were measured on. A coordinate from another building is never drawn as a position.';

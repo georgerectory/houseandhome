@@ -52,6 +52,29 @@ const LEVELS = [
 ];
 const EAVES = 5.30;
 
+// The plot's features, from the plot rectangle and the envelope. Kept as
+// a function so the zones move when either figure is corrected.
+function plotFeatures() {
+  const P = { x0: -9.0, y0: -6.5, w: 31.0, d: 33.0 };
+  const x1 = P.x0 + P.w;
+  const y1 = P.y0 + P.d;
+  const backOfRange = 9.45;            // outer face of the store and lean-to
+  return [
+    { id: 'front-garden', kind: 'zone', label: 'Front garden', rect: [P.x0, P.y0, x1, 0],
+      confidence: 'drafted', basis: 'Plot rectangle north of the front wall.' },
+    { id: 'west-side', kind: 'zone', label: 'West side', rect: [P.x0, 0, 0, backOfRange],
+      confidence: 'drafted', basis: 'Plot rectangle west of the house.' },
+    { id: 'east-side', kind: 'zone', label: 'East side', rect: [W_ENV, 0, x1, backOfRange],
+      confidence: 'drafted', basis: 'Plot rectangle east of the house.' },
+    { id: 'rear-garden', kind: 'zone', label: 'Rear garden, south-facing', rect: [P.x0, backOfRange, x1, y1],
+      confidence: 'drafted', basis: 'Plot rectangle south of the rear range; the particulars state a private south-facing rear garden.' },
+    { id: 'parking', kind: 'parking', label: 'Off-road parking (position to confirm)', rect: [P.x0 + 1.0, P.y0 + 0.5, P.x0 + 6.5, -0.5],
+      confidence: 'drafted', basis: 'The particulars state off-road parking but do not show where. Placed by the road on the west side, where the aerial shows open ground; confirm at the viewing.' },
+    { id: 'overhead-line', kind: 'line', label: 'Overhead line (approximate; check the wayleave)', points: [[P.x0 + 4.0, P.y0], [P.x0 + 24.0, y1]],
+      heightM: 6.0, confidence: 'drafted', basis: 'The photographs show a pole by the road and a line crossing the garden. Route and height are not measured; the title and a wayleave search will say whose it is and where it runs.' },
+  ];
+}
+
 export const building = {
   id: 'forest-view',
   name: 'Forest View',
@@ -64,9 +87,15 @@ export const building = {
   note: 'A candidate property under offer by tender (closing midday 30 Nov 2026), not a purchase. Every dimension is read off the agent\'s drawing or derived from it; none may size a real job or order a real material until it is measured on site.',
   orientation: {
     planUpIs: 'north',
+    frontFaces: 'north',  // the street side; the named viewpoints derive Front and Garden from it
     street: 'Tiptoe Road',
     note: 'The front door faces north onto Tiptoe Road; the rear garden faces south (particulars). The Wootton & Bashley Club is to the west and the lane (Wootton Rough) to the east. Orientation is to be checked with a compass at the viewing.',
   },
+  // Where it is. The listing's own map pin (ra_evidence E63), not a
+  // survey point: it places the house on the location map and nothing
+  // else. OpenStreetMap's own labels carry Wootton, the open forest and
+  // New Milton station, so no other marker is placed by hand.
+  location: { lat: 50.781945, lon: -1.646092, zoom: 13, confidence: 'researched', source: 'Listing map pin (Zoopla, 30 Oct 2026; ra_evidence E63)' },
   grid: { cell: 1.0, originX: 0, originY: 0 },
   defaults: {
     wallExternal: T_EXT,
@@ -89,8 +118,10 @@ export const building = {
   // photograph: about a quarter of an acre (stated), about 31 x 33m, the
   // house set about 6.5m back from Tiptoe Road and about 9m in from the
   // west boundary. Plus or minus several metres until the HM Land
-  // Registry title plan is read. No hedge, parking or planting is drawn:
-  // those would dress an estimate up as a survey.
+  // Registry title plan is read. No hedge or planting is drawn: those
+  // would dress an estimate up as a survey. The FEATURES below are drawn
+  // because they change what can be built - where a car stands, where a
+  // live wire crosses the garden - and each says how little is known.
   plot: {
     widthM: 31.0,
     depthM: 33.0,
@@ -105,6 +136,11 @@ export const building = {
       east: 'Wootton Rough (lane)',
       south: 'Fields and gardens',
     },
+    // Drafted, every one. Zones are the plot rectangle cut by the house
+    // envelope (arithmetic, not tracing); the parking and the line are
+    // placed from the photographs and say so. The plan draws them dotted
+    // and labelled; the 3D view draws only the line, on two poles.
+    features: plotFeatures(),
   },
 
   sources: [

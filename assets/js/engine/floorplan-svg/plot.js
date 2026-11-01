@@ -51,6 +51,41 @@ function setback(x1, y1, x2, y2, label) {
 }
 
 /**
+ * The plot's drafted features: garden zones, a parking area, an
+ * overhead line. Each is DOTTED and carries "(approx.)" or its own
+ * "to confirm" in the label, because none of them is surveyed - they are
+ * on the drawing because they change what can be built, not because
+ * anybody has measured them.
+ */
+export function featuresHtml(features) {
+  return (features ?? []).map((f) => {
+    if (f.kind === 'line' && f.points?.length >= 2) {
+      const pts = f.points.map(([x, y]) => `${n(x)},${n(y)}`).join(' ');
+      const [[ax, ay], [bx, by]] = [f.points[0], f.points[f.points.length - 1]];
+      const mx = (ax + bx) / 2;
+      const my = (ay + by) / 2;
+      const deg = (Math.atan2(by - ay, bx - ax) * 180) / Math.PI;
+      const up = deg > 90 || deg < -90 ? deg + 180 : deg;
+      const size = fitSize(f.label, Math.hypot(bx - ax, by - ay) * 0.6, FIGURE);
+      return `<g class="fp-plot-feature" data-feature="${escape(f.id)}">
+        <polyline class="fp-plot-wire" points="${pts}"></polyline>
+        <text class="fp-plot-note" x="${n(mx)}" y="${n(my - 0.4)}" font-size="${n(size)}"
+          transform="rotate(${n(up)} ${n(mx)} ${n(my)})">${escape(f.label)}</text></g>`;
+    }
+    if (!f.rect) return '';
+    const [x1, y1, x2, y2] = f.rect;
+    const w = x2 - x1;
+    const h = y2 - y1;
+    if (w <= 0 || h <= 0) return '';
+    const cls = f.kind === 'parking' ? 'fp-plot-parking' : 'fp-plot-zone';
+    const size = fitSize(f.label, w * 0.9, FIGURE);
+    return `<g class="fp-plot-feature" data-feature="${escape(f.id)}">
+      <rect class="${cls}" x="${n(x1)}" y="${n(y1)}" width="${n(w)}" height="${n(h)}"></rect>
+      <text class="fp-plot-note" x="${n(x1 + w / 2)}" y="${n(y1 + h / 2)}" font-size="${n(size)}">${escape(f.label)}</text></g>`;
+  }).join('');
+}
+
+/**
  * The boundary, with the four setbacks dimensioned.
  *
  * The setbacks are measured to the ENVELOPE - the rectangle the building
@@ -97,6 +132,7 @@ export function plotHtml(plot, b, envelope) {
   return `<g class="fp-plot" aria-hidden="true">
     <rect class="fp-plot-area" x="${n(x1)}" y="${n(y1)}"
       width="${n(plot.widthM)}" height="${n(plot.depthM)}"></rect>
+    ${featuresHtml(plot.features)}
     ${hedge}
     <rect class="fp-plot-line" x="${n(x1)}" y="${n(y1)}"
       width="${n(plot.widthM)}" height="${n(plot.depthM)}"></rect>

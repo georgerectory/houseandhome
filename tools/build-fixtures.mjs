@@ -289,6 +289,9 @@ const assets = [
   id: uid('asset', i), name, category, room_key: roomKey,
   room_name: roomBy[roomKey]?.name ?? null,
   plan_x_m: planX, plan_y_m: planY,
+  // Measured on the earlier house's plan, so on Forest View these pins
+  // fall back to their rooms rather than claiming a position.
+  plan_building_key: planX == null ? null : '48-ameysford-road',
   make: null, model: null, status: 'wanted', warranty_expires_on: null, confidence: 'drafted',
 }));
 
@@ -300,7 +303,7 @@ const data = {
   household: { id: 'demo', name: 'House & Home' },
   // The one active property. Demo mode names the same house the geometry
   // under data/buildings/ draws, so the header reads the same either way.
-  property: { ref: 'P-001', name: '48 Ameysford Road', status: 'active', offer_status: 'none' },
+  property: { ref: 'P-003', name: 'Forest View', status: 'active', offer_status: 'none' },
   pot: { name: 'House pot', monthly_contribution: 400, contribution_confidence: 'drafted', unallocated_balance: 0 },
   allocation_settings: { decay: 0.85, floor_share: 0.10 },
   rooms, items, bills, assets,
@@ -312,10 +315,10 @@ const data = {
   whats_next: [
     {
       source: 'event', id: uid('ev', 0), key: null,
-      title: 'Open house at 48 Ameysford Road',
+      title: 'Viewing at Forest View',
       description: 'Take the viewing checklist, a torch, a tape and a practical friend.',
       on_date: dayOffset(3), starts_at: null,
-      location: '48 Ameysford Road, Ferndown, Dorset BH22 9QA',
+      location: 'Forest View, Tiptoe Road, Wootton BH25 5SJ',
       status: 'planned', days_until: 3, open_items: 0,
     },
     {

@@ -99,6 +99,7 @@ export const building = {
   note: 'A candidate property, not a purchase. No offer has been accepted and no survey has been done. Every dimension in this model is read off a drawing or derived from one, so none of it may size a real job or order a real material until it is measured on site.',
   orientation: {
     planUpIs: 'north',
+    frontFaces: 'south',  // the street side; the named viewpoints derive Front and Garden from it
     street: 'Ameysford Road',
     note: 'The front door faces south onto Ameysford Road; the garden is north. Pine Close is to the west, No. 46 to the east.',
   },

@@ -11,20 +11,21 @@ Active since 31 Oct 2026 (RA-05). The plan of record is
 The purchase comes first (R-10): nothing here touches the tender. Money
 figures are private: Supabase only.
 
-**Done (phase A, 1 Nov):** as-bought model landed (patch f0ac4b6, with
-its private figures stripped before it reached git); the browser gate
-made building-aware; `takeoff.mjs` measures any building and stage
-(`--stage`), garden opt-in; 13 rooms and 2 levels synced from the
-geometry (`tools/rooms-sql.mjs`); five `fv-` contradictions raised.
+**Done (1 Nov):** A - model landed (private figures stripped before git),
+tools building-aware, 13 rooms synced, five `fv-` contradictions raised.
+B - viewpoints follow `orientation.frontFaces` (Front was showing the
+garden) plus four bird's-eye corners and top-down; drafted plot zones,
+parking and the overhead line (3D on poles); an on-demand OSM map
+(Leaflet vendored); `plan_building_key` so pins measured at Ameysford
+are never drawn as positions here (live, 14 backfilled, fingerprint ok).
 
 ## Next steps
 
-1. **B** plot, overhead line, parking, bird's-eye viewpoints, OSM map.
-2. **C** stages S1, S2a, S2b; `building_stages`, `building_changes`.
-3. **D** six price references, per-room templates (PLAN D5), day one,
+1. **C** stages S1, S2a, S2b; `building_stages`, `building_changes`.
+2. **D** six price references, per-room templates (PLAN D5), day one,
    cost roll-ups, cash over time.
-4. **E** House, Plan, Money, the Handbook, print CSS and a PDF gate.
-5. **F** the owner's sit-down agenda.
+3. **E** House, Plan, Money, the Handbook, print CSS and a PDF gate.
+4. **F** the owner's sit-down agenda.
 
 ## Waiting on the owner
 
@@ -36,5 +37,4 @@ geometry (`tools/rooms-sql.mjs`); five `fv-` contradictions raised.
 ## Known and deliberately left
 
 - The connector holds bare `update`s: use `insert ... on conflict`.
-- Over 400 lines: `check-frontend.mjs`, `pages/house.js`. Road Ahead's
-  deferred dashboard review and kit contradictions stand.
+- Over 400: `check-frontend.mjs`, `pages/house.js`. Road Ahead review open.

@@ -14,8 +14,16 @@
  "note": "A candidate property under offer by tender (closing midday 30 Nov 2026), not a purchase. Every dimension is read off the agent's drawing or derived from it; none may size a real job or order a real material until it is measured on site.",
  "orientation": {
   "planUpIs": "north",
+  "frontFaces": "north",
   "street": "Tiptoe Road",
   "note": "The front door faces north onto Tiptoe Road; the rear garden faces south (particulars). The Wootton & Bashley Club is to the west and the lane (Wootton Rough) to the east. Orientation is to be checked with a compass at the viewing."
+ },
+ "location": {
+  "lat": 50.781945,
+  "lon": -1.646092,
+  "zoom": 13,
+  "confidence": "researched",
+  "source": "Listing map pin (Zoopla, 30 Oct 2026; ra_evidence E63)"
  },
  "grid": {
   "cell": 1,
@@ -52,7 +60,92 @@
    "west": "Wootton & Bashley Club (to check)",
    "east": "Wootton Rough (lane)",
    "south": "Fields and gardens"
-  }
+  },
+  "features": [
+   {
+    "id": "front-garden",
+    "kind": "zone",
+    "label": "Front garden",
+    "rect": [
+     -9,
+     -6.5,
+     22,
+     0
+    ],
+    "confidence": "drafted",
+    "basis": "Plot rectangle north of the front wall."
+   },
+   {
+    "id": "west-side",
+    "kind": "zone",
+    "label": "West side",
+    "rect": [
+     -9,
+     0,
+     0,
+     9.45
+    ],
+    "confidence": "drafted",
+    "basis": "Plot rectangle west of the house."
+   },
+   {
+    "id": "east-side",
+    "kind": "zone",
+    "label": "East side",
+    "rect": [
+     9.91,
+     0,
+     22,
+     9.45
+    ],
+    "confidence": "drafted",
+    "basis": "Plot rectangle east of the house."
+   },
+   {
+    "id": "rear-garden",
+    "kind": "zone",
+    "label": "Rear garden, south-facing",
+    "rect": [
+     -9,
+     9.45,
+     22,
+     26.5
+    ],
+    "confidence": "drafted",
+    "basis": "Plot rectangle south of the rear range; the particulars state a private south-facing rear garden."
+   },
+   {
+    "id": "parking",
+    "kind": "parking",
+    "label": "Off-road parking (position to confirm)",
+    "rect": [
+     -8,
+     -6,
+     -2.5,
+     -0.5
+    ],
+    "confidence": "drafted",
+    "basis": "The particulars state off-road parking but do not show where. Placed by the road on the west side, where the aerial shows open ground; confirm at the viewing."
+   },
+   {
+    "id": "overhead-line",
+    "kind": "line",
+    "label": "Overhead line (approximate; check the wayleave)",
+    "points": [
+     [
+      -5,
+      -6.5
+     ],
+     [
+      15,
+      26.5
+     ]
+    ],
+    "heightM": 6,
+    "confidence": "drafted",
+    "basis": "The photographs show a pole by the road and a line crossing the garden. Route and height are not measured; the title and a wayleave search will say whose it is and where it runs."
+   }
+  ]
  },
  "sources": [
   {

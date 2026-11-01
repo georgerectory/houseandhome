@@ -411,3 +411,15 @@
 
 .hv-walkbar > * { pointer-events: auto; }
 
+
+/* The location map. A fixed aspect rather than a fixed height, so it is
+ * a sensible shape on a phone held upright and on a desktop alike; svh,
+ * never vh, caps it on a short landscape phone. */
+.hv-map {
+  inline-size: 100%;
+  aspect-ratio: 4 / 3;
+  max-block-size: 70svh;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.hv-map__pin { stroke: var(--accent); fill: var(--accent); fill-opacity: 0.35; }

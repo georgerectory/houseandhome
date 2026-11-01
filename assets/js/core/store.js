@@ -57,7 +57,7 @@ async function loadLive() {
     : q.is('property_id', null));
 
   const [rooms, items, bills, assets, storage, inventory, settings, prices,
-    carried, accounts, shopping, totals, stock, review, links, docs, theme, ready, diary] = await Promise.all([
+    carried, accounts, shopping, totals, stock, review, links, docs, theme, ready, diary, rollup, facts] = await Promise.all([
     scoped(sb.from('rooms').select('*')),
     scoped(sb.from('work_items').select('*')).order('priority'),
     scoped(sb.from('bills').select('*').eq('is_active', true)),
@@ -102,6 +102,16 @@ async function loadLive() {
     // list, with days_until already counted - see whats_next in
     // 89_road_ahead_logic.sql for why that is not the page's job.
     sb.from('whats_next').select('*').order('days_until'),
+    // What the open work costs, summed in Postgres (86_costs.sql) by
+    // phase, trade, room and tag, with the share resting on unconfirmed
+    // figures: the pages show these sums, they never re-add work items.
+    property
+      ? sb.from('cost_rollup').select('*').eq('property_id', property.id)
+      : Promise.resolve({ data: [], error: null }),
+    // What is known about the house that is not yet a room or a job.
+    property
+      ? sb.from('house_facts').select('*').eq('property_id', property.id).order('created_at')
+      : Promise.resolve({ data: [], error: null }),
   ]);
   const { data: pot, error: potError } = await sb.from('pots')
     .select('*').eq('is_active', true).maybeSingle();
@@ -112,7 +122,7 @@ async function loadLive() {
   // it knows, so a broken read is raised rather than swallowed.
   const failed = Object.entries({
     rooms, items, bills, assets, storage, inventory, settings, prices, carried,
-    accounts, shopping, totals, stock, review, links, docs, theme, ready, diary, pot: { error: potError },
+    accounts, shopping, totals, stock, review, links, docs, theme, ready, diary, rollup, facts, pot: { error: potError },
   }).filter(([, r]) => r?.error).map(([name, r]) => `${name}: ${r.error.message}`);
   if (failed.length) {
     throw new Error(`Could not read the database - ${failed.join('; ')}`);
@@ -170,6 +180,8 @@ async function loadLive() {
     theme_book: theme.data ?? [],
     work_item_readiness: ready.data ?? [],
     whats_next: diary.data ?? [],
+    cost_rollup: rollup.data ?? [],
+    house_facts: facts.data ?? [],
   };
   return cache;
 }

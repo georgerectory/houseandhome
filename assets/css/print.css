@@ -1,0 +1,60 @@
+/* ---------------------------------------------------------------
+   Print. The Handbook prints to the PDF the owner keeps (decision
+   RA-07: Safari, Share, Print, Save as PDF), so the page itself is the
+   document: A4, light on paper whatever the screen theme, no controls,
+   every section on its own page, plans as the same SVG the screen
+   draws. Loaded with media="print", so nothing here touches the screen.
+   --------------------------------------------------------------- */
+@page {
+  size: A4;
+  margin: 14mm 12mm 16mm;
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+/* Controls do nothing on paper. */
+button,
+.btn,
+select,
+.hv-views,
+.hv-walkbar,
+[data-display-open],
+[data-location-map],
+.hv-map {
+  display: none;
+}
+
+/* Every numbered section of the house document starts a page; the cover
+   section does not, so the first page is not blank. */
+.hb-sec + .hb-sec { break-before: page; }
+.hb-sec h2,
+.hb-sec h3 { break-after: avoid; }
+
+.hb-plan {
+  break-inside: avoid;
+  margin-block: var(--space-3);
+}
+.hb-plan svg {
+  inline-size: 100%;
+  block-size: auto;
+  max-block-size: 120mm;
+}
+.hb-plan figcaption {
+  font-weight: 600;
+  margin-block-end: var(--space-2);
+}
+
+.table { font-size: 0.85em; }
+.table tr { break-inside: avoid; }
+.chip { border: 1px solid currentColor; }
+
+/* The rest of the Handbook (how the system works) follows the house
+   document on its own page. */
+.hb-doc + .section { break-before: page; }

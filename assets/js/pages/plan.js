@@ -13,10 +13,12 @@
 // every figure inside it inherits that date.
 import { requireAuth } from '../core/auth.js';
 import { mountShell, showProperty, render } from '../core/shell.js';
-import { load } from '../core/store.js';
+import { load, loadRoadAhead } from '../core/store.js';
 import { emptyState } from '../core/page.js';
 import { escape } from '../core/format.js';
 import { checklistFor, totalItems, tierOf, TIER_LABEL } from '../engine/checklist.js';
+import { cashPlan } from '../engine/cash-plan.js';
+import { costsHtml, cashHtml } from './forest/sections.js';
 
 const user = await requireAuth();
 if (!user) throw new Error('redirecting to login');
@@ -26,6 +28,19 @@ mountShell('plan.html', { user });
 const d = await load();
 showProperty(d.property);
 const sections = checklistFor(d.items ?? [], 'viewing');
+// The money side of the plan: what the ideas cost and when the planned
+// budget could pay for them. Variables come from Road Ahead's register,
+// the sums from cost_rollup; a failure to read either leaves the rest
+// of the page standing.
+const road = await loadRoadAhead().catch(() => null);
+const costPart = (d.cost_rollup ?? []).length
+  ? `<div class="doc-part" id="costs">
+      <h2>What the ideas cost</h2>
+      ${costsHtml(d.cost_rollup)}
+      <h2>When the money exists</h2>
+      ${cashHtml(cashPlan(road?.variables ?? [], d.cost_rollup))}
+    </div>`
+  : '';
 const total = totalItems(sections);
 const doc = (d.document_sections ?? []).slice()
   .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
@@ -101,8 +116,9 @@ const contents = sections.length > 1
     </nav>`
   : '';
 
-render('[data-page-root]', (doc.length || sections.length)
+render('[data-page-root]', (doc.length || sections.length || costPart)
   ? `<div class="doc">
+      ${costPart}
       ${handbook}
       ${sections.length ? `<h2>Viewing day</h2>
       <p class="notice">

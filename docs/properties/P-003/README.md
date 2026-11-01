@@ -45,6 +45,35 @@ so `researched` at best until seen:
   photographs show a sink, units, a cooker and radiators, so the services
   may only be switched off.
 
+## What the listing photos show (reviewed 1 Nov 2026, drafted)
+
+Fifteen agent photos, zoomed room by room (ra_evidence E71-E76). A
+photo review is not a survey: it says where to look, not what is there.
+
+- **Only one chimney stack**, on the west gable, although the plan and
+  photos put fireplaces on the east wall in the family room, dining room,
+  bedroom 2 and bedroom 3. The east stack has been taken down: check the
+  breasts are supported and the flues capped and vented.
+- **West gable salt bloom** in a band up the flue line: persistent
+  wetting from the stack top, pots or flashing.
+- **Vegetation and soil banked against three walls**: bridges the DPC
+  and blocks airbricks under suspended timber floors. The cheapest and
+  most urgent job in the house; it is on the roadmap as a day-one item.
+- **A bedroom ceiling has collapsed** beside a chimney breast, with
+  water staining across it; the first place to look for rot.
+- **Family room**: damp staining and plaster loss at low level under the
+  front window. **Bathroom**: black condensation mould; taped bath panel.
+- **Brickwork reads as stretcher bond**, which usually means a cavity
+  wall, against the model's solid-wall assumption (contradiction
+  `fv-wall-construction`): the window reveal decides.
+- **Heating exists**: a combi-style boiler and radiators in the kitchen,
+  a back-boiler-type gas fire in the dining room, against the agent's
+  "no central heating" (contradiction `fv-heating-exists`).
+- **Asbestos suspects**: the rear range and outbuilding sheet roofs, the
+  kitchen floor covering. Sample before touching.
+- No dry rot fruiting body, spore dust or cuboidal cracking is visible at
+  listing-photo resolution.
+
 ## Assumed in the model (drafted)
 
 - **Solid 9in brick walls**, so lime plaster on the internal face

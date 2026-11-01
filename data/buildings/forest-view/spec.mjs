@@ -210,13 +210,13 @@ const DERIVATION = [
 ];
 
 const SHARED_ASSUMPTIONS = [
-  { id: 'wall-external', severity: 'medium', note: `External walls modelled at ${T_EXT}m solid brick with plaster. Not measured: measure a window reveal at the viewing.` },
+  { id: 'wall-external', severity: 'high', note: `External walls modelled at ${T_EXT}m solid brick with plaster. Not measured. The front brickwork in the listing photo reads as stretcher bond (no headers), which usually means a CAVITY wall (ra_evidence E72, contradiction fv-wall-construction): measure a window reveal at the viewing before the plaster spec (lime or gypsum) is decided.` },
   { id: 'wall-internal', severity: 'low', note: `Internal partitions modelled at ${T_INT}m. Not measured.` },
   { id: 'storey-heights', severity: 'medium', note: 'Ceilings of 2.60 (ground) and 2.40 (first) and eaves at 5.30 are typical for the age, not measured. Everything vertical rests on them.' },
   { id: 'rear-range', severity: 'medium', note: 'The store and lean-to are scaled off the plan (about 5.4 x 2.35m outside) with lightweight 0.15m outer walls; their roof is a single mono-pitch slope off the rear wall, as the photos show.' },
   { id: 'openings', severity: 'medium', note: 'Window and door positions and widths are scaled off the drawing, not dimensioned on it.' },
   { id: 'stairs', severity: 'medium', note: 'A straight flight up the west side of the hall rising south, 0.78 wide, 14 risers at 0.207 (2.90m) and 13 goings at 0.20. The plan shows the flight; nothing dimensions it.' },
-  { id: 'chimneys', severity: 'medium', note: 'One stack is visible, on the west gable. Both front rooms upstairs and down have chimney breasts; the east breasts\' flue route through the hip is unknown - check in the loft.' },
+  { id: 'chimneys', severity: 'high', note: 'One stack only, on the west gable (every external and aerial photo). The plan and photos put fireplaces on the EAST wall in the family room, dining room, bedroom 2 and bedroom 3, so the east stack has been taken down (E74). Check in the loft that what remains is supported and the flues are capped and vented; the west gable shows salt bloom along its flue line (E75).' },
   { id: 'orientation', severity: 'high', note: 'Front assumed to face north (particulars: south-facing rear garden). Check with a compass; if wrong, the sun study and every elevation label are wrong too.' },
 ];
 
@@ -299,7 +299,7 @@ const asBought = {
     { id: 'g-door-dining-leanto', level: 'ground', axis: 'y', line: 'rear', x: 5.40, width: 0.76, type: 'door', leaf: 'single', swing: { hinge: 'a', toward: 'south' }, note: 'Dining room out to the lean-to (particulars: a door leading outside).' },
     { id: 'g-win-dining-s', level: 'ground', axis: 'y', line: 'rear', x: 7.61, width: 0.60, type: 'window', note: 'Small window onto the store roof area; scaled.' },
     { id: 'g-win-kitchen-w', level: 'ground', axis: 'x', line: 'w-main', y: 5.40, width: 1.00, type: 'window', note: 'Kitchen is double aspect (particulars).' },
-    { id: 'g-win-dining-e', level: 'ground', axis: 'x', line: 'e-main', y: 5.40, width: 1.00, type: 'window', note: 'Dining room is double aspect (particulars).' },
+    { id: 'g-win-dining-e', level: 'ground', axis: 'x', line: 'e-main', y: 6.42, width: 0.60, type: 'window', note: 'Dining room is double aspect (particulars). Small, beside the chimney breast near the south corner (photo 3), so not centred.' },
     // GROUND, internal.
     { id: 'g-door-sitting', level: 'ground', axis: 'x', line: 'hall-w', y: 0.80, width: 0.78, type: 'door', leaf: 'single', swing: { hinge: 'a', toward: 'west' } },
     { id: 'g-door-family', level: 'ground', axis: 'x', line: 'hall-e', y: 3.35, width: 0.78, type: 'door', leaf: 'single', swing: { hinge: 'b', toward: 'east' } },
@@ -356,6 +356,12 @@ const asBought = {
     { id: 'breast-family', level: 'ground', room: 'family', kind: 'chimney_breast', rect: [9.19, 1.25, 9.61, 2.65], height: 2.60, note: 'Cast-iron fireplace (particulars). Flue route through the hip unknown.' },
     { id: 'breast-bed1', level: 'first', room: 'bed1', kind: 'chimney_breast', rect: [0.30, 1.25, 0.72, 2.65], height: 2.40 },
     { id: 'breast-bed2', level: 'first', room: 'bed2', kind: 'chimney_breast', rect: [9.19, 1.25, 9.61, 2.65], height: 2.40 },
+    // The rear east pair, drawn on the agent's plan and seen in the photos:
+    // the dining room's fireplace (gas fire, with an old cast-iron copper in
+    // the north alcove) and bedroom 3's. Their stack is gone (assumption
+    // chimneys). Position along the wall scaled off the plan and photo 3.
+    { id: 'breast-dining', level: 'ground', room: 'dining', kind: 'chimney_breast', rect: [9.19, 4.86, 9.61, 6.06], height: 2.60, note: 'Cabinet gas fire of the back-boiler type; a cast-iron copper or range in the north alcove (photo 3). Flue route unknown: no east stack.' },
+    { id: 'breast-bed3', level: 'first', room: 'bed3', kind: 'chimney_breast', rect: [9.19, 4.86, 9.61, 6.06], height: 2.40, note: 'Drawn on the agent\'s plan; stacked over the dining room\'s breast.' },
     { id: 'porch', level: 'ground', room: 'hall', kind: 'porch', rect: [4.01, -1.45, 5.91, 0], height: 2.95, eavesM: 2.30, cheekM: 0.12, overhang: 0.08, note: 'A small gabled, glazed porch over the front door (photos), about 1.9 x 1.45m, scaled. Modelled with the engine\'s porch: cheeks and a pitched roof.' },
   ],
 };
@@ -403,7 +409,7 @@ const groundOpen = {
     ...SHARED_ASSUMPTIONS,
     { id: 's1-beam', severity: 'high', note: 'The kitchen | dining partition (kit-e) is assumed load-bearing (bedroom 4 and the bathroom sit over it), so removing it needs a steel beam on padstones, a structural engineer and building control. Assumed, not designed.' },
     { id: 's1-no-island', severity: 'medium', note: 'The kitchen-diner is 2.74m deep. An island with 0.9m clear round it needs about 3.3m (0.6 run + 0.9 + 0.9 island + 0.9), so an island does NOT fit; the lived-in arrangement uses a run and a table. A peninsula or a deeper room (S2b does not deepen it) are the alternatives.' },
-    { id: 's1-range', severity: 'medium', note: 'The owner wants a range "in the heart of the home". The particulars give the dining room a feature fireplace, but its position is not on the plan; the range is placed on the kitchen end until the viewing finds the flue.' },
+    { id: 's1-range', severity: 'medium', note: 'The owner wants a range "in the heart of the home". The dining room\'s east breast has an old cast-iron copper or range in its north alcove (photo 3): the natural place for one. But that breast\'s stack is gone (E74), so a range there needs a new flue (twin-wall, or a reinstated stack: NFNPA). Until that is settled the range is drawn on the kitchen end.' },
     { id: 's1-rear-range', severity: 'high', note: 'The rear range is rebuilt on the existing footprint and lines (walls still modelled at 0.15m, so the rooms keep their drawn size; a real insulated wall is thicker and takes from them). Rebuilding on the same footprint MAY be permitted development in the National Park: check with the NFNPA before relying on it. Asbestos survey before the old roof sheeting is touched.' },
     { id: 's1-wc-drain', severity: 'medium', note: 'The WC drains to the rear; where the existing drain runs is unknown until the viewing (soil-stack position).' },
     { id: 's1-front-boot-room', severity: 'low', note: 'Alternative noted for the sit-down (owner, 1 Nov 2026): a boot room at the FRONT by the porch with the WC off the hall, as in the owner\'s earlier layouts. Not drawn here, because nothing on the plan supports it yet.' },

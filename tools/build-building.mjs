@@ -27,7 +27,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 
-const BUILDINGS = ['48-ameysford-road'];
+const BUILDINGS = ['48-ameysford-road', 'forest-view'];
 const root = resolve(dirname(new URL(import.meta.url).pathname), '..');
 
 /** Metres, rounded to the millimetre. Every coordinate in the output

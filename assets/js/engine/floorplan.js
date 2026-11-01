@@ -278,8 +278,15 @@ export function place(thing, building, { roomKeyOf = (t) => t.room_key } = {}) {
   const key = roomKeyOf(thing);
   const room = key ? roomByKey(building, key) : null;
   const hasXY = thing.plan_x_m != null && thing.plan_y_m != null;
-  const foreign = hasXY
-    && !insideBuilding(building, Number(thing.plan_x_m), Number(thing.plan_y_m));
+  // A coordinate measured on ANOTHER building's plan is foreign even when
+  // its numbers happen to land inside this one: that is the case the
+  // envelope test alone cannot catch, and it puts a pin in the wrong
+  // room of the wrong house with every appearance of precision.
+  const ownKey = String(building?.id ?? '').split('/')[0];
+  const otherPlan = hasXY && thing.plan_building_key && ownKey
+    && thing.plan_building_key !== ownKey;
+  const foreign = hasXY && (otherPlan
+    || !insideBuilding(building, Number(thing.plan_x_m), Number(thing.plan_y_m)));
 
   if (hasXY && !foreign) {
     const x = Number(thing.plan_x_m);

@@ -379,3 +379,36 @@
   --plan-wall-new-face: oklch(42% 0.022 250);
   }
 }
+
+/* The plot's drafted features. Dotted, lighter than the boundary and
+ * labelled with their own uncertainty: zones and a parking area placed
+ * from photographs, and an overhead line nobody has measured. */
+.fp-plot-zone {
+  fill: none;
+  stroke: var(--plan-boundary);
+  stroke-width: 0.05;
+  stroke-dasharray: 0.15 0.3;
+  opacity: 0.6;
+}
+.fp-plot-parking {
+  fill: var(--plan-ironmongery);
+  fill-opacity: 0.12;
+  stroke: var(--plan-ironmongery);
+  stroke-width: 0.06;
+  stroke-dasharray: 0.3 0.2;
+}
+.fp-plot-wire {
+  fill: none;
+  stroke: var(--plan-ironmongery);
+  stroke-width: 0.08;
+  stroke-dasharray: 0.8 0.3 0.1 0.3;
+}
+.fp-plot-note {
+  fill: var(--plan-boundary);
+  font-style: italic;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  paint-order: stroke;
+  stroke: var(--paper);
+  stroke-width: 0.12;
+}

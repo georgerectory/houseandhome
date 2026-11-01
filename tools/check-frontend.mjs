@@ -22,6 +22,13 @@ import { mkdirSync, existsSync } from 'node:fs';
 import { PAGES as PAGE_LIST, PUBLIC_PAGES } from '../assets/js/core/pages.js';
 import { driveRoad } from './check-frontend-road.mjs';
 
+// The building the site shows, read the way the site reads it, so the
+// sweep checks THIS building's stages rather than a remembered count.
+const ACTIVE_BUILDING = (await readFile(new URL('../assets/js/core/building-data.js', import.meta.url), 'utf8'))
+  .match(/const BUILDING = '([^']+)'/)[1];
+const ACTIVE_STAGES = JSON.parse(await readFile(
+  new URL(`../data/buildings/${ACTIVE_BUILDING}/index.json`, import.meta.url), 'utf8')).stages;
+
 const ROOT = new URL('..', import.meta.url).pathname;
 // Port 0 asks the OS for a free one. A fixed port made this gate fail
 // intermittently when a previous run's server was still holding it -
@@ -144,6 +151,12 @@ for (const theme of THEMES) {
       colorScheme: theme,
       deviceScaleFactor: 1,
     });
+    // Map tiles are stubbed with a one-pixel PNG: the suite runs offline
+    // and in CI, and must never put load on openstreetmap.org.
+    await ctx.route('https://tile.openstreetmap.org/**', (r) => r.fulfill({
+      contentType: 'image/png',
+      body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', 'base64'),
+    }));
     const page = await ctx.newPage();
     // Force demo mode for the sweep: the suite must run offline, in CI,
     // and without touching the live database. This is the only consumer
@@ -259,7 +272,10 @@ for (const theme of THEMES) {
             if (!/^[A-Z0-9]+-[A-Z]+\d+$/.test(ref)) {
               failures.push(`${label}: ${lv} reference "${ref}" is not level-column-row`);
             }
-            if (seenRefs.has(ref)) {
+            // One reference naming spots on two FLOORS is the bug. Two
+            // approximate pins in one room share that room's reference
+            // on the same floor, and the register says they are inferred.
+            if (seenRefs.has(ref) && seenRefs.get(ref) !== lv) {
               failures.push(`${label}: reference ${ref} is used on both ${seenRefs.get(ref)} and ${lv}`);
             }
             seenRefs.set(ref, lv);
@@ -316,7 +332,12 @@ for (const theme of THEMES) {
           scrollW: document.documentElement.scrollWidth,
           clientW: document.documentElement.clientWidth,
         }));
-        if (stageIds.length < 2) failures.push(`${label}: only ${stageIds.length} version offered`);
+        // Every stage the building declares must be offered - no more, no
+        // fewer. A one-stage building offers one; switching is then
+        // proved the moment a second stage exists.
+        if (stageIds.length !== ACTIVE_STAGES.length) {
+          failures.push(`${label}: ${stageIds.length} version(s) offered, the building has ${ACTIVE_STAGES.length}`);
+        }
         const before = await shape();
         if (!before.swings) failures.push(`${label}: no door swings drawn`);
         if (!before.walls) failures.push(`${label}: no walls drawn`);
@@ -512,9 +533,27 @@ for (const theme of THEMES) {
             p.showPlot(false);
             return { spec: true, want: spec.heightM, tallest };
           });
-          if (!hedge.spec) failures.push(`${label}: the plot carries no hedge`);
-          else if (Math.abs(hedge.tallest - hedge.want) > 0.01) {
+          // A hedge is drawn only where the plot declares one: the
+          // drawings decide, and an unsurveyed hedge is not drawn.
+          if (hedge.spec && Math.abs(hedge.tallest - hedge.want) > 0.01) {
             failures.push(`${label}: the hedge builds ${hedge.tallest.toFixed(2)}m tall, not ${hedge.want}`);
+          }
+          // AN OVERHEAD LINE the plot declares must stand up in 3D: its
+          // poles are the tallest thing on the plot, at the stated height.
+          const wire = await page.evaluate(() => {
+            const p = window.__hhPlanner;
+            const line = (p.building.plot?.features ?? []).find((f) => f.kind === 'line');
+            if (!line) return { line: false };
+            p.showPlot(true);
+            let tallest = 0;
+            p.model.plotGroup.traverse((m) => {
+              if (m.isMesh) tallest = Math.max(tallest, m.geometry?.parameters?.height ?? 0);
+            });
+            p.showPlot(false);
+            return { line: true, want: line.heightM ?? 6, tallest };
+          });
+          if (wire.line && wire.tallest < wire.want) {
+            failures.push(`${label}: the overhead line's poles build ${wire.tallest.toFixed(2)}m, under the line at ${wire.want}m`);
           }
         }
         if (!/^Facing /.test(walk.word)) {
@@ -595,6 +634,33 @@ for (const theme of THEMES) {
         }
         if (!survey.verdicts) failures.push(`${label}: the survey reached no verdict on anything`);
         if (survey.scrollW > survey.clientW + 1) failures.push(`${label}: page scroll in the survey`);
+
+        // THE LOCATION MAP, where the building has a location. Nothing
+        // loads until asked; asked, it draws a Leaflet map with the
+        // OpenStreetMap attribution the tile licence requires.
+        await page.click('[data-view="plan"]');
+        await page.waitForTimeout(200);
+        const hasLoc = await page.evaluate(() => !!window.__hhPlanner?.building?.location
+          || !!document.querySelector('[data-location-map]'));
+        if (hasLoc) {
+          const before = await page.evaluate(() => !!globalThis.L);
+          if (before) failures.push(`${label}: Leaflet loaded before the map was asked for`);
+          await page.evaluate(() => {
+            const btn = document.querySelector('[data-location-map]');
+            btn?.closest('details')?.setAttribute('open', '');
+          });
+          await page.click('[data-location-map]');
+          await page.waitForSelector('.leaflet-container', { timeout: 8000 }).catch(() => {});
+          const map = await page.evaluate(() => ({
+            drawn: !!document.querySelector('.hv-map.leaflet-container'),
+            credit: (document.querySelector('.leaflet-control-attribution')?.textContent || ''),
+            scrollW: document.documentElement.scrollWidth,
+            clientW: document.documentElement.clientWidth,
+          }));
+          if (!map.drawn) failures.push(`${label}: the location map did not draw`);
+          if (!/OpenStreetMap/.test(map.credit)) failures.push(`${label}: the map carries no OpenStreetMap attribution`);
+          if (map.scrollW > map.clientW + 1) failures.push(`${label}: page scroll with the map open`);
+        }
 
         // Leave it where the next viewport expects to find it.
         await page.selectOption('#stage', stageIds[0]);

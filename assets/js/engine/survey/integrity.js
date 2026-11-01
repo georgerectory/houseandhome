@@ -301,7 +301,11 @@ export function auditIntegrity(building, opts = {}) {
   }
   for (const r of (building.roofs ?? [])) {
     const eaves = r.eavesHeight ?? 0;
-    const need = (top?.elevation ?? 0) + (top?.ceilingHeight ?? 0);
+    // A single-storey roof (a lean-to) names the level it covers; every
+    // other roof is checked against the top floor, as before.
+    const covers = r.coversLevel ? (building.levels ?? []).find((l) => l.id === r.coversLevel) : null;
+    const lvl = covers ?? top;
+    const need = (lvl?.elevation ?? 0) + (lvl?.ceilingHeight ?? 0);
     if (eaves + 0.01 < need) {
       add('error', 'eaves-too-low',
         `${r.id} has eaves at ${round(eaves)}m but the top floor ceiling is at ${round(need)}m`);

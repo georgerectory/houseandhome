@@ -1,0 +1,36 @@
+{
+ "id": "forest-view",
+ "schemaVersion": 2,
+ "name": "Forest View",
+ "generatedBy": "tools/build-building.mjs",
+ "defaultStage": "as-bought",
+ "stages": [
+  {
+   "id": "as-bought",
+   "name": "Day one - as bought",
+   "sequence": 10,
+   "status": "existing",
+   "derivedFrom": null,
+   "summary": "The house as the agent's plan draws it: sitting room, hall and family room at the front, kitchen and dining room behind, a single-storey store and lean-to at the back, four bedrooms and a small bathroom upstairs, under a slate roof with a gable and chimney at the west end and a hip at the east.",
+   "file": "stages/as-bought.json",
+   "variants": [
+    {
+     "id": "as-bought--empty",
+     "name": "Empty shell",
+     "derivedFrom": null,
+     "summary": "The house on the day the keys arrive: nothing in it.",
+     "furnitureCount": 0,
+     "file": "variants/as-bought--empty.json"
+    },
+    {
+     "id": "as-bought--as-drawn",
+     "name": "The fittings in the photos",
+     "derivedFrom": "as-bought--empty",
+     "summary": "Only what the particulars show fixed in place: the kitchen's sink under the rear window and the bathroom's suite. Whether any of it works is unconfirmed (the agent says the kitchen is not functional).",
+     "furnitureCount": 5,
+     "file": "variants/as-bought--as-drawn.json"
+    }
+   ]
+  }
+ ]
+}

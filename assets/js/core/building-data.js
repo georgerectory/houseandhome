@@ -11,7 +11,7 @@
 
 import { composeBuilding } from '../engine/building.js';
 
-const BUILDING = '48-ameysford-road';
+const BUILDING = 'forest-view';  // the active property, P-003 (decision RA-05)
 const base = (id = BUILDING) =>
   new URL(`../../../data/buildings/${id}/`, import.meta.url);
 

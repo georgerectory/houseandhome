@@ -362,3 +362,22 @@ test('a coordinate inside the building is still a position', () => {
   assert.equal(p.coordsFrom, undefined);
   assert.ok(p.fullRef, 'and it has a reference');
 });
+
+// A coordinate measured on another building's plan is FOREIGN, even when
+// its numbers land inside this building. Without the key, a pin from the
+// earlier house sat in a room of this one with every appearance of being
+// measured there.
+test('a coordinate from another building\'s plan is never a position here', () => {
+  const fv = composeBuilding(
+    JSON.parse(readFileSync('data/buildings/forest-view/building.json', 'utf8')),
+    JSON.parse(readFileSync('data/buildings/forest-view/stages/as-bought.json', 'utf8')),
+    null,
+  );
+  const inside = { plan_x_m: 2.0, plan_y_m: 2.0 };
+  assert.equal(place(thing({ ...inside, plan_building_key: 'forest-view' }), fv).state, 'placed');
+  const other = place(thing({ ...inside, plan_building_key: '48-ameysford-road' }), fv);
+  assert.notEqual(other.state, 'placed');
+  assert.equal(other.coordsFrom, 'other-building');
+  // Unrecorded keeps the old behaviour: the envelope test decides.
+  assert.equal(place(thing(inside), fv).state, 'placed');
+});

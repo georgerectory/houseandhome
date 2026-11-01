@@ -18,7 +18,7 @@
 // wall you could not step over. It sits outside the hedge, so from the
 // garden the hedge hides it and from the road both read.
 
-import { rectBox } from './geom.js';
+import { rectBox, segmentBox } from './geom.js';
 
 const KERB_H = 0.06;
 const KERB_W = 0.10;
@@ -74,6 +74,26 @@ export function buildPlot(plot, palette) {
     put([x0, y1 - d, x1, y1]);                 // south
     put([x0, y0 + d, x0 + d, y1 - d]);         // west
     put([x1 - d, y0 + d, x1, y1 - d]);         // east
+  }
+
+  // AN OVERHEAD LINE, the one drafted feature drawn in 3D. A garden
+  // zone painted on the ground is an estimate dressed as a survey; a
+  // live wire at six metres is the thing that decides where scaffold
+  // goes and whether a second storey at the back is simple. It is drawn
+  // straight (no sag) between two poles, and the plan labels it
+  // approximate.
+  for (const f of plot.features ?? []) {
+    if (f.kind !== 'line' || !(f.points?.length >= 2)) continue;
+    const h = f.heightM ?? 6;
+    const pole = 0.22;
+    for (const [px, py] of [f.points[0], f.points[f.points.length - 1]]) {
+      const m = rectBox([px - pole / 2, py - pole / 2, px + pole / 2, py + pole / 2], -0.02, h + 0.4, palette.leaf);
+      if (m) out.push(m);
+    }
+    for (let i = 1; i < f.points.length; i += 1) {
+      const m = segmentBox(f.points[i - 1], f.points[i], 0.04, h, 0.04, palette.ironmongery);
+      if (m) out.push(m);
+    }
   }
   return out;
 }

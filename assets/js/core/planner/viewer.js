@@ -24,18 +24,14 @@ import {
 import { palette } from './palette.js';
 import { destinations, resolvePlace, spawnPlace } from './places.js';
 import { WalkInput } from './input.js';
+import { viewpointsFor, standOffset } from '../../engine/viewpoints.js';
 
-/** Where the named viewpoints stand, as a compass bearing and a height
- *  above the horizon. Front is the road, because that is the view a
- *  person has of a house before they ever go in, and it is the one the
- *  floor plan is drawn to match. */
-export const VIEWPOINTS = [
-  { id: 'front', name: 'Front', bearing: 180, tilt: 0.34 },
-  { id: 'back', name: 'Garden', bearing: 0, tilt: 0.34 },
-  { id: 'west', name: 'West', bearing: 270, tilt: 0.34 },
-  { id: 'east', name: 'East', bearing: 90, tilt: 0.34 },
-  { id: 'above', name: 'Above', bearing: 180, tilt: 1.30 },
-];
+/** The named viewpoints. Bearings that mean "front" or "garden" come
+ *  from the building's declared orientation (engine/viewpoints.js); this
+ *  export is the list for a building that declares nothing, kept for
+ *  callers that read it before a model is loaded. */
+export const VIEWPOINTS = viewpointsFor(null);
+export { viewpointsFor };
 
 export class Planner {
   constructor(canvas) {
@@ -114,6 +110,7 @@ export class Planner {
   setModel(building, placements, restore, opts = {}) {
     if (this.model) this.scene.remove(this.model.root);
     this.building = building;
+    this.viewpoints = viewpointsFor(building);
     this.model = buildModel(building, placements, this.pal, opts);
     this.scene.add(this.model.root);
     // The model is centred on the origin, so plan metres and world
@@ -144,7 +141,8 @@ export class Planner {
    * leaves the house in the bottom of the frame.
    */
   viewpoint(id) {
-    const v = VIEWPOINTS.find((p) => p.id === id) ?? VIEWPOINTS[0];
+    const list = this.viewpoints ?? VIEWPOINTS;
+    const v = list.find((p) => p.id === id) ?? list[0];
     const box = this.visibleBox();
     const sphere = box.getBoundingSphere(new THREE.Sphere());
     const at = sphere.center;
@@ -157,14 +155,14 @@ export class Planner {
     const aspect = Math.max(0.2, (this.canvas.clientWidth || 1) / (this.canvas.clientHeight || 1));
     const hfov = 2 * Math.atan(Math.tan(vfov / 2) * aspect);
     const dist = (Math.max(sphere.radius, 2) / Math.sin(Math.min(vfov, hfov) / 2)) * 0.98;
-    const rad = (v.bearing * Math.PI) / 180;
+    const off = standOffset(v.bearing);
     const mid = at.y;
     // Bearing is where the camera STANDS, as a compass direction from
-    // the house: 180 is due south, which is the road.
+    // the house. Plan y runs north to south and maps to world z.
     this.orbitCam.position.set(
-      at.x + Math.sin(rad) * dist * Math.cos(v.tilt),
+      at.x + off.x * dist * Math.cos(v.tilt),
       mid + dist * Math.sin(v.tilt),
-      at.z - Math.cos(rad) * dist * Math.cos(v.tilt),
+      at.z + off.y * dist * Math.cos(v.tilt),
     );
     this.controls.target.set(at.x, mid, at.z);
     this.controls.update();

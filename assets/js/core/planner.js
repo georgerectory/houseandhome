@@ -9,4 +9,4 @@
 // it to look at a floor plan they can already read would be a poor
 // trade. The page imports this module dynamically for that reason.
 
-export { Planner, VIEWPOINTS } from './planner/viewer.js';
+export { Planner, VIEWPOINTS, viewpointsFor } from './planner/viewer.js';

@@ -107,6 +107,36 @@ export function offerPlan(inp) {
     return { month, cash: cashAt(month, inp), maxPrice: m, tender: m == null ? null : tenderRound(m) };
   });
 
+  // The honest range when the saving is a range and the completion day
+  // inside the month is unknown: the safe end saves the low rate and
+  // completes before that month's saving lands; the top end saves the
+  // high rate and completes after it.
+  const lowRate = inp.savingLow ?? inp.savingPerMonth;
+  const highRate = inp.savingHigh ?? inp.savingPerMonth;
+  const rangeCase = (label, rate, month) => {
+    const c = cashAt(month, { ...inp, savingPerMonth: rate });
+    const m = maxPrice({ ...terms, cash: c });
+    return { label, saving: rate, month, cash: c, maxPrice: m, tender: m == null ? null : tenderRound(m) };
+  };
+  const range = [
+    rangeCase('Safe: lower saving, completing before that month\'s saving lands', lowRate, addMonths(inp.completion, -1)),
+    rangeCase('Lower saving, completing at the month end', lowRate, inp.completion),
+    rangeCase('Higher saving, completing before that month\'s saving lands', highRate, addMonths(inp.completion, -1)),
+    rangeCase('Top: higher saving, completing at the month end', highRate, inp.completion),
+  ];
+
+  // Bidding the guide: how much of the day-one reserve it takes, at the
+  // safe end and the top end of the range.
+  const guide = inp.guide ? {
+    price: inp.guide,
+    reserveUsed: [range[0], range[3]].map((r) => {
+      const b = breakdown(inp.guide, { ...terms, cash: r.cash });
+      return Math.max(0, -b.margin);
+    }),
+    reserve: num(inp.reserve) ?? 0,
+  } : null;
+  if (guide) guide.reserveLeft = guide.reserveUsed.map((u) => guide.reserve - u);
+
   const n = (inp.termYears ?? 35) * 12;
   const loanAtTender = atTender?.loan ?? inp.loan;
   const payment = inp.rate == null ? null : {
@@ -132,7 +162,11 @@ export function offerPlan(inp) {
   }
   if (unconfirmed.length) shortcomings.push(`Rests on ${unconfirmed.length} figure(s) nobody has confirmed: ${unconfirmed.join('; ')}.`);
 
-  return { cash, completion: inp.completion, max, tender, atTender, sensitivities, byMonth, payment, unconfirmed, shortcomings };
+  if (guide && guide.reserveLeft.some((r) => r < 0)) {
+    shortcomings.push(`Bidding the guide needs more than the whole reserve at the safe end of the range.`);
+  }
+
+  return { cash, completion: inp.completion, max, tender, atTender, sensitivities, byMonth, range, guide, payment, unconfirmed, shortcomings };
 }
 
 // ------------------------------------------------------------------
@@ -164,6 +198,8 @@ export function offerInputs(vars, rollup = []) {
     cashNow: num(v('cash.isa_balance_est')),
     cashAsOf: asOf ? String(asOf).slice(0, 7) : null,
     savingPerMonth: num(v('cash.saving_rate_observed')),
+    savingLow: num(row(vars, 'cash.saving_rate_observed')?.low),
+    savingHigh: num(row(vars, 'cash.saving_rate_observed')?.high),
     completion: v('offer.completion_month'),
     fees,
     reserve: num(v('cash.works_buffer')),

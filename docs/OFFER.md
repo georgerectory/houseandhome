@@ -74,6 +74,24 @@ A defined session shape, like a review or a Road Ahead sit-down:
    next dated action. A figure the owner has not confirmed is never the
    one the owner is told to submit.
 
+## The range, and bidding the guide
+
+Where the saving is a range (the variable's `low` and `high`) and the
+day inside the completion month is unknown, the engine gives four cases.
+The safe end saves at the low rate and completes before that month's
+saving lands; the top end saves at the high rate and completes at the
+month end. It also says how much of the day-one reserve bidding the
+guide would take at each end. Whether to dent the reserve is the owner's
+decision, recorded as a decision row, never the engine's.
+
+## Quotes
+
+Quotes are asked of the shortlist held in `contractors` (status
+`prospect`, each note saying what to ask). A quote received moves its
+`fees.*` row to `researched`, or to `confirmed` once the owner accepts
+it, the firm moves to `quoted`, and the engine re-runs. No firm's figure
+enters this file.
+
 ## Costs incurred later
 
 The offer keeps only day one. Everything after it is the realistic plan

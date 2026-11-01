@@ -27,6 +27,16 @@ export function offerHtml(vars, rollup) {
   return `<p class="lede">The most the recorded money supports with the day-one reserve kept whole, for completion in
       ${escape(monthName(p.completion))}. It is a model of the figures below, not a promise: every line marked
       provisional rests on a figure nobody has confirmed.</p>
+    <p class="lede"><strong>Safe tender: ${money(p.range[0].tender)}</strong>, up to ${money(p.range[3].tender)} at the top of
+      the range, with the day-one reserve kept whole.</p>
+    ${table(['Case', 'Cash on the day', 'Highest safe bid'], p.range.map((r) => tr([
+      escape(r.label), prov(r.cash), r.tender == null ? 'none' : prov(r.tender)])))}
+    ${p.guide && p.guide.reserveUsed[0] === 0 ? `<p class="lede">The guide (${money(p.guide.price)}) is within the safe
+      range: bidding it leaves the reserve whole.</p>` : ''}
+    ${p.guide && p.guide.reserveUsed[0] > 0 ? `<p class="lede">Bidding the guide (${money(p.guide.price)}) uses ${prov(p.guide.reserveUsed[1])} to
+      ${prov(p.guide.reserveUsed[0])} of the ${money(p.guide.reserve)} day-one reserve, leaving
+      ${prov(p.guide.reserveLeft[0])} to ${prov(p.guide.reserveLeft[1])}.</p>` : ''}
+    <h3>At the recorded month (${escape(monthName(p.completion))}), month end</h3>
     <p class="lede"><strong>Tender: ${money(p.tender)}</strong> (the maximum, ${money(p.max)}, rounded down to £50)</p>
     ${table(['On completion day', 'Amount'], [
       tr(['Cash available', prov(p.cash)]),

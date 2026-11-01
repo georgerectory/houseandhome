@@ -58,7 +58,7 @@ test('cash on completion adds a month of saving per month after the as-of month'
 const vars = [
   { key: 'mortgage.dip_max_expected', value: 300000, confidence: 'drafted' },
   { key: 'cash.isa_balance_est', value: 30000, confidence: 'confirmed', source_date: '2026-10-30' },
-  { key: 'cash.saving_rate_observed', value: 1500, confidence: 'drafted' },
+  { key: 'cash.saving_rate_observed', value: 1500, low: 1500, high: 2000, confidence: 'drafted' },
   { key: 'offer.completion_month', value: '2027-03', confidence: 'drafted' },
   { key: 'cash.works_buffer', value: 5000, confidence: 'confirmed' },
   { key: 'fees.conveyancing', label: 'Conveyancing', value: 1700, confidence: 'researched' },
@@ -85,4 +85,15 @@ test('the plan names every unconfirmed input and never hides a shortfall', () =>
   assert.ok(p.shortcomings.some((s) => s.startsWith('Valuation 10%')));
   const later = p.byMonth.map((m) => m.maxPrice);
   for (let i = 1; i < later.length; i += 1) assert.ok(later[i] >= later[i - 1]);
+});
+
+test('the range runs from the safe end to the top end, and the guide shows what it takes from the reserve', () => {
+  const p = offerPlan({ ...offerInputs(vars).inputs, guide: 400000 });
+  const t = p.range.map((r) => r.tender);
+  assert.equal(p.range.length, 4);
+  assert.ok(t[0] <= t[1] && t[0] <= t[2] && t[1] <= t[3] && t[2] <= t[3]);
+  assert.equal(p.range[1].tender, p.tender);
+  assert.ok(p.guide.reserveUsed[0] >= p.guide.reserveUsed[1]);
+  const cheap = offerPlan({ ...offerInputs(vars).inputs, guide: 1000 });
+  assert.deepEqual(cheap.guide.reserveUsed, [0, 0]);
 });

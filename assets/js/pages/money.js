@@ -12,6 +12,7 @@ import { money, preciseMoney, provenance, titleCase, escape } from '../core/form
 import { allocate, projectFunding } from '../../js/engine/allocate.js';
 import { purchaseHtml, cashHtml, realisticPlan, isOfferHouse, notForThisHouse } from './forest/sections.js';
 import { offerHtml } from './forest/offer.js';
+import { routesHtml } from './forest/routes.js';
 
 /** What each carried group turns into once someone has been through it.
  *  Mirrors GROUPS in tools/carry-lib.mjs, which is what validates a blob
@@ -82,6 +83,10 @@ const housePart = d.property ? `<section class="section" id="purchase">
     <h2>The offer</h2>
     ${offerHouse ? offerHtml(road?.variables ?? [], d.cost_rollup ?? []) : notForThisHouse(d.property)}
   </section>
+  ${routesHtml(road?.variables ?? []) ? `<section class="section" id="routes">
+    <h2>Routes to the next home</h2>
+    ${routesHtml(road?.variables ?? [])}
+  </section>` : ''}
   <section class="section" id="cash-over-time">
     <h2>When the work could be paid for</h2>
     ${cashHtml(realisticPlan(road?.variables, d.cost_rollup, d.rooms))}

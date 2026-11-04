@@ -6,7 +6,7 @@
 // on an unconfirmed input is labelled as a model, never as affordable.
 import { escape, money } from '../../core/format.js';
 import { variable } from '../../engine/cash-plan.js';
-import { walk, priceToMatch } from '../../engine/routes.js';
+import { walk, priceToMatch, resolveInputs } from '../../engine/routes.js';
 
 const label = (m) => {
   if (!m) return 'not within the horizon';
@@ -17,8 +17,10 @@ const prov = (v) => `<span class="value--provisional">${money(v)}</span>`;
 
 /** The routes section, or a plain note when nothing is recorded. */
 export function routesHtml(vars) {
-  const inp = variable(vars, 'routes.inputs');
-  if (!inp?.routes?.length || !inp?.targets?.length) return '';
+  const stored = variable(vars, 'routes.inputs');
+  if (!stored?.routes?.length || !stored?.targets?.length) return '';
+  const { value: inp, missing } = resolveInputs(stored, vars);
+  if (missing.length) return `<p class="lede">The routes refer to figures that are not recorded: ${escape(missing.join('; '))}.</p>`;
   const head = inp.routes.map((r) => `<th class="num">${escape(r.name)}</th>`).join('');
   const rows = inp.targets.map((t) => {
     const results = inp.routes.map((r) => {

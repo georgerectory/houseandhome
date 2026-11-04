@@ -47,7 +47,8 @@ export function balanceAfter(loan, rate, years, k) {
 
 /** A value path from dated points, straight lines between them. */
 export function valueAt(points, month) {
-  const pts = [...points].sort((a, b) => a[0].localeCompare(b[0]));
+  // A path is [[month, value], ...] or, as stored in a variable, { month: value }.
+  const pts = (Array.isArray(points) ? [...points] : Object.entries(points ?? {})).sort((a, b) => a[0].localeCompare(b[0]));
   if (monthsBetween(pts[0][0], month) <= 0) return pts[0][1];
   for (let i = 1; i < pts.length; i += 1) {
     const [a, va] = pts[i - 1];
@@ -72,7 +73,8 @@ export function cashNeeded(price, gross, next, ftb) {
  * route: { kind: 'rent', rent, deposit, untilMonth?, boardBefore? }
  *     or { kind: 'buy', price, value, depositPct, maxLoan, rate, years,
  *          productFee, buyCosts, ercByYear [..], sell (true to sell on),
- *          saleFeePct, saleFixed, path [[month, value]...] }
+ *          saleFeePct, saleFixed, path [[month, value]...] or {month: value},
+ *          works?: { total, months } - paid evenly from income over the first months }
  * next: { price, multiple, maxLtv, costs, reserve }
  */
 export function walk(p, route, next) {
@@ -95,7 +97,8 @@ export function walk(p, route, next) {
     const housing = route.kind === 'rent'
       ? (route.boardUntil && monthsBetween(month, route.boardUntil) >= 0 ? route.board : route.rent)
       : pay;
-    cash += net - p.spend - housing + (month.endsWith('-04') ? p.bonus : 0);
+    const works = route.works && k <= route.works.months ? route.works.total / route.works.months : 0;
+    cash += net - p.spend - housing - works + (month.endsWith('-04') ? p.bonus : 0);
     let equity = 0;
     let saleNet = 0;
     if (route.kind === 'buy') {
@@ -113,6 +116,43 @@ export function walk(p, route, next) {
     rows.push({ month, cash, equity, saleNet, available, gross, can });
   }
   return { rows, reached, monthly: pay, loan };
+}
+
+/**
+ * Resolve references in the stored inputs against ra_variables, so a
+ * route never holds its own copy of a figure the household already has:
+ *   { "$var": "income.gross_salary_now" }
+ *   { "$var": "cash.saving_rate_observed", "times": 2, "plus": { "$var": "cash.isa_balance_est" } }
+ *   { "$var": "costs.planned_post_move", "path": "total", "plus": -2200 }
+ * Anything else passes through unchanged. A reference to a missing or
+ * retired variable is reported, never guessed.
+ */
+export function resolveInputs(inputs, vars) {
+  const missing = new Set();
+  const lookup = (key) => {
+    const row = (vars ?? []).find((v) => v.key === key && (v.status ?? 'active') === 'active');
+    if (!row) missing.add(key);
+    return row?.value;
+  };
+  const walkRef = (x) => {
+    if (Array.isArray(x)) return x.map(walkRef);
+    if (x && typeof x === 'object') {
+      if ('$var' in x) {
+        let v = lookup(x.$var);
+        if (x.path) v = v?.[x.path];
+        // Arithmetic only when asked for: a path or a list passes through whole.
+        if (x.times == null && x.plus == null) return v;
+        v = Number(v);
+        if (x.times != null) v *= Number(walkRef(x.times));
+        if (x.plus != null) v += Number(walkRef(x.plus));
+        return v;
+      }
+      return Object.fromEntries(Object.entries(x).map(([k, v]) => [k, walkRef(v)]));
+    }
+    return x;
+  };
+  const value = walkRef(inputs);
+  return { value, missing: [...missing] };
 }
 
 /** The highest purchase price at which a buy route reaches the target no later than a given month. */

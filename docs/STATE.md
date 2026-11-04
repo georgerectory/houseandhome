@@ -24,8 +24,8 @@ Handbook. Offer sit-down 1 (S-95, S-96, R-17): DIP final, December
 completion, saving range, bid the guide; quote shortlist in `contractors`.
 Next: Nationwide's pre-valuation answer (5-12 Nov, E84), Tom (probate).
 
-**P-004 / routes (4 Nov):** valued (E93); `engine/routes.js` compares
-rent vs buying (`routes.inputs`, Money page). Next: Giles on p4-product.
+**Routes (4 Nov):** `engine/routes.js` + `routes.inputs` (refers to
+variables); research loads via `tools/ingest-research.mjs` (ROUTES.md).
 
 ## Waiting on the owner
 

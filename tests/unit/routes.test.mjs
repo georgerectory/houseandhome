@@ -1,7 +1,7 @@
 // Routes to the next home: invented inputs only (RA-06).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { payAt, balanceAfter, valueAt, cashNeeded, walk, priceToMatch } from '../../assets/js/engine/routes.js';
+import { payAt, balanceAfter, valueAt, cashNeeded, walk, priceToMatch, resolveInputs } from '../../assets/js/engine/routes.js';
 import { sdlt } from '../../assets/js/engine/road-ahead/money.js';
 
 const p = { start: '2027-01', cash: 30000, gross: 50000, grossRise: 2000, net: 3000, netRise: 100, bonus: 1000, spend: 1200, horizon: 60 };
@@ -49,4 +49,31 @@ test('the price that matches a month is the highest that reaches it in time', ()
     const up = walk(p, { ...buy, price: pr + 500 }, next).reached;
     assert.ok(up === null || up > target);
   }
+});
+
+test('stored inputs refer to recorded figures; a missing one is named, never guessed', () => {
+  const vars = [
+    { key: 'a.cash', value: 1000 }, { key: 'a.save', value: 100 },
+    { key: 'a.budget', value: { total: 2500 } }, { key: 'a.old', value: 9, status: 'retired' },
+    { key: 'a.path', value: { '2027-01': 1 } },
+  ];
+  const { value, missing } = resolveInputs({
+    cash: { $var: 'a.save', times: 2, plus: { $var: 'a.cash' } },
+    spend: { $var: 'a.budget', path: 'total', plus: -500 },
+    list: [{ $var: 'a.cash' }, 7],
+    gone: { $var: 'a.old' },
+    path: { $var: 'a.path' },
+  }, vars);
+  assert.deepEqual(value.path, { '2027-01': 1 });
+  assert.equal(value.cash, 1200);
+  assert.equal(value.spend, 2000);
+  assert.deepEqual(value.list, [1000, 7]);
+  assert.deepEqual(missing, ['a.old']);
+});
+
+test('a path may be stored as a month-keyed object, and works are paid from income', () => {
+  assert.equal(valueAt({ '2027-01': 100, '2028-01': 112 }, '2027-07'), 106);
+  const a = walk(p, { ...buy, sell: false }, null).rows[5].cash;
+  const b = walk(p, { ...buy, sell: false, works: { total: 6000, months: 6 } }, null).rows[5].cash;
+  assert.ok(Math.abs(a - b - 6000) < 1e-6);
 });

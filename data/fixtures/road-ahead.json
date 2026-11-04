@@ -1491,6 +1491,83 @@
    "source_date": "2026-09-30"
   },
   {
+   "key": "routes.inputs",
+   "label": "Routes to the next home",
+   "value": {
+    "shared": {
+     "start": "2027-01",
+     "cash": 30000,
+     "gross": 50000,
+     "grossRise": 2000,
+     "net": 3000,
+     "netRise": 100,
+     "bonus": 1000,
+     "spend": 1200,
+     "horizon": 48
+    },
+    "next": {
+     "multiple": 5,
+     "maxLtv": 0.95,
+     "costs": 2500,
+     "reserve": 2000
+    },
+    "targets": [
+     300000,
+     340000
+    ],
+    "compareAt": "2029-01",
+    "routes": [
+     {
+      "name": "Rent",
+      "terms": {
+       "kind": "rent",
+       "rent": 1000,
+       "deposit": 1100
+      }
+     },
+     {
+      "name": "Buy and sell on",
+      "terms": {
+       "kind": "buy",
+       "price": 260000,
+       "depositPct": 0.1,
+       "rate": 0.05,
+       "years": 30,
+       "buyCosts": 1500,
+       "productFee": 0,
+       "ercByYear": [
+        0.02,
+        0.01
+       ],
+       "sell": true,
+       "saleFeePct": 0.012,
+       "saleFixed": 1500,
+       "path": [
+        [
+         "2027-01",
+         265000
+        ],
+        [
+         "2030-01",
+         275000
+        ]
+       ]
+      }
+     }
+    ],
+    "note": "Invented figures for the demo."
+   },
+   "unit": "json",
+   "low": null,
+   "high": null,
+   "evidence": "ESTIMATE",
+   "certainty": "M",
+   "confidence": "drafted",
+   "confirmed_at": null,
+   "source": "Invented for the demo",
+   "source_date": "2026-09-30"
+  },
+  {
    "key": "rules.forever_max_minutes",
    "label": "The forever home is within this many minutes of home.",
    "value": 45,

@@ -1,7 +1,7 @@
 // The research loader: invented reply, no owner figures.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { blocks, csv, jsonv, toSql } from '../../tools/ingest-research.mjs';
+import { asDate, blocks, csv, jsonv, toSql } from '../../tools/ingest-research.mjs';
 
 const reply = `
 Some prose.
@@ -61,4 +61,17 @@ test('the SQL is one transaction, skips bad keys and unknown listings, and never
   assert.match(sql, /Research differs from a confirmed figure/);
   assert.match(sql, /l\.code = 'L46'/);
   assert.doesNotMatch(sql, /Elsewhere/);
+});
+
+test('source dates become dates Postgres accepts', () => {
+  assert.equal(asDate('2025', 'x'), '2025-01-01');
+  assert.equal(asDate('2026-10', 'x'), '2026-10-01');
+  assert.equal(asDate('2026-10-23', 'x'), '2026-10-23');
+  assert.equal(asDate('2025-2026', '2026-11-04'), '2026-11-04');
+});
+
+test('an auction lot lands as a guide; a priceless row is skipped', () => {
+  const { sql } = toSql('COMPARABLES\n```\nfor,address,price,kind,date\nP004,1 Lot Lane,200000,auction,2026-02\nP004,2 No Price,,sold,2026-01-01\n```\n', { household: 'h', date: '2026-11-04' });
+  assert.match(sql, /'1 Lot Lane'.*'guide'/s);
+  assert.doesNotMatch(sql, /2 No Price/);
 });

@@ -12,7 +12,6 @@ The purchase comes first (R-10): nothing here touches the tender. Money
 figures are private: Supabase only.
 
 **Done:** A-G merged (#2-#10); see git history.
-
 ## Next steps
 
 Phase G (1 Nov): the realistic plan. R-14 no extensions, room by room,
@@ -25,7 +24,8 @@ completion, saving range, bid the guide; quote shortlist in `contractors`.
 Next: Nationwide's pre-valuation answer (5-12 Nov, E84), Tom (probate).
 
 **Routes (4 Nov):** `engine/routes.js` + `routes.inputs` (refers to
-variables); research loads via `tools/ingest-research.mjs` (ROUTES.md).
+variables); research reply of 4 Nov LOADED by `tools/ingest-research.mjs`
+(E99-E177, comparables, `r-` contradictions); 5 recall questions open.
 
 ## Waiting on the owner
 

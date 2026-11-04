@@ -24,9 +24,8 @@ Handbook. Offer sit-down 1 (S-95, S-96, R-17): DIP final, December
 completion, saving range, bid the guide; quote shortlist in `contractors`.
 Next: Nationwide's pre-valuation answer (5-12 Nov, E84), Tom (probate).
 
-**P-004, the parents' house (4 Nov):** a separate candidate (S-97, R-18:
-2-year fix or portable). The header switcher shows one house at a time.
-Next: the owner's chat extraction, the listing and the floor plan.
+**P-004, parents' house (4 Nov):** candidate (S-97, R-18); the header
+switcher shows one house. Next: chat extraction, listing, floor plan.
 
 ## Waiting on the owner
 

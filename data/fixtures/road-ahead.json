@@ -1446,6 +1446,20 @@
    "source_date": "2026-09-30"
   },
   {
+   "key": "offer.property_ref",
+   "label": "The house the offer figures were worked for",
+   "value": "P-003",
+   "unit": "ref",
+   "low": null,
+   "high": null,
+   "evidence": "ESTIMATE",
+   "certainty": "M",
+   "confidence": "drafted",
+   "confirmed_at": null,
+   "source": "Invented for the demo",
+   "source_date": "2026-09-30"
+  },
+  {
    "key": "roads.fix_months",
    "label": "Roads: months until a mortgage bought on a road refixes.",
    "value": 36,

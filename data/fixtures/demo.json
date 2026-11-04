@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generated": "2026-11-01",
+    "generated": "2026-11-04",
     "note": "Demo dataset. Every row is drafted and unconfirmed: no figure here has been checked, and the interface must present all of it as provisional."
   },
   "household": {
@@ -8,11 +8,31 @@
     "name": "House & Home"
   },
   "property": {
+    "id": "demo-p003",
     "ref": "P-003",
     "name": "Forest View",
     "status": "active",
-    "offer_status": "none"
+    "offer_status": "none",
+    "building_key": "forest-view"
   },
+  "properties": [
+    {
+      "id": "demo-p003",
+      "ref": "P-003",
+      "name": "Forest View",
+      "status": "active",
+      "offer_status": "none",
+      "building_key": "forest-view"
+    },
+    {
+      "id": "demo-p004",
+      "ref": "P-004",
+      "name": "Second house",
+      "status": "candidate",
+      "offer_status": "none",
+      "building_key": null
+    }
+  ],
   "pot": {
     "name": "House pot",
     "monthly_contribution": 400,
@@ -10649,7 +10669,7 @@
       "key": null,
       "title": "Viewing at Forest View",
       "description": "Take the viewing checklist, a torch, a tape and a practical friend.",
-      "on_date": "2026-11-04",
+      "on_date": "2026-11-07",
       "starts_at": null,
       "location": "Forest View, Tiptoe Road, Wootton BH25 5SJ",
       "status": "planned",
@@ -10662,7 +10682,7 @@
       "key": "open-house",
       "title": "Open house",
       "description": "Guide price plus an open house signals a best-and-final round.",
-      "on_date": "2026-11-04",
+      "on_date": "2026-11-07",
       "starts_at": null,
       "location": null,
       "status": "planned",
@@ -10675,7 +10695,7 @@
       "key": "gate",
       "title": "The decision gate",
       "description": "Consent, three fixed quotes, value evidence, finance agreed. All pass: build. Any fail: sell with consent.",
-      "on_date": "2028-02-19",
+      "on_date": "2028-02-22",
       "starts_at": null,
       "location": null,
       "status": "planned",

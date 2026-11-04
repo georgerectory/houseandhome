@@ -23,7 +23,7 @@ if (!user) throw new Error('redirecting to login');
 mountShell('shopping.html', { user });
 
 const d = await load();
-showProperty(d.property);
+showProperty(d.property, d.properties);
 const refs = d.price_references ?? [];
 
 // THE LIST IS DERIVED, NOT RE-DERIVED HERE. `shopping_list` knows which

@@ -10,7 +10,7 @@ import { fundable, totalOutstanding, confidenceSummary, houseFunds } from '../en
 import { emptyState } from '../core/page.js';
 import { money, preciseMoney, provenance, titleCase, escape } from '../core/format.js';
 import { allocate, projectFunding } from '../../js/engine/allocate.js';
-import { purchaseHtml, cashHtml, realisticPlan } from './forest/sections.js';
+import { purchaseHtml, cashHtml, realisticPlan, isOfferHouse, notForThisHouse } from './forest/sections.js';
 import { offerHtml } from './forest/offer.js';
 
 /** What each carried group turns into once someone has been through it.
@@ -34,7 +34,7 @@ if (!user) throw new Error('redirecting to login');
 mountShell('money.html', { user });
 
 const d = await load();
-showProperty(d.property);
+showProperty(d.property, d.properties);
 const queue = fundable(d);
 const monthly = d.pot?.monthly_contribution ?? 0;
 const opts = { decay: d.allocation_settings?.decay, floorShare: d.allocation_settings?.floor_share };
@@ -73,13 +73,14 @@ const carriedGroups = [...carried.reduce((m, r) => {
 }, new Map())].sort((a, b) => b[1].length - a[1].length);
 
 const road = await loadRoadAhead().catch(() => null);
+const offerHouse = isOfferHouse(road?.variables ?? [], d.property, d.propertyIsDefault ?? true);
 const housePart = d.property ? `<section class="section" id="purchase">
     <h2>${escape(d.property.name)}: the purchase</h2>
-    ${purchaseHtml(road?.variables ?? [], road?.decisions ?? [])}
+    ${offerHouse ? purchaseHtml(road?.variables ?? [], road?.decisions ?? []) : notForThisHouse(d.property)}
   </section>
   <section class="section" id="offer">
     <h2>The offer</h2>
-    ${offerHtml(road?.variables ?? [], d.cost_rollup ?? [])}
+    ${offerHouse ? offerHtml(road?.variables ?? [], d.cost_rollup ?? []) : notForThisHouse(d.property)}
   </section>
   <section class="section" id="cash-over-time">
     <h2>When the work could be paid for</h2>

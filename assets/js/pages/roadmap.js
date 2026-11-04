@@ -29,7 +29,7 @@ if (!user) throw new Error('redirecting to login');
 mountShell('roadmap.html', { user });
 
 const d = await load();
-showProperty(d.property);
+showProperty(d.property, d.properties);
 markRecency(d.items ?? [], Date.now());
 
 const THEMES = [

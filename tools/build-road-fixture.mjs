@@ -67,6 +67,7 @@ const EXTRA = [
   ['cash.isa_balance_est', 30000, '£', 'Savings now'],
   ['cash.saving_rate_observed', 1000, '£/month', 'Saved each month'],
   ['offer.completion_month', '2027-02', 'month', 'Completion month assumed'],
+  ['offer.property_ref', 'P-003', 'ref', 'The house the offer figures were worked for'],
   ['offer.guide_price', 320000, '£', 'Guide price'],
   ['fees.conveyancing', 1500, '£', 'Conveyancing'],
   ['fees.searches', 400, '£', 'Searches and disbursements'],

@@ -123,7 +123,7 @@ export function mountShell(active, { user = null } = {}) {
  *  can be misread the day a second candidate is worked up alongside.
  *  Between houses there is none, and that is said too: an empty roadmap
  *  should read as "no house yet", not as a failed load. */
-export function showProperty(property) {
+export function showProperty(property, properties = []) {
   const brand = document.querySelector('.site-header .brand');
   if (!brand || brand.querySelector('.brand__property')) return;
   const line = document.createElement('span');
@@ -132,6 +132,33 @@ export function showProperty(property) {
     ? `${property.ref} \u00b7 ${property.name} \u00b7 ${property.status}`
     : 'No active house';
   brand.append(line);
+  mountSwitcher(property, properties);
+}
+
+/** The house switcher: one link per house in play, the current one
+ *  marked. A link, not a form - it changes what is SHOWN, never what is
+ *  stored - and the choice travels in the URL so a page can be shared. */
+function mountSwitcher(property, properties) {
+  if ((properties ?? []).length < 2 || document.querySelector('.house-switch')) return;
+  const nav = document.createElement('nav');
+  nav.className = 'house-switch';
+  nav.setAttribute('aria-label', 'House in view');
+  const label = document.createElement('span');
+  label.className = 'house-switch__label';
+  label.textContent = 'House:';
+  nav.append(label);
+  for (const p of properties) {
+    const a = document.createElement('a');
+    a.className = 'house-switch__link';
+    const url = new URL(location.href);
+    url.searchParams.set('property', p.ref);
+    a.href = `${url.pathname.split('/').pop() || 'index.html'}${url.search}`;
+    a.textContent = `${p.ref} ${p.name}`;
+    if (p.ref === property?.ref) a.setAttribute('aria-current', 'true');
+    nav.append(a);
+  }
+  const header = document.querySelector('.site-header');
+  header?.after(nav);
 }
 
 /** Render into a host, replacing whatever was there. */

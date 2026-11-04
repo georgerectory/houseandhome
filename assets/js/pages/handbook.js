@@ -9,7 +9,7 @@ import { placeAll, roomLabel, spreadInferred } from '../engine/floorplan.js';
 import { loadComposed } from '../core/building-data.js';
 import { loadRoadAhead } from '../core/store.js';
 import { levelSvg } from '../engine/floorplan-svg.js';
-import { costsHtml, cashHtml, purchaseHtml, conditionHtml, realisticPlan } from './forest/sections.js';
+import { costsHtml, cashHtml, purchaseHtml, conditionHtml, realisticPlan, isOfferHouse, notForThisHouse } from './forest/sections.js';
 import { offerHtml } from './forest/offer.js';
 
 const user = await requireAuth();
@@ -18,7 +18,7 @@ if (!user) throw new Error('redirecting to login');
 mountShell('handbook.html', { user });
 
 const d = await load();
-showProperty(d.property);
+showProperty(d.property, d.properties);
 const conf = confidenceSummary(d);
 
 // The building geometry is repo content. It is read here only to resolve
@@ -46,6 +46,7 @@ for (const i of openItems(d)) kinds[i.kind] = (kinds[i.kind] ?? 0) + 1;
 // page: one renderer, nothing assembled by hand. The plans are SVG so
 // they print sharp; money figures render only from the database.
 const road = await loadRoadAhead().catch(() => null);
+const offerHouse = isOfferHouse(road?.variables ?? [], d.property, d.propertyIsDefault ?? true);
 const stages = ['as-bought', 'ground-floor-open'];
 const plans = [];
 for (const id of stages) {
@@ -63,9 +64,9 @@ const house = d.property ? `<article class="hb-doc">
       Printed ${escape(new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }))}.</p>
   </section>
   <section class="section hb-sec"><h2>1. The purchase and the decisions</h2>
-    ${purchaseHtml(road?.variables ?? [], road?.decisions ?? [])}</section>
+    ${offerHouse ? purchaseHtml(road?.variables ?? [], road?.decisions ?? []) : notForThisHouse(d.property)}</section>
   <section class="section hb-sec"><h2>2. Condition, and what is still open</h2>
-    ${conditionHtml(d.rooms ?? [], d.house_facts ?? [], road?.contradictions ?? [])}</section>
+    ${conditionHtml(d.rooms ?? [], d.house_facts ?? [], offerHouse ? road?.contradictions ?? [] : [])}</section>
   <section class="section hb-sec"><h2>3. The drawings</h2>
     <p class="lede">As bought, and the parked stage S1 for comparison. The other stages and the 3D views are on the House page.</p>
     ${plans.map((pl) => `<figure class="hb-plan"><figcaption>${escape(pl.title)}</figcaption>${pl.svg}</figure>`).join('')}</section>
@@ -74,7 +75,7 @@ const house = d.property ? `<article class="hb-doc">
   <section class="section hb-sec"><h2>5. When the money exists</h2>
     ${cashHtml(realisticPlan(road?.variables, d.cost_rollup, d.rooms))}</section>
   <section class="section hb-sec"><h2>6. The offer</h2>
-    ${offerHtml(road?.variables ?? [], d.cost_rollup ?? [])}</section>
+    ${offerHouse ? offerHtml(road?.variables ?? [], d.cost_rollup ?? []) : notForThisHouse(d.property)}</section>
 </article>` : '';
 
 render('[data-page-root]', `

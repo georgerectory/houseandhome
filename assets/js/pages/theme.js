@@ -22,7 +22,7 @@ if (!user) throw new Error('redirecting to login');
 mountShell('theme.html', { user });
 
 const d = await load();
-showProperty(d.property);
+showProperty(d.property, d.properties);
 const rows = (d.theme_book ?? []).slice()
   .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
 

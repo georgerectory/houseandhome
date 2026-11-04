@@ -96,6 +96,7 @@ when the work touches it:
 | `docs/properties/<ref>/` | One property's specifics (P-003 now). Archived ones move to `docs/properties-archive/`. |
 | `docs/FOREST-VIEW-PLAN.md` | Anything about Forest View: stages, ideas, costs, the Handbook. |
 | `docs/OFFER.md` | The offer: what to bid, what it rests on, an offer sit-down. |
+| `docs/road-ahead/ROUTES.md` | Routes to the next home (month by month), and loading a research reply. |
 | `docs/DECISIONS.md` | Priority, money, the roadmap, the shopping list, quantities, stockpiles, links. |
 | `docs/REVIEW.md` | A review session. |
 | `docs/BUILDING-MODEL.md` | Anything under `model3d/`, `planner/` or `data/buildings/`. |

@@ -11,6 +11,7 @@
 
 import { CONFIG } from './config.js';
 import { ROAD_SHAPE, columns } from './road-shape.js';
+import { wantedRef, chooseProperty, scopeTo, ACTIVE_ONLY_VIEWS } from './property-choice.js';
 
 let cache = null;
 let sbClient = null;
@@ -35,7 +36,11 @@ async function loadFixture() {
   if (cache) return cache;
   const res = await fetch(new URL('../../../data/fixtures/demo.json', import.meta.url));
   if (!res.ok) throw new Error(`fixture load failed: ${res.status}`);
-  cache = await res.json();
+  const data = await res.json();
+  // The demo holds the whole household; show the chosen house only.
+  const properties = data.properties ?? (data.property ? [data.property] : []);
+  const choice = chooseProperty(properties, wantedRef());
+  cache = scopeTo(data, choice, choice.properties.find((p) => p.status === 'active')?.id ?? data.property?.id);
   return cache;
 }
 
@@ -48,10 +53,17 @@ async function loadLive() {
   // filter in Postgres (in_default_scope); the base tables are filtered
   // here by the same rule, so a candidate being worked up alongside
   // never leaks into the roadmap, the budget or the shopping list.
-  const { data: property, error: propertyError } = await sb.from('properties')
-    .select('id, ref, name, status, address_line, postcode, offer_status, guide_price, walk_away_price')
-    .in('status', ['active', 'committed', 'owned']).maybeSingle();
+  //
+  // A CANDIDATE can be chosen with the switcher (core/property-choice.js).
+  // Its base-table rows are filtered here by its own id; the derived
+  // views are computed in Postgres for the active house only, so they
+  // are emptied below rather than shown against the wrong house.
+  const { data: houses, error: propertyError } = await sb.from('properties')
+    .select('id, ref, name, status, address_line, postcode, offer_status, guide_price, walk_away_price, building_key')
+    .in('status', ['active', 'committed', 'owned', 'candidate']).order('ref');
   if (propertyError) throw new Error(`Could not read the database - properties: ${propertyError.message}`);
+  const choice = chooseProperty(houses ?? [], wantedRef());
+  const { property } = choice;
   const scoped = (q) => (property
     ? q.or(`property_id.is.null,property_id.eq.${property.id}`)
     : q.is('property_id', null));
@@ -142,6 +154,8 @@ async function loadLive() {
   cache = {
     meta: { generated: new Date().toISOString().slice(0, 10), note: 'Live data.' },
     property: property ?? null,
+    properties: choice.properties,
+    propertyIsDefault: choice.isDefault,
     pot: pot ?? null,
     rooms: rooms.data ?? [],
     items: (items.data ?? []).map(withRoom),
@@ -183,6 +197,9 @@ async function loadLive() {
     cost_rollup: rollup.data ?? [],
     house_facts: facts.data ?? [],
   };
+  // Views computed for the active house have nothing to say about a
+  // candidate; emptied, never shown against the wrong house.
+  if (!choice.isDefault) for (const k of ACTIVE_ONLY_VIEWS) cache[k] = [];
   return cache;
 }
 

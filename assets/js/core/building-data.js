@@ -10,8 +10,22 @@
 // wants the empty shell never downloads the furnished one.
 
 import { composeBuilding } from '../engine/building.js';
+import { load } from './store.js';
 
 const BUILDING = 'forest-view';  // the active property, P-003 (decision RA-05)
+
+/**
+ * The drawings of the house in view (the header's switcher picks it).
+ * A house whose row names no building has no drawings yet: null, and
+ * the page says so, rather than falling back to another house's plan.
+ * BUILDING above is the default the tools read when no row is to hand.
+ */
+async function chosenBuilding() {
+  const d = await load().catch(() => null);
+  const p = d?.property;
+  if (!p) return BUILDING;
+  return p.building_key === undefined ? BUILDING : p.building_key;
+}
 const base = (id = BUILDING) =>
   new URL(`../../../data/buildings/${id}/`, import.meta.url);
 
@@ -57,7 +71,9 @@ export function resolveSelection(manifest, wantStage, wantVariant) {
  * caller that wants to diff two stages can have both without fetching
  * either of them twice.
  */
-export async function loadComposed(stageId, variantId, id = BUILDING) {
+export async function loadComposed(stageId, variantId, building) {
+  const id = building ?? await chosenBuilding();
+  if (!id) return null;
   const [manifest, property] = await Promise.all([loadManifest(id), loadProperty(id)]);
   if (!manifest || !property) return null;
   const { stage, variant } = resolveSelection(manifest, stageId, variantId);
@@ -80,7 +96,9 @@ export async function loadComposed(stageId, variantId, id = BUILDING) {
 
 /** Another stage's geometry, for drawing underneath or diffing against.
  *  Used by compare mode and by the stage diff on the Survey view. */
-export async function loadStageOnly(stageId, id = BUILDING) {
+export async function loadStageOnly(stageId, building) {
+  const id = building ?? await chosenBuilding();
+  if (!id) return null;
   const manifest = await loadManifest(id);
   const entry = manifest?.stages.find((s) => s.id === stageId);
   return entry ? loadPart(entry.file, id) : null;

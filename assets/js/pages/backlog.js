@@ -13,7 +13,7 @@ if (!user) throw new Error('redirecting to login');
 mountShell('backlog.html', { user });
 
 const d = await load();
-showProperty(d.property);
+showProperty(d.property, d.properties);
 const all = openItems(d).sort((a, b) => a.priority - b.priority);
 
 const rooms = [...new Set(all.map((i) => i.room_name).filter(Boolean))].sort();

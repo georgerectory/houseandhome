@@ -32,6 +32,14 @@ its specifics are `docs/properties/P-003/`. Photographs, particulars and
 every money figure are private (RA-06): Supabase only, never this
 repository. The Handbook PDF is printed from the Handbook page (RA-07).
 
+**More than one house can be in play.** Candidates are worked up
+alongside the active house (P-004, the parents' house, since 4 Nov
+2026). The site's header switcher shows one house at a time; its rows
+are filtered by `property_id`, the views computed for the active house
+are emptied while a candidate is in view, and a household figure tied to
+one house (`offer.property_ref`) shows only there. Never write one
+house's facts to another: check the `property_id` on every write.
+
 The system is property-agnostic. Five scopes: **USER** (the household,
 `property_id` null), **BRIEF** (what a house is looked for against),
 **TEMPLATE** (`work_item_templates`, `work_phases`), **LIBRARY**

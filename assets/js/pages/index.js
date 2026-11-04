@@ -16,7 +16,7 @@ if (!user) throw new Error('redirecting to login');
 mountShell('index.html', { user });
 
 const d = await load();
-showProperty(d.property);
+showProperty(d.property, d.properties);
 const conf = confidenceSummary(d);
 const now = byHorizon(d, 'now');
 const queue = fundable(d);

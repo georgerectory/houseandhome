@@ -11,9 +11,7 @@ Active since 31 Oct 2026 (RA-05). The plan of record is
 The purchase comes first (R-10): nothing here touches the tender. Money
 figures are private: Supabase only.
 
-**Done (1 Nov):** A-F merged (#2-#8): model, plot, map, stages, rates,
-`cost_rollup`, cash over time, Plan/Money/Handbook as the printable house
-document, chat ingested, the sit-down (R-11 to R-13).
+**Done:** A-G merged (#2-#10); see git history.
 
 ## Next steps
 
@@ -24,12 +22,15 @@ jobs, two refits and the essentials are live; `engine/offer.js` and
 `docs/OFFER.md` give the tender and its shortcomings on Money and in the
 Handbook. Offer sit-down 1 (S-95, S-96, R-17): DIP final, December
 completion, saving range, bid the guide; quote shortlist in `contractors`.
-Next: Giles (lender gate, retention), Tom (probate), the quotes.
+Next: Nationwide's pre-valuation answer (5-12 Nov, E84), Tom (probate).
+
+**P-004, parents' house (4 Nov):** candidate (S-97, R-18); the header
+switcher shows one house. Next: chat extraction, listing, floor plan.
 
 ## Waiting on the owner
 
 - Ten open `fv-` contradictions; five act-by diary items from the chat.
-- `plan.room_order`, `offer.completion_month` and most `fees.*` are drafted.
+- `plan.room_order` and most `fees.*` are drafted.
 - Four 31 Oct `scheduled_events` still `planned`; close or move them.
 - The viewing: compass, a window reveal, ceiling heights, soil stack.
 

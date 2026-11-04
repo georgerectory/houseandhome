@@ -58,6 +58,20 @@ const monthName = (ym) => {
   return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString('en-GB', { month: 'short', year: 'numeric', timeZone: 'UTC' });
 };
 
+/**
+ * Whether the purchase and offer figures (Road Ahead variables, which are
+ * the household's) belong to the house in view. offer.property_ref names
+ * the house they were worked for; on any other house they are not shown,
+ * so one house's tender can never be read as another's.
+ */
+export function isOfferHouse(vars, property, isDefault = true) {
+  const ref = variable(vars, 'offer.property_ref');
+  return ref ? ref === property?.ref : !!isDefault;
+}
+
+export const notForThisHouse = (property) => `<p class="lede">No purchase or offer has been modelled for
+  ${escape(property?.name ?? 'this house')} yet. It is worked up from its own figures, never from another house's.</p>`;
+
 /** The realistic cash plan for the house in view, with room names. */
 export function realisticPlan(vars, rollup, rooms) {
   const roomNames = Object.fromEntries((rooms ?? []).map((r) => [r.key, r.name]));

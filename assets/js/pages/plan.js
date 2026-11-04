@@ -25,7 +25,7 @@ if (!user) throw new Error('redirecting to login');
 mountShell('plan.html', { user });
 
 const d = await load();
-showProperty(d.property);
+showProperty(d.property, d.properties);
 const sections = checklistFor(d.items ?? [], 'viewing');
 // The money side of the plan: what the ideas cost and when the planned
 // budget could pay for them. Variables come from Road Ahead's register,

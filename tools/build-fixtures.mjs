@@ -303,7 +303,14 @@ const data = {
   household: { id: 'demo', name: 'House & Home' },
   // The one active property. Demo mode names the same house the geometry
   // under data/buildings/ draws, so the header reads the same either way.
-  property: { ref: 'P-003', name: 'Forest View', status: 'active', offer_status: 'none' },
+  property: { id: 'demo-p003', ref: 'P-003', name: 'Forest View', status: 'active', offer_status: 'none', building_key: 'forest-view' },
+  // Two houses in play, so the header's switcher has something to switch.
+  // Every room, job and cost below belongs to the active one; the
+  // candidate has none yet, which is exactly what it shows.
+  properties: [
+    { id: 'demo-p003', ref: 'P-003', name: 'Forest View', status: 'active', offer_status: 'none', building_key: 'forest-view' },
+    { id: 'demo-p004', ref: 'P-004', name: 'Second house', status: 'candidate', offer_status: 'none', building_key: null },
+  ],
   pot: { name: 'House pot', monthly_contribution: 400, contribution_confidence: 'drafted', unallocated_balance: 0 },
   allocation_settings: { decay: 0.85, floor_share: 0.10 },
   rooms, items, bills, assets,

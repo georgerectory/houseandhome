@@ -202,6 +202,38 @@ code, kbd, samp { font-family: var(--font-mono); font-size: 0.95em; }
   font-weight: 600;
 }
 
+/* The house switcher: shown only when more than one house is in play.
+   Wraps rather than scrolls, so every house is visible at phone width. */
+.house-switch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--rule);
+  background: var(--paper-sunken);
+  font-size: var(--text-sm);
+}
+.house-switch__label { color: var(--ink-muted); }
+.house-switch__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.house-switch__link:hover { background: var(--paper); }
+.house-switch__link[aria-current="true"] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
 .site-footer {
   border-top: 1px solid var(--rule);
   color: var(--ink-faint);

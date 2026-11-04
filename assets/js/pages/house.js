@@ -35,7 +35,7 @@ if (!user) throw new Error('redirecting to login');
 mountShell('house.html', { user });
 
 const d = await load();
-showProperty(d.property);
+showProperty(d.property, d.properties);
 mountLocation();
 
 const KEY = { level: 'hh-house-level', view: 'hh-house-view', stage: 'hh-house-stage', variant: 'hh-house-variant' };
@@ -174,8 +174,12 @@ function legendHtml(level) {
 
 function body() {
   if (!building) {
-    return `<p class="notice"><span class="notice__title">The model could not be loaded</span>
-      The building lives at <code>data/buildings/forest-view/</code>.</p>`;
+    // A house with no drawings yet says so; it never borrows another's.
+    return d.property && !d.property.building_key && d.property.building_key !== undefined
+      ? `<p class="notice"><span class="notice__title">No drawings for ${escape(d.property.name)} yet</span>
+        The floor plan is drawn from the listing's plan once it is supplied.</p>`
+      : `<p class="notice"><span class="notice__title">The model could not be loaded</span>
+        The building for this house could not be read from <code>data/buildings/</code>.</p>`;
   }
   return `
   <section class="section section--flush">

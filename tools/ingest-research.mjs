@@ -33,6 +33,8 @@ import { join, extname, basename } from 'node:path';
 export const LISTING_FOR = {
   P004: 'L46', FOREST_VIEW: 'L45',
   ROAD_GE: 'L47', ROAD_H1: 'L48', ROAD_H2: 'L49', ROAD_H3: 'L50', ROAD_H4: 'L51',
+  // The west roads (R-20, 5 Nov 2026): Shaftesbury to Yeovil.
+  ROAD_W1: 'L52', ROAD_W2: 'L53', ROAD_W3: 'L54',
 };
 // A research reply restates the owner's figures but is not the owner's
 // word, so nothing it carries lands above researched.
@@ -218,6 +220,13 @@ select ${H}, l.id, ${q(c.address)}, ${q([c.type, c.beds && `${c.beds}-bed`, c.m2
   for (const e of csv(b.EVIDENCE ?? '')) evidence.push([e.topic || 'Research', e.claim, e.figure, [e.source_url, e.source_date, e.label].filter(Boolean).join(' | ')]);
   for (const r of csv(b.RECALL_LEDGER ?? '').filter((x) => !/^houseandhome DB/i.test(x.chat_title || ''))) evidence.push([`Recall: ${r.topic || 'general'}`, `${r.fact}${r.status === 'superseded' ? ' (superseded)' : ''}`, r.figure, `${r.chat_title || 'past chat'} ${r.chat_date || ''} | ${r.label || ''}`.trim()]);
   for (const r of csv(b.ROADS_RECALLED ?? '')) evidence.push([`Road recall ${r.code}`, `${r.name} (${r.status}${r.why_retired ? `: ${r.why_retired}` : ''}). ${r.house_type || ''} ${r.where || ''}. Buy ${r.price || '?'} ${r.buy_month || ''}, works ${r.works || '?'}, finished ${r.finished_value || '?'}, sell ${r.sell_month || '-'}; next ${r.next_step || '-'}`, r.price, r.source_chats || 'past chats']);
+  // VILLAGES: one row per village, kept whole as one variable and one evidence line each.
+  const villages = csv(b.VILLAGES ?? '').map(typed).filter((v) => v.village);
+  if (villages.length) {
+    setVar('area.west_villages', 'Villages, Shaftesbury to Yeovil (research)', villages, 'One row per village: prices, character, services, risks.');
+    for (const v of villages) evidence.push([`Village: ${v.village}`, Object.entries(v).filter(([k, x]) => k !== 'village' && x !== '' && x != null).map(([k, x]) => `${k} ${x}`).join('; ').slice(0, 1500), v.detached_median ?? null, v.source_url || source]);
+    counts.villages = villages.length;
+  }
   const results = csv(b.ROUTE_RESULTS ?? '');
   if (results.length) {
     // { sensitivity: { route: [425k, 450k, 475k, 500k months, cash+equity Apr 2029, Dec 2031] } }; route notes go to evidence.

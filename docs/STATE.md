@@ -25,7 +25,7 @@ Next: Nationwide's pre-valuation answer (5-12 Nov, E84), Tom (probate).
 
 **Routes (4 Nov):** `engine/routes.js` + `routes.inputs` (refers to
 variables); research reply of 4 Nov LOADED by `tools/ingest-research.mjs`
-(E99-E177, comparables, `r-` contradictions); 5 recall questions open.
+(E99-E177). R-20: 120 min; west roads W1-W3 (L52-L54) await research.
 
 ## Waiting on the owner
 

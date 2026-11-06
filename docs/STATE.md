@@ -23,10 +23,9 @@ Handbook. Offer sit-down 1 (S-95, S-96, R-17): DIP final, December
 completion, saving range, bid the guide; quote shortlist in `contractors`.
 Next: Nationwide's pre-valuation answer (5-12 Nov, E84), Tom (probate).
 
-**Routes (4 Nov):** `engine/routes.js` + `routes.inputs` (refers to
-variables); research reply of 4 Nov LOADED by `tools/ingest-research.mjs`
-(E99-E177); west and wave 2 LOADED; candidates L55-L68 (Brook Lane lead).
-**Paused 6 Nov (S-108):** research stops; next is a plan-mode overhaul.
+**Routes:** `engine/routes.js`; all research LOADED by `tools/ingest-research.mjs`
+(E99-E177+); candidates L55-L68 (Brook Lane lead). **Paused 6 Nov (S-108):**
+research stops; next is a plan-mode overhaul of the whole system.
 
 ## Waiting on the owner
 

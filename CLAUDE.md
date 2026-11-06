@@ -19,21 +19,21 @@ the result. There is no form on it and no button that changes anything.
 **The repository is public; the data is not.** Everything real lives in
 Supabase behind row-level security.
 
-## The active property
+## No active house: search mode
 
-**P-003 Forest View, Tiptoe Road, Wootton** (`building_key`
-`forest-view`), promoted from Road Ahead listing L45 and made active on
-31 Oct 2026 BEFORE purchase (decision RA-05), so it can be modelled and
-costed while the tender runs. **The purchase comes first** (R-10):
-nothing here may delay the broker, the viewing or the tender, and if the
-purchase fails it is archived like P-001 and P-002 (archived 30 Sep
-2026, G-K09 and G-K11). Its plan of record is `docs/FOREST-VIEW-PLAN.md`;
-its specifics are `docs/properties/P-003/`. Photographs, particulars and
-every money figure are private (RA-06): Supabase only, never this
-repository. The Handbook PDF is printed from the Handbook page (RA-07).
+**There is no active property (6 Nov 2026).** The lender refused P-003
+Forest View as security and it is archived (R-24) beside P-001 and P-002
+in `docs/properties-archive/`, kept as the worked example for focus
+mode. The system is being rebuilt into a property brain - search mode
+now, focus mode once a house is chosen - by the staged plan in
+`docs/OVERHAUL-PLAN.md`; `docs/STATE.md` says which stage is in flight.
+Until a house is made active, "the house", "the budget" and "the
+roadmap" have nothing to point at: say so rather than reading the
+archive. Photographs, particulars and every money figure stay private:
+Supabase only, never this repository.
 
 **More than one house can be in play.** Candidates are worked up
-alongside the active house (P-004, the parents' house, since 4 Nov
+alongside any active house (P-004, the parents' house, since 4 Nov
 2026). The site's header switcher shows one house at a time; its rows
 are filtered by `property_id`, the views computed for the active house
 are emptied while a candidate is in view, and a household figure tied to
@@ -64,8 +64,8 @@ assumption behind every quantity, total and sequence in this system, and
 it is recorded as a `decision` row so it can be argued with rather than
 inherited silently.
 
-**A property can set its own scope, and Forest View has (R-14, 1 Nov
-2026):** no extensions and no structural work; each room brought up to
+**A property can set its own scope, and Forest View did (R-14, 1 Nov
+2026; archived with it):** no extensions and no structural work; each room brought up to
 scratch one at a time - make good, strip to brick only where damp, rot
 or failed plaster demands it; the kitchen and bathroom refitted in
 place; the rest at the lowest cost. The design stages are parked, not
@@ -93,9 +93,10 @@ when the work touches it:
 | `docs/STATE.md` | Always, straight after this. What is in flight. |
 | `docs/RENOVATION-SYSTEM.md` | Anything touching properties, the lifecycle, scopes, the template or the library. |
 | `docs/road-ahead/README.md` | Road Ahead: listings, roads, scenarios, variables, auctions, a sit-down or a re-base. |
-| `docs/properties/<ref>/` | One property's specifics (P-003 now). Archived ones move to `docs/properties-archive/`. |
-| `docs/FOREST-VIEW-PLAN.md` | Anything about Forest View: stages, ideas, costs, the Handbook. |
-| `docs/OFFER.md` | The offer: what to bid, what it rests on, an offer sit-down. |
+| `docs/OVERHAUL-PLAN.md` | The staged rebuild into a property brain: what each stage does and why. |
+| `docs/properties/<ref>/` | One property's specifics (P-004 now). Archived ones move to `docs/properties-archive/`. |
+| `docs/FOREST-VIEW-PLAN.md` | Archived (R-24): the worked example of a house plan - stages, costs, the Handbook. |
+| `docs/OFFER.md` | The offer method: what to bid, what it rests on, an offer sit-down (no house under offer now). |
 | `docs/road-ahead/ROUTES.md` | Routes to the next home (month by month), and loading a research reply. |
 | `docs/DECISIONS.md` | Priority, money, the roadmap, the shopping list, quantities, stockpiles, links. |
 | `docs/REVIEW.md` | A review session. |

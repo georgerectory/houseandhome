@@ -1,5 +1,10 @@
 # The offer
 
+> **No house is under offer (6 Nov 2026).** Forest View, the house this was written for, is
+> archived (R-24) and `offer.property_ref` is retired. The method stands for the next house;
+> it becomes the generic OFFER playbook in `docs/OVERHAUL-PLAN.md`, Stage 7.
+
+
 What to bid for the active property, what that figure rests on, and how
 it is kept honest while the offer stage runs. Read with `CLAUDE.md` (the
 confidence rules) and `docs/road-ahead/CALIBRATION.md` (the sit-down this

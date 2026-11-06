@@ -1,5 +1,10 @@
 # Forest View: from the chat to the house system
 
+> **ARCHIVED 6 Nov 2026 (R-24).** The lender refused Forest View as security, and P-003 is
+> archived (`docs/properties-archive/P-003/`). This plan is kept as the worked example for
+> focus mode (`docs/OVERHAUL-PLAN.md`, Stage 6); nothing in it is in flight.
+
+
 *Plan of record, 31 October 2026 (decisions RA-05 to RA-07 made the same day). Goes in the repo as `docs/FOREST-VIEW-PLAN.md`.*
 *Owner: the homeowner. Builders: Claude (chat) for data and decisions, Claude Code for the repo.*
 

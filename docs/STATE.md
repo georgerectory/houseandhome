@@ -26,6 +26,7 @@ Next: Nationwide's pre-valuation answer (5-12 Nov, E84), Tom (probate).
 **Routes (4 Nov):** `engine/routes.js` + `routes.inputs` (refers to
 variables); research reply of 4 Nov LOADED by `tools/ingest-research.mjs`
 (E99-E177); west and wave 2 LOADED; candidates L55-L68 (Brook Lane lead).
+**Paused 6 Nov (S-108):** research stops; next is a plan-mode overhaul.
 
 ## Waiting on the owner
 

@@ -39,7 +39,7 @@ export const LISTING_FOR = {
 // A research reply restates the owner's figures but is not the owner's
 // word, so nothing it carries lands above researched.
 // ra_comparables.kind takes sold, asking, guide or estimate; an auction lot is a guide, sstc an asking price.
-const KIND = { sold: 'sold', asking: 'asking', guide: 'guide', estimate: 'estimate', auction: 'guide', sstc: 'asking', listed: 'asking' };
+const KIND = { sold: 'sold', asking: 'asking', guide: 'guide', estimate: 'estimate', auction: 'guide', auction_guide: 'guide', sstc: 'asking', listed: 'asking', withdrawn: 'asking' };
 const CONF = { STATED: 'researched', VERIFIED: 'researched', ESTIMATE: 'drafted', CHECK: 'drafted' };
 
 // Keys a reply may invent for figures the household already holds under
@@ -53,6 +53,8 @@ export const ALIASES = {
   'mortgage.lti_ftb_95': 'mortgage.lti_ftb_95_headline', // stored key is the affordability-bound multiple the routes use
   'road.h1_finished': 'road.h1_entry_evidence', 'road.h2_finished': 'road.h2_entry_evidence', // the reply put ENTRY prices here
   'boe.bank_rate': 'mortgage.bank_rate', 'mortgage.dip_loan': null,
+  // 7 Nov 2026 wave 2: duplicates of figures already held under another key.
+  'mortgage.dip_nationwide': null, 'tax.sdlt_ftb_rate_300_500k': null, 'mortgage.coventry_lti_ftb': 'mortgage.lti_ftb_95_coventry',
 };
 
 /** A folder of block files (NAME.csv, NAME.txt) as one reply text. */
@@ -70,6 +72,17 @@ export function blocks(text) {
   const re = /([A-Z_]{4,})[^\n`]*\n+```[a-z]*\n([\s\S]*?)```/g;
   let m;
   while ((m = re.exec(text))) out[m[1]] = m[2].trim();
+  // Replies laid out as a report put each table under an appendix heading
+  // ("## Appendix B: variables (final values)") rather than its NAME. Map those;
+  // superseded tables are history and are not loaded.
+  const APPENDIX = [[/search log/i, 'SEARCH_LOG'], [/variables/i, 'VARIABLES'], [/comparables/i, 'COMPARABLES'],
+    [/listings|candidate/i, 'LISTINGS'], [/evidence/i, 'EVIDENCE'], [/contradictions/i, 'CONTRADICTIONS']];
+  const ap = /\n#{2,4}\s*Appendix [A-Z]:\s*([^\n]*)\n[\s\S]*?```csv\n([\s\S]*?)```/g;
+  while ((m = ap.exec(text))) {
+    if (/supersed/i.test(m[1])) continue;
+    const hit = APPENDIX.find(([r]) => r.test(m[1]));
+    if (hit && !out[hit[1]]) out[hit[1]] = m[2].trim();
+  }
   // Prose blocks (BRIEF, VERDICT) may come without a fence.
   for (const name of ['BRIEF', 'VERDICT', 'QUESTIONS_FROM_RECALL', 'NOT_FOUND']) {
     if (out[name]) continue;
@@ -223,7 +236,7 @@ on conflict (id) do update set value = (select val from v), source = ${q(source)
     const code = /^L[0-9]{2,3}$/.test(f) ? f : LISTING_FOR[f];
     // A comparable without a price is not a comparable (and the column refuses it).
     if (!code || !c.address || num(c.price) == null) continue;
-    const notes = [c.days_on_market && `${c.days_on_market} days`, c.price_cuts && `cuts: ${c.price_cuts}`, /auction|sstc/i.test(c.kind || '') && c.kind.toLowerCase()].filter(Boolean).join('; ') || null;
+    const notes = [c.days_on_market && `${c.days_on_market} days`, c.price_cuts && `cuts: ${c.price_cuts}`, /auction|sstc|withdrawn/i.test(c.kind || '') && c.kind.toLowerCase()].filter(Boolean).join('; ') || null;
     comps.push(`(${q(code)}, ${q(c.address)}, ${q([c.type, c.beds && `${c.beds}-bed`, c.m2 && `${c.m2} m2`].filter(Boolean).join(', '))}, ${num(c.price)}, ${q(KIND[(c.kind || 'sold').toLowerCase()] ?? 'asking')}, ${q(c.date)}, ${/^\d{4}-\d{2}-\d{2}$/.test(c.date) ? q(c.date) : 'null'}, ${q(c.source_url)}, ${q(notes)}, ${q((c.confidence || '').toUpperCase() === 'LOW' ? 'drafted' : 'researched')})`);
   }
   if (comps.length) {
@@ -317,8 +330,11 @@ ${evidence.map(([t, c, f, s], i) => `  (${i + 1}, ${q(t)}, ${q(c || '(blank)')},
     counts.evidence = evidence.length;
   }
 
+  // Two rows on one topic get distinct keys (r-topic, r-topic_2, ...), or the second would clash.
+  const seenKeys = {};
+  const keyFor = (topic) => { const k = `r-${slug(topic)}`; seenKeys[k] = (seenKeys[k] ?? 0) + 1; return seenKeys[k] > 1 ? `${k}_${seenKeys[k]}` : k; };
   const cons = csv(b.CONTRADICTIONS ?? '').filter((c) => c.topic)
-    .map((c) => `(${q(`r-${slug(c.topic)}`)}, ${q(c.topic)}, ${q(c.source_a)}, ${q(c.position_a || '-')}, ${q(c.source_b)}, ${q(c.position_b || '-')}, ${q(c.what_it_changes)})`);
+    .map((c) => `(${q(keyFor(c.topic))}, ${q(c.topic)}, ${q(c.source_a)}, ${q(c.position_a || '-')}, ${q(c.source_b)}, ${q(c.position_b || '-')}, ${q(c.what_it_changes)})`);
   if (cons.length) {
     out.push(`insert into contradictions (household_id, key, topic, source_a, position_a, source_b, position_b, what_it_changes, status)
 select ${H}, k, t, sa, pa, sb, pb, w, 'open' from (values

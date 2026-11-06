@@ -59,7 +59,7 @@ test('the SQL is one transaction, skips bad keys and unknown listings, and never
   assert.equal(counts.evidence, 2);
   assert.match(sql, /confidence <> 'confirmed'/);
   assert.match(sql, /Research differs from a confirmed figure/);
-  assert.match(sql, /l\.code = 'L46'/);
+  assert.match(sql, /\('L46', /);
   assert.doesNotMatch(sql, /Elsewhere/);
 });
 
@@ -76,10 +76,9 @@ test('an auction lot lands as a guide; a priceless row is skipped', () => {
   assert.doesNotMatch(sql, /2 No Price/);
 });
 
-test('villages load as one variable and an evidence line each; west roads map to their listings', () => {
+test('villages load as one variable; west roads map to their listings', () => {
   const { sql, counts } = toSql('VILLAGES\n```\nvillage,detached_median,source_url\nExampleton,350000,https://example.org/v\n```\nCOMPARABLES\n```\nfor,address,price,kind,date\nROAD_W2,1 Test Lane,400000,asking,2026-11-01\n```\n', { household: 'h', date: '2026-11-05' });
   assert.equal(counts.villages, 1);
   assert.match(sql, /area\.west_villages/);
-  assert.match(sql, /Village: Exampleton/);
-  assert.match(sql, /l\.code = 'L53'/);
+  assert.match(sql, /\('L53', /);
 });

@@ -82,3 +82,17 @@ test('villages load as one variable; west roads map to their listings', () => {
   assert.match(sql, /area\.west_villages/);
   assert.match(sql, /\('L53', /);
 });
+
+test('LISTINGS become candidate houses; house evidence files under its listing; a listing code can be named directly', () => {
+  const reply = 'LISTINGS\n```\nname,address,postcode,type,beds,plot_acres,price,price_kind,agent,epc,url\nTest House,1 Test Lane,ab1 2cd,detached,4,0.5,450000,guide,Example Agents,F,https://example.org/h\n```\n'
+    + 'EVIDENCE\n```\ntopic,claim,figure,source_url,source_date,label\nhouse: Test House,EPC is F,F,https://example.org/e,2026-11-07,VERIFIED\n```\n'
+    + 'COMPARABLES\n```\nfor,address,price,kind,date\nL55,2 Test Lane,440000,sold,2026-01-01\n```\n'
+    + 'VERDICT\nTest House leads.\n';
+  const { sql, counts } = toSql(reply, { household: 'h', date: '2026-11-07' });
+  assert.equal(counts.listings, 1);
+  assert.match(sql, /'AB1 2CD'/);
+  assert.match(sql, /'candidate', 'unreviewed', 'researched'/);
+  assert.match(sql, /v\.topic ilike 'house:%'/);
+  assert.match(sql, /\('L55', '2 Test Lane'/);
+  assert.match(sql, /Test House leads\./);
+});

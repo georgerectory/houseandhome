@@ -32,12 +32,14 @@ The routes research prompt returns fixed CSV blocks. `tools/ingest-research.mjs 
 
 | Block | Lands in |
 |---|---|
-| VARIABLES | `ra_variables`. New keys are inserted. An unconfirmed key is updated. A confirmed key is NEVER overwritten: a `contradictions` row (`r-*`) is raised instead. |
+| VARIABLES | `ra_variables`. New keys are inserted. An unconfirmed key is updated, unless the reply's source date is older than the stored one. A confirmed key is NEVER overwritten: a `contradictions` row (`r-*`) is raised instead. Keys whose meaning differs from the stored key are renamed (`ALIASES`). |
 | LENDERS | `ra_variables` `lending.products` |
-| FORECASTS | `ra_variables` `forecast.<forecaster>_<area>` |
+| FORECASTS | `ra_variables` `forecast.<forecaster>_<area>_<vintage>` |
 | CHART_SERIES | `ra_variables` `research.chart_series` |
-| COMPARABLES | `ra_comparables`, on the listing named in the `for` column: P004 → L46, FOREST_VIEW → L45, ROAD_GE/H1/H2/H3/H4 → benchmark listings L47–L51 |
-| EVIDENCE, RECALL_LEDGER, ROADS_RECALLED, ROUTE_RESULTS, BRIEF, QUESTIONS_FROM_RECALL, VERDICT | `ra_evidence`, with codes continuing from the highest E-number |
+| COMPARABLES | `ra_comparables`, on the listing named in the `for` column: P004 → L46, FOREST_VIEW → L45, ROAD_GE/H1/H2/H3/H4 → L47–L51, ROAD_W1/W2/W3 → L52–L54, or an L code directly. Deduplicated on house and price. |
+| LISTINGS | `ra_listings`. A new house becomes a candidate listing with the next L code, status `unreviewed` (the owner decides what to chase). A house already held, by name or postcode and first address line, only has a changed price recorded. |
+| VILLAGES | `ra_variables` `area.west_villages`: one row per village. |
+| EVIDENCE, RECALL_LEDGER, ROADS_RECALLED, ROUTE_RESULTS, BRIEF, QUESTIONS_FROM_RECALL, VERDICT, NOT_FOUND | `ra_evidence`, with codes continuing from the highest E-number. Topic `house: <name>` is filed under that house's listing code (`used_in`) and shows on its card on the Road page. |
 | CONTRADICTIONS | `contradictions` (open) |
 | SEARCH_LOG | `source_documents`: one row with the count |
 

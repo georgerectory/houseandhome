@@ -73,8 +73,13 @@ export function blocks(text) {
   // Prose blocks (BRIEF, VERDICT) may come without a fence.
   for (const name of ['BRIEF', 'VERDICT', 'QUESTIONS_FROM_RECALL', 'NOT_FOUND']) {
     if (out[name]) continue;
-    const p = new RegExp(`${name}[^\\n]*\\n([\\s\\S]*?)(?:\\n#{1,3} |\\n[A-Z_]{4,}\\b|$)`).exec(text);
-    if (p) out[name] = p[1].trim();
+    // The name alone on its line (optionally as a heading); the LAST such block wins,
+    // because a contents list near the top can mention the same word.
+    const re2 = new RegExp(`(?:^|\\n)(?:#{1,4}\\s*)?\\**${name}\\**\\s*\\n([\\s\\S]*?)(?=\\n#{1,3} |\\n\\**[A-Z_]{4,}\\**\\s*\\n|\\n---|$)`, 'g');
+    let p2;
+    let last = null;
+    while ((p2 = re2.exec(text))) if (p2[1].trim()) last = p2[1].trim();
+    if (last) out[name] = last;
   }
   return out;
 }
@@ -214,7 +219,8 @@ on conflict (id) do update set value = (select val from v), source = ${q(source)
   // Comparables, set-based: one VALUES list, one insert, deduplicated on listing, house and price.
   const comps = [];
   for (const c of csv(b.COMPARABLES ?? '')) {
-    const code = LISTING_FOR[(c.for || '').toUpperCase()];
+    const f = (c.for || '').toUpperCase();
+    const code = /^L[0-9]{2,3}$/.test(f) ? f : LISTING_FOR[f];
     // A comparable without a price is not a comparable (and the column refuses it).
     if (!code || !c.address || num(c.price) == null) continue;
     const notes = [c.days_on_market && `${c.days_on_market} days`, c.price_cuts && `cuts: ${c.price_cuts}`, /auction|sstc/i.test(c.kind || '') && c.kind.toLowerCase()].filter(Boolean).join('; ') || null;
@@ -229,6 +235,49 @@ ${comps.join(',\n')}
   join ra_listings l on l.household_id = ${H} and l.code = c.code
  where not exists (select 1 from ra_comparables x where x.listing_id = l.id and split_part(x.address, ',', 1) = split_part(c.address, ',', 1) and coalesce(x.price, 0) = c.price);`);
     counts.comparables = comps.length;
+  }
+
+  // LISTINGS: real houses found for sale. New ones become candidate listings
+  // (status 'unreviewed', so the owner decides what to chase); a house already
+  // held (same name, or same postcode and first address line) only has its
+  // price brought up to date, with the change noted.
+  const SALE = { auction: 'auction', mmoa: 'mmoa', private: 'private', tender: 'tender' };
+  const houses = csv(b.LISTINGS ?? '').filter((h) => h.name || h.address).map((h) => {
+    const notes = [h.agent && `Agent ${h.agent}`, h.listed_date && `listed ${h.listed_date}`, h.days_on_market && `${h.days_on_market} days on market`,
+      h.price_cuts && `cuts: ${h.price_cuts}`, h.epc && `EPC ${h.epc}`, h.heating && `heating ${h.heating}`, h.drainage && `drainage ${h.drainage}`,
+      h.flood && `flood ${h.flood}`, h.broadband && `broadband ${h.broadband}`, h.notes].filter(Boolean).join('; ');
+    const pk = /guide/i.test(h.price_kind || '') ? 'guide' : 'asking';
+    return `(${q(h.name || h.address)}, ${q(h.address)}, ${q((h.postcode || '').toUpperCase() || null)}, ${q(h.type)}, ${num(h.beds) ?? 'null'}, ${num(h.baths) ?? 'null'}, ${num(h.m2) ?? 'null'}, ${num(h.plot_acres) ?? 'null'}, ${q(h.condition)}, ${num(h.price) ?? 'null'}, ${q(pk)}, ${q(SALE[(h.sale_method || '').toLowerCase()] ?? 'private')}, ${q(h.url)}, ${q(notes || null)})`;
+  });
+  if (houses.length) {
+    // Cast every column: a column that is null in every row would otherwise be text.
+    out.push(`create temp table _l on commit drop as select name::text, address::text, postcode::text, ptype::text, beds::int, baths::int, m2::numeric, acres::numeric,
+  cond::text, price::numeric, pkind::text, method::text, url::text, notes::text from (values
+${houses.join(',\n')}
+) v(name, address, postcode, ptype, beds, baths, m2, acres, cond, price, pkind, method, url, notes);
+-- New houses become candidate listings, numbered on from the highest L code.
+with fresh as (
+  select s.*, row_number() over (order by s.name) rn from _l s
+   where not exists (select 1 from ra_listings x where x.household_id = ${H}
+     and (lower(x.name) = lower(s.name) or (s.postcode is not null and x.postcode = s.postcode and split_part(lower(x.address), ',', 1) = split_part(lower(s.address), ',', 1))))),
+base as (select coalesce(max(substring(code from 2)::int), 0) n from ra_listings where household_id = ${H} and code ~ '^L[0-9]+$')
+insert into ra_listings (household_id, code, name, address, postcode, links, source, property_type, detached, beds, baths, floor_area_m2, plot_acres, condition, asking_price, guide_price, sale_method, purpose, status, confidence, checked_on, notes, fee, fee_pct)
+select ${H}, 'L' || (base.n + fresh.rn), fresh.name, fresh.address, fresh.postcode, case when fresh.url is null then '{}'::text[] else array[fresh.url] end, ${q(source)},
+       fresh.ptype, fresh.ptype ilike '%detached%' and fresh.ptype not ilike '%semi%', fresh.beds, fresh.baths, fresh.m2, fresh.acres, fresh.cond,
+       case when fresh.pkind = 'asking' then fresh.price end, case when fresh.pkind = 'guide' then fresh.price end, fresh.method,
+       'candidate', 'unreviewed', 'researched', ${q(date)}, fresh.notes, 0, 0
+  from fresh, base;
+-- A house already held: a new price is recorded, with the change noted; nothing else is touched.
+insert into ra_listings select x.* from ra_listings x join _l s on x.household_id = ${H}
+   and (lower(x.name) = lower(s.name) or (s.postcode is not null and x.postcode = s.postcode and split_part(lower(x.address), ',', 1) = split_part(lower(s.address), ',', 1)))
+ where s.price is not null and x.status not in ('dropped', 'closed', 'lost')
+   and s.price is distinct from (case when s.pkind = 'guide' then x.guide_price else x.asking_price end)
+on conflict (id) do update set
+  asking_price = coalesce((select case when w.pkind = 'asking' then w.price end from _l w where lower(w.name) = lower(ra_listings.name) limit 1), ra_listings.asking_price),
+  guide_price = coalesce((select case when w.pkind = 'guide' then w.price end from _l w where lower(w.name) = lower(ra_listings.name) limit 1), ra_listings.guide_price),
+  checked_on = ${q(date)},
+  notes = concat_ws(' | ', ra_listings.notes, ${q(`${date}: price updated from research`)});`);
+    counts.listings = houses.length;
   }
 
   const evidence = [];
@@ -258,7 +307,10 @@ ${comps.join(',\n')}
   if (evidence.length) {
     out.push(`with base as (select coalesce(max(nullif(regexp_replace(code, '\\D', '', 'g'), '')::int), 0) n from ra_evidence where household_id = ${H})
 insert into ra_evidence (household_id, code, period, topic, claim, figure, source, used_in)
-select ${H}, 'E' || (base.n + v.i), ${q(date.slice(0, 7))}, v.topic, v.claim, v.figure, v.src, 'Routes research'
+select ${H}, 'E' || (base.n + v.i), ${q(date.slice(0, 7))}, v.topic, v.claim, v.figure, v.src,
+       -- 'house: <name>' evidence is filed under that house's listing code.
+       coalesce(case when v.topic ilike 'house:%' then (select l.code from ra_listings l where l.household_id = ${H}
+         and (l.name ilike '%' || trim(substr(v.topic, 7)) || '%' or l.address ilike '%' || trim(substr(v.topic, 7)) || '%') order by l.code desc limit 1) end, ${q(source.slice(0, 60))})
   from base, (values
 ${evidence.map(([t, c, f, s], i) => `  (${i + 1}, ${q(t)}, ${q(c || '(blank)')}, ${q(f)}, ${q(s)})`).join(',\n')}
   ) v(i, topic, claim, figure, src);`);

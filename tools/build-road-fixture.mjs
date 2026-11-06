@@ -355,6 +355,11 @@ const comparables = [
   { listing_code: 'L03', address: 'Forge Lane, Fernwick', property_type: '4-bed character house', price: 610000,
     kind: 'sold', when_text: 'June 2025', on_date: '2025-06-20', source: INVENTED, url: null, confidence: 'researched' },
 ];
+// Research filed under a listing (shows on its card).
+const evidence = [
+  { code: 'E01', topic: 'house: Mill Lane', claim: 'Flood risk for the postcode is very low (rivers and surface water).', figure: null, source: INVENTED, used_in: 'L01' },
+  { code: 'E02', topic: 'house: Mill Lane', claim: 'Energy certificate rating E; solid walls; oil heating.', figure: 'E', source: INVENTED, used_in: 'L01' },
+];
 const cash = variables.find((v) => v.key === 'cash.start_cash');
 const pay = variables.find((v) => v.key === 'income.net_pay_now');
 const ledger = [
@@ -372,7 +377,7 @@ const { decisions, signals, changes, contradictions, calibrate, revisit, runs } 
 
 export const fixture = {
   meta: { generated: ON, note: 'Invented. Every figure, place, listing and rule here is made up for the demo and the browser tests.' },
-  variables, scenarios, roads, rules, register, comparables, pipeline, next, ledger, houses, calendar, results, playbook,
+  variables, scenarios, roads, rules, register, comparables, evidence, pipeline, next, ledger, houses, calendar, results, playbook,
   decisions, signals, changes, contradictions, calibrate, revisit, runs,
 };
 

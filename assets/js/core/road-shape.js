@@ -23,6 +23,8 @@ export const ROAD_SHAPE = Object.freeze({
     'positives', 'negatives', 'red_flags', 'next_checks', 'days_to_auction', 'judgements', 'next_step',
     'write_up_on', 'write_up_verdict', 'sources', 'labels'],
   // listing_code is resolved from listing_id by the loader.
+  // Evidence filed under a listing (used_in = its L code): what research found about one house.
+  evidence: ['code', 'topic', 'claim', 'figure', 'source', 'used_in'],
   comparables: ['listing_code', 'address', 'property_type', 'price', 'kind', 'when_text', 'on_date', 'source',
     'url', 'confidence'],
   pipeline: ['listing_id', 'code', 'name', 'house_code', 'house_name', 'lot', 'auction_on', 'auction_at',

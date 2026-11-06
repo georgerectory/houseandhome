@@ -236,6 +236,7 @@ async function loadRoadLive() {
     rules: active('ra_rules', 'rules').order('code'),
     register: sb.from('ra_register').select(columns('register')).order('code'),
     comparables: sb.from('ra_comparables').select(withListingId('comparables')),
+    evidence: sb.from('ra_evidence').select(columns('evidence')).like('used_in', 'L%').order('code'),
     pipeline: sb.from('ra_pipeline').select(columns('pipeline')).order('due_on'),
     next: sb.from('whats_next').select(columns('next')).gte('days_until', 0).order('days_until').limit(12),
     ledger: sb.from('ra_model_vs_ledger').select(columns('ledger')),

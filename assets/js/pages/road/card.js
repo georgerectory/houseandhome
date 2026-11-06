@@ -89,6 +89,13 @@ function comparables(rows, code) {
   </table></div></div>`;
 }
 
+function research(rows, code) {
+  const mine = (rows ?? []).filter((e) => e.used_in === code);
+  if (!mine.length) return '';
+  return `<div><h4 class="rd-card__h">What the research found</h4><ul class="rd-list">${mine.map((e) => `<li>${escape(e.claim)}${e.figure ? ` <span class="rd-quiet">(${escape(e.figure)})</span>` : ''}
+    <br><span class="rd-quiet">${escape(e.code)}: ${escape(e.source ?? '')}</span></li>`).join('')}</ul></div>`;
+}
+
 /** The listing on a road in place of its typical House 1. */
 export function focusBlock(x, ctx, runs, roadCode) {
   const withBuy = ctx.roads.filter((r) => r.stages.some((s) => s.kind === 'buy'));
@@ -158,6 +165,7 @@ export function cardHtml(x, data, ctx, runs, focusCode) {
     </div>
     ${steps(data.pipeline, r.code)}
     ${comparables(data.comparables, r.code)}
+    ${research(data.evidence, r.code)}
     ${x.now ? focusBlock(x, ctx, runs, focusCode) : ''}
   </article>`;
 }

@@ -49,6 +49,10 @@ export const ALIASES = {
   'income.gross': 'income.gross_salary_now', 'income.net': 'income.net_pay_now',
   'income.student_loan': 'income.student_loan_monthly', 'rent.used_in_model': 'costs.bridge_rent',
   'fees.agent_pct_whiteley': 'p004.agent_fee_pct', 'mortgage.term_months': null, 'cash.dec2026': null, 'sdlt.ftb': null,
+  // 6 Nov 2026 west reply: keys whose meaning differs from the stored one.
+  'mortgage.lti_ftb_95': 'mortgage.lti_ftb_95_headline', // stored key is the affordability-bound multiple the routes use
+  'road.h1_finished': 'road.h1_entry_evidence', 'road.h2_finished': 'road.h2_entry_evidence', // the reply put ENTRY prices here
+  'boe.bank_rate': 'mortgage.bank_rate', 'mortgage.dip_loan': null,
 };
 
 /** A folder of block files (NAME.csv, NAME.txt) as one reply text. */
@@ -143,6 +147,7 @@ export function toSql(text, { household, source = 'Research reply', date = new D
   for (const raw of csv(b.VARIABLES ?? '')) {
     const key = raw.key in ALIASES ? ALIASES[raw.key] : raw.key;
     if (!key || !/^[a-z0-9_]+(\.[a-z0-9_]+)+$/.test(key)) continue;
+    if (raw.value == null || String(raw.value).trim() === '') continue; // no figure, nothing to load
     const ev = (raw.evidence ?? 'ESTIMATE').toUpperCase();
     const src = [raw.source_url, raw.notes].filter(Boolean).join(' | ') || source;
     vrows.push(`(${q(key)}, ${q(raw.label || key)}, ${jsonv(raw.value)}, ${q(raw.unit)}, ${raw.low ? jsonv(raw.low) : 'null::jsonb'}, ${raw.high ? jsonv(raw.high) : 'null::jsonb'}, ${q(ev in CONF ? ev : 'ESTIMATE')}, ${q(CONF[ev] ?? 'drafted')}, ${q(src)}, ${q(asDate(raw.source_date, date))}, ${q(raw.notes)}, ${q(raw.value)})`);
@@ -160,6 +165,7 @@ select ${H}, v.key, v.label, v.value, v.unit, v.low, v.high, v.evidence, 'M', v.
 insert into ra_variables select x.* from ra_variables x join _v v on x.key = v.key
  where x.household_id = ${H} and x.status = 'active' and x.confidence <> 'confirmed' and jsonb_typeof(x.value) = jsonb_typeof(v.value) and x.value <> v.value
    and not (jsonb_typeof(x.value) = 'number' and abs((x.value)::text::numeric - (v.value)::text::numeric) <= 0.005 * abs((x.value)::text::numeric))
+   and (x.source_date is null or v.sdate::date >= x.source_date) -- an older figure never replaces a newer one
 on conflict (id) do update set
   value = (select w.value from _v w where w.key = ra_variables.key),
   low = coalesce((select w.low from _v w where w.key = ra_variables.key), ra_variables.low),
@@ -205,15 +211,24 @@ on conflict (id) do update set value = (select val from v), source = ${q(source)
     counts.chart_rows = chart.length;
   }
 
+  // Comparables, set-based: one VALUES list, one insert, deduplicated on listing, house and price.
+  const comps = [];
   for (const c of csv(b.COMPARABLES ?? '')) {
     const code = LISTING_FOR[(c.for || '').toUpperCase()];
     // A comparable without a price is not a comparable (and the column refuses it).
     if (!code || !c.address || num(c.price) == null) continue;
+    const notes = [c.days_on_market && `${c.days_on_market} days`, c.price_cuts && `cuts: ${c.price_cuts}`, /auction|sstc/i.test(c.kind || '') && c.kind.toLowerCase()].filter(Boolean).join('; ') || null;
+    comps.push(`(${q(code)}, ${q(c.address)}, ${q([c.type, c.beds && `${c.beds}-bed`, c.m2 && `${c.m2} m2`].filter(Boolean).join(', '))}, ${num(c.price)}, ${q(KIND[(c.kind || 'sold').toLowerCase()] ?? 'asking')}, ${q(c.date)}, ${/^\d{4}-\d{2}-\d{2}$/.test(c.date) ? q(c.date) : 'null'}, ${q(c.source_url)}, ${q(notes)}, ${q((c.confidence || '').toUpperCase() === 'LOW' ? 'drafted' : 'researched')})`);
+  }
+  if (comps.length) {
     out.push(`insert into ra_comparables (household_id, listing_id, address, property_type, price, kind, when_text, on_date, source, url, notes, confidence)
-select ${H}, l.id, ${q(c.address)}, ${q([c.type, c.beds && `${c.beds}-bed`, c.m2 && `${c.m2} m2`].filter(Boolean).join(', '))}, ${num(c.price) ?? 'null'}, ${q(KIND[(c.kind || 'sold').toLowerCase()] ?? 'asking')}, ${q(c.date)}, ${/^\d{4}-\d{2}-\d{2}$/.test(c.date) ? q(c.date) : 'null'}, ${q(source)}, ${q(c.source_url)}, ${q([c.days_on_market && `${c.days_on_market} days`, c.price_cuts && `cuts: ${c.price_cuts}`, /auction|sstc/i.test(c.kind || '') && c.kind.toLowerCase()].filter(Boolean).join('; ') || null)}, ${q((c.confidence || '').toUpperCase() === 'LOW' ? 'drafted' : 'researched')}
-  from ra_listings l where l.household_id = ${H} and l.code = ${q(code)}
-   and not exists (select 1 from ra_comparables x where x.listing_id = l.id and x.address = ${q(c.address)} and coalesce(x.price, 0) = ${num(c.price) ?? 0});`);
-    counts.comparables = (counts.comparables ?? 0) + 1;
+select distinct on (l.id, split_part(c.address, ',', 1), c.price) ${H}, l.id, c.address, c.ptype, c.price, c.kind, c.when_text, c.on_date::date, ${q(source)}, c.url, c.notes, c.conf
+  from (values
+${comps.join(',\n')}
+  ) c(code, address, ptype, price, kind, when_text, on_date, url, notes, conf)
+  join ra_listings l on l.household_id = ${H} and l.code = c.code
+ where not exists (select 1 from ra_comparables x where x.listing_id = l.id and split_part(x.address, ',', 1) = split_part(c.address, ',', 1) and coalesce(x.price, 0) = c.price);`);
+    counts.comparables = comps.length;
   }
 
   const evidence = [];
@@ -221,10 +236,11 @@ select ${H}, l.id, ${q(c.address)}, ${q([c.type, c.beds && `${c.beds}-bed`, c.m2
   for (const r of csv(b.RECALL_LEDGER ?? '').filter((x) => !/^houseandhome DB/i.test(x.chat_title || ''))) evidence.push([`Recall: ${r.topic || 'general'}`, `${r.fact}${r.status === 'superseded' ? ' (superseded)' : ''}`, r.figure, `${r.chat_title || 'past chat'} ${r.chat_date || ''} | ${r.label || ''}`.trim()]);
   for (const r of csv(b.ROADS_RECALLED ?? '')) evidence.push([`Road recall ${r.code}`, `${r.name} (${r.status}${r.why_retired ? `: ${r.why_retired}` : ''}). ${r.house_type || ''} ${r.where || ''}. Buy ${r.price || '?'} ${r.buy_month || ''}, works ${r.works || '?'}, finished ${r.finished_value || '?'}, sell ${r.sell_month || '-'}; next ${r.next_step || '-'}`, r.price, r.source_chats || 'past chats']);
   // VILLAGES: one row per village, kept whole as one variable and one evidence line each.
-  const villages = csv(b.VILLAGES ?? '').map(typed).filter((v) => v.village);
+  // Empty cells are dropped so the stored rows stay small.
+  const villages = csv(b.VILLAGES ?? '').map(typed).filter((v) => v.village)
+    .map((v) => Object.fromEntries(Object.entries(v).filter(([, x]) => x !== '' && x != null)));
   if (villages.length) {
     setVar('area.west_villages', 'Villages, Shaftesbury to Yeovil (research)', villages, 'One row per village: prices, character, services, risks.');
-    for (const v of villages) evidence.push([`Village: ${v.village}`, Object.entries(v).filter(([k, x]) => k !== 'village' && x !== '' && x != null).map(([k, x]) => `${k} ${x}`).join('; ').slice(0, 1500), v.detached_median ?? null, v.source_url || source]);
     counts.villages = villages.length;
   }
   const results = csv(b.ROUTE_RESULTS ?? '');
@@ -249,12 +265,15 @@ ${evidence.map(([t, c, f, s], i) => `  (${i + 1}, ${q(t)}, ${q(c || '(blank)')},
     counts.evidence = evidence.length;
   }
 
-  for (const c of csv(b.CONTRADICTIONS ?? '')) {
-    if (!c.topic) continue;
+  const cons = csv(b.CONTRADICTIONS ?? '').filter((c) => c.topic)
+    .map((c) => `(${q(`r-${slug(c.topic)}`)}, ${q(c.topic)}, ${q(c.source_a)}, ${q(c.position_a || '-')}, ${q(c.source_b)}, ${q(c.position_b || '-')}, ${q(c.what_it_changes)})`);
+  if (cons.length) {
     out.push(`insert into contradictions (household_id, key, topic, source_a, position_a, source_b, position_b, what_it_changes, status)
-select ${H}, ${q(`r-${slug(c.topic)}`)}, ${q(c.topic)}, ${q(c.source_a)}, ${q(c.position_a || '-')}, ${q(c.source_b)}, ${q(c.position_b || '-')}, ${q(c.what_it_changes)}, 'open'
- where not exists (select 1 from contradictions x where x.key = ${q(`r-${slug(c.topic)}`)});`);
-    counts.contradictions = (counts.contradictions ?? 0) + 1;
+select ${H}, k, t, sa, pa, sb, pb, w, 'open' from (values
+${cons.join(',\n')}
+) v(k, t, sa, pa, sb, pb, w)
+ where not exists (select 1 from contradictions x where x.key = v.k);`);
+    counts.contradictions = cons.length;
   }
 
   const log = csv(b.SEARCH_LOG ?? '');

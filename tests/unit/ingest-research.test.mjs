@@ -96,3 +96,15 @@ test('LISTINGS become candidate houses; house evidence files under its listing; 
   assert.match(sql, /\('L55', '2 Test Lane'/);
   assert.match(sql, /Test House leads\./);
 });
+
+test('report-style appendices load by heading; superseded tables are skipped; repeated contradiction topics get distinct keys', () => {
+  const reply = '# Report\n\n## Appendix B: variables (final values)\n\n```csv\nkey,label,value,unit,evidence,source_url,source_date\nwest.test_figure,Test,100,GBP,VERIFIED,https://example.org,2026-11-01\n```\n'
+    + '\n## Appendix C: superseded values\n\n```csv\nkey,label,value,unit,evidence,source_url,source_date\nwest.test_figure,Old,50,GBP,VERIFIED,https://example.org,2026-10-01\n```\n'
+    + '\n## Appendix F: contradictions\n\n```csv\ntopic,position_a,source_a,position_b,source_b,what_it_changes\nSame topic,a,s,b,t,w\nSame topic,c,s,d,t,w\n```\n';
+  const { sql, counts } = toSql(reply, { household: 'h', date: '2026-11-07' });
+  assert.equal(counts.variables, 1);
+  assert.match(sql, /'west\.test_figure', 'Test', '100'::jsonb/);
+  assert.doesNotMatch(sql, /'Old'/);
+  assert.match(sql, /'r-same_topic'/);
+  assert.match(sql, /'r-same_topic_2'/);
+});

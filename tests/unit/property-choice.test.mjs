@@ -50,3 +50,17 @@ test('the offer figures show only on the house they were worked for', () => {
   assert.equal(isOfferHouse(vars, { ref: 'P-004' }), false);
   assert.equal(isOfferHouse([], { ref: 'P-004' }, false), false);
 });
+
+test('search mode: with no active house nothing is the default, and the active-only views stay empty', () => {
+  const none = houses.map((p) => (p.status === 'active' ? { ...p, status: 'archived' } : p));
+  assert.deepEqual(switchable(none).map((p) => p.ref), ['P-004']);
+  assert.equal(chooseProperty(none, null).isDefault, false);
+  const c = chooseProperty(none, 'P-004');
+  assert.equal(c.property.ref, 'P-004');
+  assert.equal(c.isDefault, false);
+  const out = scopeTo(data, c, null);
+  assert.deepEqual(out.rooms.map((r) => r.key), ['k2']);
+  for (const k of ACTIVE_ONLY_VIEWS) assert.deepEqual(out[k], [], k);
+  // A retired offer.property_ref is not loaded, so no house claims the offer.
+  assert.equal(isOfferHouse([], c.property, c.isDefault), false);
+});

@@ -128,6 +128,38 @@ begin
   perform pass('lifecycle: ARCHIVE shows only in COMPARE, and RESTORE is the only way back');
 end $$;
 
+-- ---- SEARCH MODE: archive the ACTIVE house (R-24) --------------------
+-- The house a lender refuses is archived while it is the active one.
+-- Nothing it owns is deleted, the active slot is left empty, and the
+-- household's own rows stay in every default view.
+do $$
+declare
+  hh constant uuid := 'c0000000-0000-0000-0000-000000000001';
+  v_id uuid; v_rooms int; v_items int;
+begin
+  select id into v_id from properties where household_id = hh and status = 'active';
+  if v_id is null then
+    perform fail('lifecycle: search mode', 'no active property to archive');
+  end if;
+  select count(*) into v_rooms from rooms where property_id = v_id;
+  select count(*) into v_items from work_items where property_id = v_id;
+  perform set_property_status(hh, (select ref from properties where id = v_id), 'archived',
+                              'Dry run: the lender refused it');
+  if active_property_id(hh) is not null then
+    perform fail('lifecycle: search mode', 'archiving the active house left a house active');
+  end if;
+  if (select count(*) from rooms where property_id = v_id) <> v_rooms
+     or (select count(*) from work_items where property_id = v_id) <> v_items then
+    perform fail('lifecycle: search mode', 'archiving the active house deleted its rows');
+  end if;
+  if not exists (select 1 from work_item_readiness where id = 'c2000000-0000-0000-0000-000000000002') then
+    perform fail('lifecycle: search mode', 'a USER-scope row fell out of the default views with no active house');
+  end if;
+  perform set_property_status(hh, (select ref from properties where id = v_id), 'candidate', 'Dry run: restored');
+  perform make_active(hh, (select ref from properties where id = v_id));
+  perform pass('lifecycle: archiving the ACTIVE house empties the active slot and keeps every row (R-24)');
+end $$;
+
 -- ---- PURGE -----------------------------------------------------------
 -- Give P-TEST everything a real candidate would accumulate: a room, a
 -- fact, a milestone, a bill, a link to a USER tool, a note, a library

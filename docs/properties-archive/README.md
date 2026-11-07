@@ -9,3 +9,4 @@ A purged property is deleted from here too.
 |---|---|---|---|
 | [P-001](P-001/README.md) | 48 Ameysford Road | 30 Sep 2026 | Too small, too much work (G-K09) |
 | [P-002](P-002/README.md) | 1 Walnut Tree Cottages | 30 Sep 2026 | Treat as closed (G-K11) |
+| [P-003](P-003/README.md) | Forest View | 6 Nov 2026 | The lender refused it as security (R-24) |

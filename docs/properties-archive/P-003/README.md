@@ -1,6 +1,17 @@
+# ARCHIVED 2026-11-06 - the lender refused it as security
+
+The lender declined Forest View as security (a complete renovation needing
+multiple trades), and the owner archived it on 6 Nov 2026 (R-24). Nothing
+was deleted: the property row, its rooms, quantities, work items, geometry
+and change log all remain, out of every default view. Road Ahead listing
+L45 is closed with the same reason. It stays as the worked example for
+focus mode (`docs/OVERHAUL-PLAN.md`, Stage 6). Restore with
+`set_property_status(<household>, 'P-003', 'candidate', <reason>)` then
+`make_active`.
+
 # P-003 - Forest View, Tiptoe Road, Wootton
 
-Status: **active, not bought.** Promoted from Road Ahead listing L45 and
+Status at archive: **active, not bought.** Promoted from Road Ahead listing L45 and
 made active on 31 Oct 2026 (RA-05) so the house can be modelled and
 costed while the informal tender runs. If the purchase fails it is
 archived like P-001 and P-002, and nothing is deleted.

@@ -36,7 +36,7 @@ create extension if not exists pg_trgm with schema extensions;
 -- ---------------------------------------------------------------
 create table if not exists public.sources (
   id                 uuid primary key default gen_random_uuid(),
-  household_id       uuid not null references public.households (id) on delete cascade,
+  household_id       uuid not null references public.households (id),
   -- Natural key for idempotent loads: 'url:<url>', 'doc:<uuid>',
   -- 'text:<md5 of the source text>', 'owner:<date>'.
   key                text not null,
@@ -54,8 +54,7 @@ create table if not exists public.sources (
   updated_at         timestamptz not null default now(),
   unique (household_id, key)
 );
-drop trigger if exists sources_updated_at on public.sources;
-create trigger sources_updated_at before update on public.sources
+create or replace trigger sources_updated_at before update on public.sources
   for each row execute function public.set_updated_at();
 
 -- ---------------------------------------------------------------
@@ -108,7 +107,7 @@ alter table public.ra_comparables add column if not exists source_id uuid refere
 -- ---------------------------------------------------------------
 create table if not exists public.places (
   id               uuid primary key default gen_random_uuid(),
-  household_id     uuid not null references public.households (id) on delete cascade,
+  household_id     uuid not null references public.households (id),
   key              text not null check (key ~ '^[a-z0-9_]+$'),
   name             text not null,
   kind             text not null default 'village'
@@ -128,8 +127,7 @@ create table if not exists public.places (
   updated_at       timestamptz not null default now(),
   unique (household_id, key)
 );
-drop trigger if exists places_updated_at on public.places;
-create trigger places_updated_at before update on public.places
+create or replace trigger places_updated_at before update on public.places
   for each row execute function public.set_updated_at();
 
 do $$ begin
@@ -142,7 +140,7 @@ exception when duplicate_object then null; end $$;
 -- ---------------------------------------------------------------
 create table if not exists public.listing_facts (
   id               uuid primary key default gen_random_uuid(),
-  household_id     uuid not null references public.households (id) on delete cascade,
+  household_id     uuid not null references public.households (id),
   listing_id       uuid not null references public.ra_listings (id),
   attribute        text not null check (attribute ~ '^[a-z0-9_]+$'),
   value_text       text,
@@ -162,8 +160,7 @@ create table if not exists public.listing_facts (
 );
 create unique index if not exists listing_facts_current
   on public.listing_facts (listing_id, attribute) where status = 'active';
-drop trigger if exists listing_facts_updated_at on public.listing_facts;
-create trigger listing_facts_updated_at before update on public.listing_facts
+create or replace trigger listing_facts_updated_at before update on public.listing_facts
   for each row execute function public.set_updated_at();
 
 -- ---------------------------------------------------------------
@@ -171,7 +168,7 @@ create trigger listing_facts_updated_at before update on public.listing_facts
 -- ---------------------------------------------------------------
 create table if not exists public.market_stats (
   id           uuid primary key default gen_random_uuid(),
-  household_id uuid not null references public.households (id) on delete cascade,
+  household_id uuid not null references public.households (id),
   place_id     uuid not null references public.places (id),
   metric       text not null check (metric in ('sales_count','median_price','mean_price','median_price_m2',
                  'median_days_on_market','rent_monthly','hpi_index','avg_price','price_change')),
@@ -188,8 +185,7 @@ create table if not exists public.market_stats (
 );
 create unique index if not exists market_stats_natural
   on public.market_stats (household_id, place_id, metric, segment, period, coalesce(source_id, '00000000-0000-0000-0000-000000000000'::uuid));
-drop trigger if exists market_stats_updated_at on public.market_stats;
-create trigger market_stats_updated_at before update on public.market_stats
+create or replace trigger market_stats_updated_at before update on public.market_stats
   for each row execute function public.set_updated_at();
 
 -- ---------------------------------------------------------------
@@ -197,7 +193,7 @@ create trigger market_stats_updated_at before update on public.market_stats
 -- ---------------------------------------------------------------
 create table if not exists public.lending_products (
   id                  uuid primary key default gen_random_uuid(),
-  household_id        uuid not null references public.households (id) on delete cascade,
+  household_id        uuid not null references public.households (id),
   lender              text not null,
   product             text not null,
   ltv_max             numeric check (ltv_max is null or (ltv_max > 0 and ltv_max <= 1)),
@@ -226,8 +222,7 @@ create table if not exists public.lending_products (
 );
 create unique index if not exists lending_products_natural
   on public.lending_products (household_id, lower(lender), lower(product), coalesce(as_of, '1900-01-01'::date));
-drop trigger if exists lending_products_updated_at on public.lending_products;
-create trigger lending_products_updated_at before update on public.lending_products
+create or replace trigger lending_products_updated_at before update on public.lending_products
   for each row execute function public.set_updated_at();
 
 -- ---------------------------------------------------------------
@@ -235,7 +230,7 @@ create trigger lending_products_updated_at before update on public.lending_produ
 -- ---------------------------------------------------------------
 create table if not exists public.forecasts (
   id           uuid primary key default gen_random_uuid(),
-  household_id uuid not null references public.households (id) on delete cascade,
+  household_id uuid not null references public.households (id),
   forecaster   text not null,
   area         text not null,
   published    date,
@@ -300,21 +295,27 @@ begin
   end loop;
 
   foreach t in array array['sources','listing_facts','places','market_stats','lending_products','forecasts'] loop
-    execute format('drop policy if exists %I on public.%I', t || '_read', t);
-    execute format('create policy %I on public.%I for select to authenticated '
-      || 'using (public.is_household_member(household_id))', t || '_read', t);
-    execute format('drop policy if exists %I on public.%I', t || '_insert', t);
-    execute format('create policy %I on public.%I for insert to authenticated '
-      || 'with check (public.is_household_member(household_id))', t || '_insert', t);
-    execute format('drop policy if exists %I on public.%I', t || '_update', t);
-    execute format('create policy %I on public.%I for update to authenticated '
-      || 'using (public.is_household_member(household_id)) '
-      || 'with check (public.is_household_member(household_id))', t || '_update', t);
+    if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = t and policyname = t || '_read') then
+      execute format('create policy %I on public.%I for select to authenticated '
+        || 'using (public.is_household_member(household_id))', t || '_read', t);
+    end if;
+    if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = t and policyname = t || '_insert') then
+      execute format('create policy %I on public.%I for insert to authenticated '
+        || 'with check (public.is_household_member(household_id))', t || '_insert', t);
+    end if;
+    if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = t and policyname = t || '_update') then
+      execute format('create policy %I on public.%I for update to authenticated '
+        || 'using (public.is_household_member(household_id)) '
+        || 'with check (public.is_household_member(household_id))', t || '_update', t);
+    end if;
   end loop;
 end $$;
 
-drop policy if exists topics_read on public.topics;
-create policy topics_read on public.topics for select to authenticated using (true);
+do $$ begin
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'topics' and policyname = 'topics_read') then
+    create policy topics_read on public.topics for select to authenticated using (true);
+  end if;
+end $$;
 
 -- ---------------------------------------------------------------
 -- brain_entities: every thing the brain knows, one row each, with a

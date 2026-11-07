@@ -771,6 +771,7 @@ as $$
     'how', jsonb_build_array(
         'brain_about(household, ref): everything about L55, P-004, R-22, S-107, E140, C-01, a place, a key',
         'brain_search(household, text): ranked search across every entity',
+        'brain_score(household, listing, house1|forever): fit and money against the preference matrix, and the value band, with the working',
         'road_ahead_context(household): the model''s variables, roads, rules and register',
         'house_context(room): the active house (none in search mode)'));
 $$;

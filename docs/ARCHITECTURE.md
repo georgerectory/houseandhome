@@ -24,7 +24,12 @@ row-level security), defined in `supabase/schema/92_brain.sql`:
 | `brain_about(household, ref)` | Everything about one thing, by the ref a person would use: `L55`, `P-004`, `R-22`, `S-107`, `E140`, `C-01`, a place key or name, a variable key. A listing comes back with its facts and their sources, comparables strongest first, evidence, appraisals, signals, contradictions and events |
 | `brain_search(household, words)` | Ranked search over every entity: full text plus trigram similarity, the thing itself ranked above what is said about it |
 
-`brain_entities` (a view) is the index under all three: one row per thing
+A fourth call scores a house: `brain_score(household, listing,
+'house1' | 'forever')` (`supabase/schema/93_scoring.sql`) returns fit and
+money against the preference matrix, side by side and never blended,
+the value band, the working for every criterion and a one-line verdict.
+
+`brain_entities` (a view) is the index under all of them: one row per thing
 the brain holds, with a type, a ref and the text search reads.
 `refresh_brain_links(household)` re-derives the engine-set links.
 
@@ -76,6 +81,30 @@ criterion came from is a `drives` link from the signal, decision or rule
 that set it. Every change is written to
 `criterion_history` by trigger, with its reason; a change without
 `house.change_why` is refused, and history is never edited.
+
+## Scoring
+
+- **Value per criterion:** the listing row (beds, floor area, plot, drive
+  time, type, condition, price), else its current listing fact. Free text
+  goes through `brain_norm_value`, a short list of readable patterns
+  ("oil-fired radiators" is oil central heating; "unknown..." stays
+  unknown). The working shows the original text beside the mapped value.
+- **Numeric:** ideal scores 1; acceptable falls from 1 at the ideal edge
+  to 0.6 at the acceptable edge.
+- **Category:** a whole-phrase match ("detached" is not in
+  "semi-detached"). "Never" fails; ideal scores 1; acceptable 0.6.
+- **Outside acceptable:** fail at flexibility none or low; flexed (0,
+  flagged) at medium or high.
+- **Unknown:** excluded and counted against coverage, never a fail.
+- **Score:** sum(weight x s) / sum(weight) over the known criteria, 0-100,
+  per axis.
+- **Value band:** per m2 from the listing's comparables with a floor area
+  and a strength of 0.3 or more (p25/p50/p75) x the listing's floor area;
+  three or fewer fall back to the postcode district's quartiles; no floor
+  area means no band, said plainly.
+
+Every rule is proved on invented data in `tests/sql/scoring.test.sql`,
+with each expected figure worked by hand in the comments.
 
 ## Links and strength
 

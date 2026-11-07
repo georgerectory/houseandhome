@@ -11,14 +11,12 @@ owner decides; nothing was closed.
 
 ## The overhaul (`docs/OVERHAUL-PLAN.md`)
 
-Live, fingerprint matching: Stage 0; Stage 2 core
-(`92_brain.sql`: sources, listing facts, places, market stats, lenders,
-forecasts, link strength, `brain_context` / `brain_about` /
-`brain_search`; data backfilled; wave 3 loaded; loader takes
-LISTING_FACTS and MARKET_STATS); Stage 3 (`criteria` + history; 31
-criteria, 30 confirmed in review S-109 to S-119; G-D19 and G-D13
-superseded by R-20 and R-26). Map: `docs/ARCHITECTURE.md`.
-**Next:** Stage 4, the scoring and valuation engine.
+Live, fingerprint matching (map: `docs/ARCHITECTURE.md`): Stage 0;
+Stage 2 core (`92_brain.sql`: the knowledge tables and `brain_context` /
+`brain_about` / `brain_search`; data backfilled; wave 3 loaded); Stage 3
+(31 criteria, 30 confirmed, S-109 to S-119; R-26 new); Stage 4 core
+(`93_scoring.sql`: `brain_score` - fit, money, value band, working). **Next:** fill the unknowns the scores flag (knotweed,
+mortgageability, broadband), then Stage 5 intake (link to verdict).
 
 ## Waiting on the owner
 
@@ -29,7 +27,7 @@ superseded by R-20 and R-26). Map: `docs/ARCHITECTURE.md`.
   names two houses reported Sold STC.
 - C-30 (House 1 net profit) is Claude's call at the owner's request:
   drafted until confirmed.
-- Eight open plan decisions; three non-house `fv-` contradictions.
+- Eight open plan decisions; three `fv-` contradictions.
 
 ## Known and deliberately left
 

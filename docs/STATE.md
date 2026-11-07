@@ -1,46 +1,42 @@
 # STATE
 
-What is in flight. Overwritten in place, never appended to - git history
-is the record of what changed, `docs/PLAN.md` is the design record, and
-this file is only what is not yet finished. Keep it under 40 lines.
+What is in flight; overwritten in place. Git history is what changed,
+`docs/PLAN.md` the design record. Keep it under 40 lines.
 
-## Search mode: no active house (6 Nov 2026)
+## Search mode: no active house (7 Nov 2026)
 
-P-003 Forest View is archived (R-24, the lender refused it as security);
-L45 is closed. P-004 (the parents' house) is a candidate. Road Ahead's
-lead listings are L55, with L62 and L64 to view. Research waves are
-paused (S-108): everything so far is loaded by `tools/ingest-research.mjs`.
+P-003 archived (R-24); P-004 candidate. Leads: L55, then L65 (the viewing
+must find why it always sells well under local per-m2). Wave 3 research
+reports L62 and L64(a) Sold STC and recommends dropping L56 and L66 - the
+owner decides; nothing was closed.
 
 ## The overhaul (`docs/OVERHAUL-PLAN.md`)
 
-**Stage 0 done (6 Nov):** decisions R-22 to R-25 written (scoring, link
-intake, Forest View, naming); DF-2 retired and G-P01R superseded by
-R-22; P-003 archived; 14 Forest View and P-001 events cancelled, the
-5 Nov rate event done; 7 `fv-` contradictions superseded.
-
-**Stage 2 in flight:** `supabase/schema/92_brain.sql` (sources, listing
-facts, places, market stats, lending products, forecasts, link strength,
-`brain_context`/`brain_about`/`brain_search`) is committed and tested but
-NOT yet applied live - the connector's approval timed out. Apply it, check
-the fingerprint, then backfill the data and extend the loader. Research
-wave 3 prompt is with the owner (LISTING_FACTS, MARKET_STATS blocks).
+**Stage 0 done (6 Nov).** **Stage 2 core done (7 Nov), live, fingerprint
+matches:** `92_brain.sql` - sources, topics, listing_facts, places,
+market_stats, lending_products, forecasts, link strength, and
+`brain_context` / `brain_about` / `brain_search` / `refresh_brain_links`.
+Backfilled: every evidence row sourced and topic-keyed; 86 places; JSON
+blobs (villages, lenders, forecasts) and per-house / per-place keys moved
+to rows; 37 moved variables retired with a reason. Wave 3 research loaded
+by hand (source `doc:research_wave3_2026-11-07`). The loader now takes
+LISTING_FACTS and MARKET_STATS. **Next:** Stage 1 docs (ARCHITECTURE,
+rename ledgers), then the rename (R-25) and Stage 3 preference matrix -
+12 recalled preferences are already evidence under topic `preference`.
 
 ## Waiting on the owner
 
-- Eight open decisions in the plan; answer one at a time.
-- Three `fv-` contradictions left open because they are not about the
-  house: mortgage term, which DIP is live, the car cost.
-- Dated actions still `planned`: the broker (40-year DIP, longer term),
-  the finance review, solicitor quotes, parents' house questions
-  (10-11 Nov), the L55/L62/L64 viewings (13 Nov), DIP expiry (9 Jan).
-- "Ask the broker about a longer term" is still filed under P-003, so it
-  is hidden from default views; move it to the household if still live.
+- Nine `w3-` contradictions: the research recalled a stale DIP, stale
+  savings and a higher L55 ceiling than the confirmed walk-away. Its
+  affordability table was NOT loaded; the confirmed figures stand.
+- Close L62 / L64 (Sold STC)? Drop L56 / L66? The 13 Nov viewing booking
+  names two houses reported Sold STC.
+- Eight open plan decisions; three non-house `fv-` contradictions.
 
 ## Known and deliberately left
 
-- The front-end gate fails 48 `house.html` checks. The page is fine: the
-  gate compares stages on whichever level its sweep left on screen (first
-  floor, unchanged) and picks the last variant as "furnished". Fix the
-  gate (compare every level; pick the non-empty variant). Deferred.
-- Bare `update`s can hang in the connector; set a `statement_timeout`.
-- Over 400 lines: `check-frontend.mjs`, `pages/house.js` (split in Stage 6).
+- Front-end gate: 48 `house.html` failures are the gate's, not the page's
+  (compares on the first floor; picks the empty variant). Deferred.
+- Over 400 lines: `ingest-research.mjs` (441), `check-frontend.mjs`,
+  `pages/house.js`. Connector: set a `statement_timeout`; it prompts on
+  any DROP or DELETE, so schema files avoid both words.

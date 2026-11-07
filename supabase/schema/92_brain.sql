@@ -532,7 +532,8 @@ begin
                  where s.household_id = p_household_id
                    and (exists (select 1 from public.knowledge_links k where k.from_type = 'signal' and k.from_id = s.id
                                    and k.to_type = 'listing' and k.to_id = v_l.id and k.valid_to is null)
-                        or s.words ~* ('\m' || v_l.code || '\M') or s.context ~* ('\m' || v_l.code || '\M'))),
+                        or concat_ws(' ', s.words, s.context, s.implies) ~* ('\m' || v_l.code || '\M')
+                        or (length(v_name) > 4 and concat_ws(' ', s.words, s.context, s.implies) ilike '%' || v_name || '%'))),
       'contradictions', (select coalesce(jsonb_agg(jsonb_build_object('key', c.key, 'topic', c.topic, 'status', c.status,
                   'a', c.position_a, 'b', c.position_b, 'changes', c.what_it_changes)), '[]'::jsonb)
                   from public.contradictions c

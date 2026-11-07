@@ -195,9 +195,16 @@ In practice:
 ## Session shape
 
 **Start:** read this file, then `docs/STATE.md`, then call
-`house_context('<room>')` (or `house_context(null)`) for what already
-exists. A session that writes before grounding is how duplicates get
-created.
+`select brain_context('<household>')`: the mode, lead listings, next
+actions, recent decisions and signals, open contradictions and counts.
+`brain_about('<household>', '<ref>')` returns everything about one thing
+(L55, P-004, R-22, S-107, E140, a place) in one call, and
+`brain_search('<household>', '<words>')` finds anything by its words.
+`house_context('<room>')` is for the active house, when there is one. A
+session that writes before grounding is how duplicates get created.
+A fact about one house is a `listing_facts` row and a number about a
+place is a `market_stats` row, each pointing at its `sources` row - never
+a variable key with a house or place name in it.
 
 **Adding work:** ground, then search for an existing row, then act.
 Prefer enriching an existing row over creating a near-duplicate - the

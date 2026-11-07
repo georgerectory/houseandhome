@@ -333,6 +333,74 @@ ${evidence.map(([t, c, f, s], i) => `  (${i + 1}, ${q(t)}, ${q(c || '(blank)')},
   // Two rows on one topic get distinct keys (r-topic, r-topic_2, ...), or the second would clash.
   const seenKeys = {};
   const keyFor = (topic) => { const k = `r-${slug(topic)}`; seenKeys[k] = (seenKeys[k] ?? 0) + 1; return seenKeys[k] > 1 ? `${k}_${seenKeys[k]}` : k; };
+  // The brain's tables (supabase/schema/92_brain.sql): a fact about one
+  // house is a listing_facts row and a number about a place is a
+  // market_stats row - never a variable key with a name in it. Each URL
+  // becomes a sources row first, so every fact can say where it came from.
+  const LABELS = ['STATED', 'VERIFIED', 'ESTIMATE', 'CHECK'];
+  const label = (l) => { const u = String(l ?? '').toUpperCase(); return LABELS.includes(u) ? u : (u === 'LIKELY' ? 'CHECK' : 'ESTIMATE'); };
+  const sourcesFrom = (table) => `insert into sources (household_id, key, kind, title, url, publisher, retrieved_on)
+select distinct on (url) ${H}, 'url:' || url, 'web', substring(url from '^https?://(?:www\\.)?([^/]+)'), url,
+       substring(url from '^https?://(?:www\\.)?([^/]+)'), sdate::date from ${table} where url ~ '^https?://'
+on conflict (household_id, key) do nothing;`;
+
+  const facts = csv(b.LISTING_FACTS ?? '').filter((f) => (f.listing || f.for) && f.attribute && String(f.value ?? '').trim() !== '')
+    .map((f) => {
+      const code = LISTING_FOR[(f.listing || f.for).toUpperCase()] ?? (f.listing || f.for).toUpperCase();
+      const n = /^\d{4}-\d{2}/.test(f.value) ? null : num(f.value);
+      const lab = label(f.label);
+      return `(${q(code)}, ${q(slug(f.attribute))}, ${n == null ? q(f.value) : 'null'}, ${n ?? 'null'}, ${q(f.unit)}, ${q(f.source_url)}, ${q(asDate(f.source_date, date))}, ${q(lab)}, ${q(CONF[lab])}, ${q(f.notes)})`;
+    });
+  if (facts.length) {
+    out.push(`create temp table _lf on commit drop as select code::text, attr::text, vtext::text, vnum::numeric, unit::text, url::text, sdate::text, lab::text, conf::text, note::text from (values
+${facts.join(',\n')}
+) v(code, attr, vtext, vnum, unit, url, sdate, lab, conf, note);
+${sourcesFrom('_lf')}
+-- A different researched value supersedes the current one; a confirmed fact is never replaced.
+update listing_facts f set status = 'superseded', note = concat_ws(' | ', f.note, ${q(`Superseded by research, ${date}`)})
+  from _lf v join ra_listings l on l.household_id = ${H} and l.code = v.code
+ where f.listing_id = l.id and f.attribute = v.attr and f.status = 'active' and f.confidence <> 'confirmed'
+   and (coalesce(f.value_text, '') <> coalesce(v.vtext, '') or coalesce(f.value_num, -1) <> coalesce(v.vnum, -1));
+insert into listing_facts (household_id, listing_id, attribute, value_text, value_num, unit, as_of, source_id, label, confidence, note)
+select ${H}, l.id, v.attr, v.vtext, v.vnum, v.unit, v.sdate::date,
+       (select s.id from sources s where s.household_id = ${H} and s.key = 'url:' || v.url), v.lab, v.conf, v.note
+  from _lf v join ra_listings l on l.household_id = ${H} and l.code = v.code
+on conflict (listing_id, attribute) where status = 'active' do nothing;
+insert into contradictions (household_id, key, topic, source_a, position_a, source_b, position_b, what_it_changes, status)
+select ${H}, 'r-fact-' || l.code || '-' || v.attr || '-${date}', l.code || ' ' || v.attr || ': research differs from a confirmed fact',
+       'Owner (confirmed)', coalesce(f.value_text, f.value_num::text), coalesce(v.url, ${q(source)}), coalesce(v.vtext, v.vnum::text),
+       'Put to the owner; the confirmed fact stands until then', 'open'
+  from _lf v join ra_listings l on l.household_id = ${H} and l.code = v.code
+  join listing_facts f on f.listing_id = l.id and f.attribute = v.attr and f.status = 'active' and f.confidence = 'confirmed'
+ where (coalesce(f.value_text, '') <> coalesce(v.vtext, '') or coalesce(f.value_num, -1) <> coalesce(v.vnum, -1))
+on conflict do nothing;`);
+    counts.listing_facts = facts.length;
+  }
+
+  const METRICS = ['sales_count', 'median_price', 'mean_price', 'median_price_m2', 'median_days_on_market', 'rent_monthly', 'hpi_index', 'avg_price', 'price_change'];
+  const placeKind = (p) => (/^[A-Z]{1,2}\d{1,2}[A-Z]? \d$/i.test(p) ? 'postcode_sector' : /^[A-Z]{1,2}\d{1,2}[A-Z]?$/i.test(p) ? 'postcode_district' : 'village');
+  const stats = csv(b.MARKET_STATS ?? '').map((m) => ({ ...m, metric: slug(m.metric), val: num(m.value) }))
+    .filter((m) => m.place && METRICS.includes(m.metric) && m.val != null && m.period)
+    .map((m) => {
+      const lab = label(m.label);
+      return `(${q(slug(m.place))}, ${q(m.place.trim())}, ${q(placeKind(m.place.trim()))}, ${q(m.metric)}, ${q(slug(m.segment || 'all'))}, ${q(String(m.period).trim())}, ${m.val}, ${num(m.n) ?? 'null'}, ${q(m.source_url)}, ${q(asDate(m.source_date, date))}, ${q(lab)}, ${q(CONF[lab])})`;
+    });
+  if (stats.length) {
+    out.push(`create temp table _ms on commit drop as select pkey::text, pname::text, pkind::text, metric::text, seg::text, period::text, val::numeric, n::int, url::text, sdate::text, lab::text, conf::text from (values
+${stats.join(',\n')}
+) v(pkey, pname, pkind, metric, seg, period, val, n, url, sdate, lab, conf);
+${sourcesFrom('_ms')}
+insert into places (household_id, key, name, kind, label, confidence, note)
+select distinct on (pkey) ${H}, pkey, pname, pkind, lab, conf, ${q(`From research, ${date}`)} from _ms order by pkey
+on conflict (household_id, key) do nothing;
+insert into market_stats (household_id, place_id, metric, segment, period, value, n, source_id, label, confidence)
+select ${H}, p.id, v.metric, v.seg, v.period, v.val, v.n,
+       (select s.id from sources s where s.household_id = ${H} and s.key = 'url:' || v.url), v.lab, v.conf
+  from _ms v join places p on p.household_id = ${H} and p.key = v.pkey
+on conflict do nothing;`);
+    counts.market_stats = stats.length;
+  }
+
   const cons = csv(b.CONTRADICTIONS ?? '').filter((c) => c.topic)
     .map((c) => `(${q(keyFor(c.topic))}, ${q(c.topic)}, ${q(c.source_a)}, ${q(c.position_a || '-')}, ${q(c.source_b)}, ${q(c.position_b || '-')}, ${q(c.what_it_changes)})`);
   if (cons.length) {
@@ -351,6 +419,8 @@ select ${H}, ${q(`Routes research reply (${log.length} searches)`)}, 'report', $
  where not exists (select 1 from source_documents where title = ${q(`Routes research reply (${log.length} searches)`)} and as_of = ${q(date)});`);
     counts.searches = log.length;
   }
+  // Re-derive the engine links (comparable and evidence strengths) over what was just loaded.
+  out.push(`select refresh_brain_links(${H});`);
   out.push('commit;');
   out.push(`-- Expected: ${JSON.stringify(counts)}`);
   return { sql: out.join('\n'), counts, found: Object.keys(b) };

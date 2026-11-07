@@ -38,7 +38,9 @@ The routes research prompt returns fixed CSV blocks. `tools/ingest-research.mjs 
 | CHART_SERIES | `ra_variables` `research.chart_series` |
 | COMPARABLES | `ra_comparables`, on the listing named in the `for` column: P004 → L46, FOREST_VIEW → L45 (closed 6 Nov 2026, R-24), ROAD_GE/H1/H2/H3/H4 → L47–L51, ROAD_W1/W2/W3 → L52–L54, or an L code directly. Deduplicated on house and price. |
 | LISTINGS | `ra_listings`. A new house becomes a candidate listing with the next L code, status `unreviewed` (the owner decides what to chase). A house already held, by name or postcode and first address line, only has a changed price recorded. |
-| VILLAGES | `ra_variables` `area.west_villages`: one row per village. |
+| VILLAGES | `ra_variables` `area.west_villages`: one row per village (moving to `places` in the overhaul). |
+| LISTING_FACTS | `listing_facts`: listing, attribute, value, unit, source_url, source_date, label, notes. One current fact per listing and attribute; a different researched value supersedes it; a confirmed fact is never replaced (a contradiction is raised instead). |
+| MARKET_STATS | `places` + `market_stats`: place, metric, segment, period, value, n, source_url, source_date, label. Per-m2 quartiles are metric `median_price_m2` with segment `p25`/`p50`/`p75`. |
 | EVIDENCE, RECALL_LEDGER, ROADS_RECALLED, ROUTE_RESULTS, BRIEF, QUESTIONS_FROM_RECALL, VERDICT, NOT_FOUND | `ra_evidence`, with codes continuing from the highest E-number. Topic `house: <name>` is filed under that house's listing code (`used_in`) and shows on its card on the Road page. |
 | CONTRADICTIONS | `contradictions` (open) |
 | SEARCH_LOG | `source_documents`: one row with the count |

@@ -68,8 +68,12 @@ One row per criterion (`C-01`...). Each has:
 - **confidence:** it starts `drafted`; only the owner's word confirms it.
 
 A value outside "acceptable" is a deal-breaker unless the flexibility lets
-it be flexed. Where a criterion came from is a `drives` link from the
-signal, decision or rule that set it. Every change is written to
+it be flexed: a flexed value passes, scores nothing on that criterion and
+is flagged, so it only wins on exceptional numbers. A value in "never" is
+absolute and is never flexed, whatever the flexibility (the hard rules:
+never a flat, a terrace or a new-build, never a lodger). Where a
+criterion came from is a `drives` link from the signal, decision or rule
+that set it. Every change is written to
 `criterion_history` by trigger, with its reason; a change without
 `house.change_why` is refused, and history is never edited.
 

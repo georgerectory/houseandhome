@@ -18,9 +18,8 @@ market_stats, lending_products, forecasts, link strength, and
 `brain_context` / `brain_about` / `brain_search` / `refresh_brain_links`.
 Backfilled: every evidence row sourced and topic-keyed; 86 places; JSON
 blobs (villages, lenders, forecasts) and per-house / per-place keys moved
-to rows; 37 moved variables retired with a reason. Wave 3 research loaded
-by hand (source `doc:research_wave3_2026-11-07`). The loader now takes
-LISTING_FACTS and MARKET_STATS. **Next:** Stage 1 docs (ARCHITECTURE,
+to rows; 37 moved variables retired. Wave 3 research loaded by hand; the
+loader now takes LISTING_FACTS and MARKET_STATS. **Next:** Stage 1 docs (ARCHITECTURE,
 rename ledgers), then the rename (R-25) and Stage 3 preference matrix -
 12 recalled preferences are already evidence under topic `preference`.
 
@@ -32,7 +31,6 @@ rename ledgers), then the rename (R-25) and Stage 3 preference matrix -
 - Close L62 / L64 (Sold STC)? Drop L56 / L66? The 13 Nov viewing booking
   names two houses reported Sold STC.
 - Eight open plan decisions; three non-house `fv-` contradictions.
-
 ## Known and deliberately left
 
 - Front-end gate: 48 `house.html` failures are the gate's, not the page's

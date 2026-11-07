@@ -10,10 +10,12 @@ listing there and copying it for Claude.
 
 Five rules bind it:
 
-- **No scraping.** Rightmove and the other portals forbid it. The owner
-  pastes the listing's text and a floor-plan screenshot. An auctioneer's
-  catalogue or a lot page is read only when the owner asks, one page at
-  a time, never crawled.
+- **Read the link, never crawl (R-06, R-23 as corrected by S-120).** Any
+  link the owner sends - Rightmove and the other portals included - is
+  opened and read: that one page and its brochure or floor plan, on
+  request, never a bulk crawl. Every fact carries the URL and the date.
+  If the page cannot be reached (the session's network may need the host
+  allowed), say so plainly and ask for the text or a screenshot.
 - **No invented market facts.** Every comparable has an address, a
   price, a date and a source. A figure worked out rather than found is
   labelled ESTIMATE, and the answer says so.

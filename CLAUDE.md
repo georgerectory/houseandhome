@@ -276,8 +276,8 @@ this repository, which holds the code and the variable schema only.
   a guide - needs a dated source. A comparable is a real sale or
   listing, or it is not used; a modelled figure is labelled ESTIMATE.
 - **A listing** the owner sends is assessed by
-  `docs/road-ahead/ASSESS_PROPERTY.md`. The portals are never fetched:
-  the owner pastes the text and the floor plan.
+  `docs/road-ahead/ASSESS_PROPERTY.md`. A link the owner sends is read,
+  portals included - that one page, never a crawl (R-23).
 - **A sit-down.** "Let's go through it", or "make it more accurate", is
   a defined session shape like a review: ground with
   `road_ahead_context` and `road_ahead_agenda`, open by saying what is

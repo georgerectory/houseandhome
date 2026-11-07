@@ -93,6 +93,7 @@ when the work touches it:
 | `docs/STATE.md` | Always, straight after this. What is in flight. |
 | `docs/RENOVATION-SYSTEM.md` | Anything touching properties, the lifecycle, scopes, the template or the library. |
 | `docs/road-ahead/README.md` | Road Ahead: listings, roads, scenarios, variables, auctions, a sit-down or a re-base. |
+| `docs/ARCHITECTURE.md` | The property brain at a glance: modes, the three calls, the entity model, the preference matrix, link strength. |
 | `docs/OVERHAUL-PLAN.md` | The staged rebuild into a property brain: what each stage does and why. |
 | `docs/properties/<ref>/` | One property's specifics (P-004 now). Archived ones move to `docs/properties-archive/`. |
 | `docs/FOREST-VIEW-PLAN.md` | Archived (R-24): the worked example of a house plan - stages, costs, the Handbook. |

@@ -318,6 +318,128 @@ do $$ begin
 end $$;
 
 -- ---------------------------------------------------------------
+-- THE PREFERENCE MATRIX (Overhaul Stage 3): what makes a house right.
+--
+-- One row per criterion, each with a scope (any house, House 1 judged on
+-- numbers, or the forever home judged on feel), an axis (fit or money:
+-- R-22 keeps them apart), a weight 0-10, ideal and acceptable ranges (or
+-- value sets), and a flexibility. Outside "acceptable" is a deal-breaker
+-- unless the flexibility allows it to be flexed. Where the words came
+-- from is a 'drives' link from the owner's signal or decision.
+--
+-- Every change is history: criterion_history is written by trigger and
+-- never edited, and a change without house.change_why is refused - the
+-- matrix moves, and it always says why.
+-- ---------------------------------------------------------------
+create table if not exists public.criteria (
+  id           uuid primary key default gen_random_uuid(),
+  household_id uuid not null references public.households (id),
+  code         text not null check (code ~ '^C-[0-9]{2,3}$'),
+  scope        text not null default 'all' check (scope in ('all','house1','forever')),
+  axis         text not null default 'fit' check (axis in ('fit','money')),
+  grp          text not null check (grp in ('type','size','plot','location','setting','character',
+                 'condition','services','risk','money','layout','outside')),
+  label        text not null,
+  attribute    text not null check (attribute ~ '^[a-z0-9_]+$'),
+  scale        text not null check (scale in ('numeric','category','boolean')),
+  unit         text,
+  ideal_low    numeric,
+  ideal_high   numeric,
+  ok_low       numeric,
+  ok_high      numeric,
+  ideal_values text[] not null default '{}',
+  ok_values    text[] not null default '{}',
+  never_values text[] not null default '{}',
+  weight       smallint not null check (weight between 0 and 10),
+  flexibility  text not null default 'medium' check (flexibility in ('none','low','medium','high')),
+  confidence   text not null default 'drafted' references public.confidence_levels (key),
+  confirmed_at timestamptz,
+  status       text not null default 'active' check (status in ('active','retired')),
+  resolution   text,
+  rationale    text,
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz not null default now(),
+  unique (household_id, code),
+  check (status = 'active' or resolution is not null),
+  check (scale <> 'numeric' or coalesce(ideal_low, ideal_high, ok_low, ok_high) is not null),
+  check (scale = 'numeric' or cardinality(ideal_values) + cardinality(ok_values) + cardinality(never_values) > 0),
+  check (ideal_low is null or ok_low is null or ok_low <= ideal_low),
+  check (ideal_high is null or ok_high is null or ok_high >= ideal_high)
+);
+create or replace trigger criteria_updated_at before update on public.criteria
+  for each row execute function public.set_updated_at();
+
+create table if not exists public.criterion_history (
+  id           uuid primary key default gen_random_uuid(),
+  household_id uuid not null references public.households (id),
+  criterion_id uuid not null references public.criteria (id),
+  at           timestamptz not null default now(),
+  action       text not null check (action in ('created','changed')),
+  old          jsonb,
+  new          jsonb not null,
+  why          text not null,
+  source       text
+);
+create index if not exists criterion_history_by_criterion on public.criterion_history (criterion_id, at);
+create or replace trigger criterion_history_append_only before update on public.criterion_history
+  for each row execute function public.ra_append_only();
+
+create or replace function public.criteria_history()
+returns trigger
+language plpgsql
+security invoker
+set search_path = public
+as $$
+declare v_why text := nullif(trim(current_setting('house.change_why', true)), '');
+begin
+  if tg_op = 'UPDATE' then
+    if (to_jsonb(new) - 'updated_at') = (to_jsonb(old) - 'updated_at') then
+      return new;
+    end if;
+    if v_why is null then
+      raise exception using errcode = 'check_violation',
+        message = format('criterion %s: a preference change needs a reason', new.code),
+        hint = 'set local house.change_why = ''...'' (and house.change_source) before changing a criterion.';
+    end if;
+  end if;
+  insert into public.criterion_history (household_id, criterion_id, action, old, new, why, source)
+  values (new.household_id, new.id, case when tg_op = 'INSERT' then 'created' else 'changed' end,
+          case when tg_op = 'UPDATE' then to_jsonb(old) end, to_jsonb(new),
+          coalesce(v_why, 'created'), nullif(trim(current_setting('house.change_source', true)), ''));
+  return new;
+end;
+$$;
+create or replace trigger criteria_history after insert or update on public.criteria
+  for each row execute function public.criteria_history();
+
+do $$
+declare t text;
+begin
+  foreach t in array array['criteria','criterion_history'] loop
+    execute format('alter table public.%I enable row level security', t);
+    execute format('alter table public.%I force row level security', t);
+    if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = t and policyname = t || '_read') then
+      execute format('create policy %I on public.%I for select to authenticated '
+        || 'using (public.is_household_member(household_id))', t || '_read', t);
+    end if;
+    if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = t and policyname = t || '_insert') then
+      execute format('create policy %I on public.%I for insert to authenticated '
+        || 'with check (public.is_household_member(household_id))', t || '_insert', t);
+    end if;
+  end loop;
+  -- Criteria are edited (with a reason); their history never is.
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'criteria' and policyname = 'criteria_update') then
+    create policy criteria_update on public.criteria for update to authenticated
+      using (public.is_household_member(household_id)) with check (public.is_household_member(household_id));
+  end if;
+end $$;
+revoke update on public.criterion_history from authenticated;
+
+insert into public.link_entity_types (key, table_name, label, sort_order) values
+  ('criterion', 'criteria', 'Preference criterion', 330)
+on conflict (key) do nothing;
+
+-- ---------------------------------------------------------------
 -- brain_entities: every thing the brain knows, one row each, with a
 -- ref an AI can quote back (L55, S-107, R-22, E140, a key) and the text
 -- that search reads.
@@ -391,7 +513,13 @@ create or replace view public.brain_entities with (security_invoker = on) as
   union all
   select d.household_id, 'document', d.id, d.kind || ':' || left(d.title, 40), d.title,
          concat_ws(' ', d.author, d.source_note), d.status, d.updated_at
-    from public.source_documents d;
+    from public.source_documents d
+  union all
+  select c.household_id, 'criterion', c.id, c.code, c.label,
+         concat_ws(' ', c.scope, c.axis, c.grp, c.attribute, c.rationale,
+                   array_to_string(c.ideal_values, ' '), array_to_string(c.ok_values, ' '), array_to_string(c.never_values, ' ')),
+         c.status, c.updated_at
+    from public.criteria c;
 
 comment on view public.brain_entities is
   'Every entity the brain holds, one row each: type, ref (the code to quote back), title, and the text search reads. The base of brain_search and of the link labels in brain_about.';
@@ -569,6 +697,10 @@ begin
         when 'contradiction' then (select to_jsonb(c) - 'household_id' from public.contradictions c where c.id = v_ent.id)
         when 'variable' then (select to_jsonb(v) - 'household_id' from public.ra_variables v where v.id = v_ent.id)
         when 'property' then (select to_jsonb(p) - 'household_id' from public.properties p where p.id = v_ent.id)
+        when 'criterion' then (select (to_jsonb(c) - 'household_id') || jsonb_build_object('history',
+            (select coalesce(jsonb_agg(jsonb_build_object('at', h.at, 'action', h.action, 'why', h.why, 'source', h.source)
+                     order by h.at), '[]'::jsonb) from public.criterion_history h where h.criterion_id = c.id))
+            from public.criteria c where c.id = v_ent.id)
         else null end);
   end if;
   return v_out;
@@ -623,10 +755,21 @@ as $$
         'top', (select coalesce(jsonb_agg(jsonb_build_object('key', c.key, 'topic', c.topic, 'at_stake', c.value_at_stake)), '[]'::jsonb)
                   from (select * from public.contradictions c where c.household_id = p_household_id and c.status = 'open'
                          order by c.value_at_stake desc nulls last, c.created_at desc limit 8) c)),
+    'preferences', (select jsonb_build_object('criteria', count(*),
+                       'confirmed', count(*) filter (where c.confidence = 'confirmed'),
+                       'by_scope', jsonb_build_object('all', count(*) filter (where c.scope = 'all'),
+                                                      'house1', count(*) filter (where c.scope = 'house1'),
+                                                      'forever', count(*) filter (where c.scope = 'forever')),
+                       'top', (select coalesce(jsonb_agg(jsonb_build_object('code', t.code, 'scope', t.scope, 'label', t.label,
+                                  'weight', t.weight, 'flex', t.flexibility, 'confidence', t.confidence)
+                                  order by t.weight desc, t.code), '[]'::jsonb)
+                                 from (select * from public.criteria t where t.household_id = p_household_id and t.status = 'active'
+                                        order by t.weight desc, t.code limit 12) t))
+                       from public.criteria c where c.household_id = p_household_id and c.status = 'active'),
     'counts', (select jsonb_object_agg(type, n) from (select e.type, count(*) n from public.brain_entities e
                  where e.household_id = p_household_id group by e.type) x),
     'how', jsonb_build_array(
-        'brain_about(household, ref): everything about L55, P-004, R-22, S-107, E140, a place, a key',
+        'brain_about(household, ref): everything about L55, P-004, R-22, S-107, E140, C-01, a place, a key',
         'brain_search(household, text): ranked search across every entity',
         'road_ahead_context(household): the model''s variables, roads, rules and register',
         'house_context(room): the active house (none in search mode)'));

@@ -1,7 +1,6 @@
 # STATE
 
-What is in flight; overwritten in place. Git history is what changed,
-`docs/PLAN.md` the design record. Keep it under 40 lines.
+In flight; overwritten in place. Keep it under 40 lines.
 
 ## Search mode: no active house (7 Nov 2026)
 
@@ -12,16 +11,14 @@ owner decides; nothing was closed.
 
 ## The overhaul (`docs/OVERHAUL-PLAN.md`)
 
-**Stage 0 done (6 Nov).** **Stage 2 core done (7 Nov), live, fingerprint
-matches:** `92_brain.sql` - sources, topics, listing_facts, places,
-market_stats, lending_products, forecasts, link strength, and
-`brain_context` / `brain_about` / `brain_search` / `refresh_brain_links`.
-Backfilled: every evidence row sourced and topic-keyed; 86 places; JSON
-blobs (villages, lenders, forecasts) and per-house / per-place keys moved
-to rows; 37 moved variables retired. Wave 3 research loaded by hand; the
-loader now takes LISTING_FACTS and MARKET_STATS. **Next:** Stage 1 docs (ARCHITECTURE,
-rename ledgers), then the rename (R-25) and Stage 3 preference matrix -
-12 recalled preferences are already evidence under topic `preference`.
+Done and live (fingerprint matches): Stage 0; Stage 2 core
+(`92_brain.sql`: sources, listing facts, places, market stats, lenders,
+forecasts, link strength, `brain_context` / `brain_about` /
+`brain_search`; data backfilled; wave 3 loaded; loader takes
+LISTING_FACTS and MARKET_STATS); Stage 3 schema (`criteria` +
+`criterion_history`; 31 criteria seeded `drafted` with `drives` links).
+Map: `docs/ARCHITECTURE.md`. **Next:** the owner reviews the matrix one
+criterion at a time; then Stage 4 (scoring).
 
 ## Waiting on the owner
 
@@ -30,7 +27,10 @@ rename ledgers), then the rename (R-25) and Stage 3 preference matrix -
   affordability table was NOT loaded; the confirmed figures stand.
 - Close L62 / L64 (Sold STC)? Drop L56 / L66? The 13 Nov viewing booking
   names two houses reported Sold STC.
+- Matrix review: 31 drafted criteria (C-01 to C-31); two `pm-`
+  contradictions (non-standard construction; a semi for House 1).
 - Eight open plan decisions; three non-house `fv-` contradictions.
+
 ## Known and deliberately left
 
 - Front-end gate: 48 `house.html` failures are the gate's, not the page's

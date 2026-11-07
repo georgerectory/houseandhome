@@ -99,6 +99,48 @@ begin
   perform pass('brain: search finds a thing by its words, and the context says search mode with the lead house');
 end $$;
 
+-- THE PREFERENCE MATRIX: it moves, and it always says why.
+insert into criteria (household_id, code, scope, grp, label, attribute, scale, ideal_low, ok_low, weight, flexibility)
+values ('b0000000-0000-0000-0000-000000000001','C-01','house1','size','Bedrooms','beds','numeric',4,3,7,'low');
+insert into criteria (household_id, code, scope, grp, label, attribute, scale, ideal_values, never_values, weight, flexibility)
+values ('b0000000-0000-0000-0000-000000000001','C-02','all','type','Detached','property_type','category','{detached}','{flat,terraced}',10,'none');
+
+do $$
+declare n int;
+begin
+  if (select count(*) from criterion_history) <> 2 then perform fail('brain: matrix', 'creating a criterion did not write its history'); end if;
+  begin
+    update criteria set weight = 8 where code = 'C-01';
+    perform fail('brain: matrix', 'a criterion changed without a reason');
+  exception when check_violation then null;
+  end;
+  perform set_config('house.change_why', 'S-01: four beds matter more', true);
+  update criteria set weight = 8 where code = 'C-01';
+  select count(*) into n from criterion_history h join criteria c on c.id = h.criterion_id
+   where c.code = 'C-01' and h.action = 'changed' and h.why = 'S-01: four beds matter more'
+     and (h.old->>'weight')::int = 7 and (h.new->>'weight')::int = 8;
+  if n <> 1 then perform fail('brain: matrix', 'the change was not recorded with its old value, new value and reason'); end if;
+  begin
+    update criterion_history set why = 'rewritten';
+    perform fail('brain: matrix', 'history was edited');
+  exception when restrict_violation then null;
+  end;
+  begin
+    insert into criteria (household_id, code, grp, label, attribute, scale, weight)
+    values ('b0000000-0000-0000-0000-000000000001','C-03','size','Empty','beds','numeric',5);
+    perform fail('brain: matrix', 'a numeric criterion with no range was accepted');
+  exception when check_violation then null;
+  end;
+  if (brain_about('b0000000-0000-0000-0000-000000000001', 'C-01')->'detail'->'history') is null
+     or jsonb_array_length(brain_about('b0000000-0000-0000-0000-000000000001', 'C-01')->'detail'->'history') <> 2 then
+    perform fail('brain: matrix', 'brain_about does not show a criterion and its history');
+  end if;
+  if (brain_context('b0000000-0000-0000-0000-000000000001')->'preferences'->>'criteria')::int <> 2 then
+    perform fail('brain: matrix', 'brain_context does not count the criteria');
+  end if;
+  perform pass('brain: a preference change needs a reason, is recorded old and new, and its history is never edited');
+end $$;
+
 grant usage on schema public to authenticated;
 grant select, insert, update on all tables in schema public to authenticated;
 grant usage on schema extensions to authenticated;
@@ -106,6 +148,9 @@ set local role authenticated;
 set local request.jwt.claim.sub = 'b0000000-2222-2222-2222-222222222222';
 do $$
 begin
+  if exists (select 1 from criteria) or exists (select 1 from criterion_history) then
+    perform fail('brain: isolation', 'household B can read household A''s preferences');
+  end if;
   if exists (select 1 from listing_facts) or exists (select 1 from sources)
      or exists (select 1 from brain_entities where household_id = 'b0000000-0000-0000-0000-000000000001') then
     perform fail('brain: isolation', 'household B can read household A''s knowledge');

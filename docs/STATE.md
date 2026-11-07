@@ -18,8 +18,12 @@ intake, Forest View, naming); DF-2 retired and G-P01R superseded by
 R-22; P-003 archived; 14 Forest View and P-001 events cancelled, the
 5 Nov rate event done; 7 `fv-` contradictions superseded.
 
-**Next: Stage 1** - `docs/ARCHITECTURE.md`, the glossary, the variable-key
-and topic rename ledgers, the dead-code list. Then Stage 2 (data model).
+**Stage 2 in flight:** `supabase/schema/92_brain.sql` (sources, listing
+facts, places, market stats, lending products, forecasts, link strength,
+`brain_context`/`brain_about`/`brain_search`) is committed and tested but
+NOT yet applied live - the connector's approval timed out. Apply it, check
+the fingerprint, then backfill the data and extend the loader. Research
+wave 3 prompt is with the owner (LISTING_FACTS, MARKET_STATS blocks).
 
 ## Waiting on the owner
 
@@ -34,8 +38,9 @@ and topic rename ledgers, the dead-code list. Then Stage 2 (data model).
 
 ## Known and deliberately left
 
-- The front-end gate fails 48 `house.html` 3D checks here (stage
-  selection redraws the same building, no furniture). It predates the
-  overhaul; Playwright here is 1.63 against a pinned 1.49.1. Not masked.
+- The front-end gate fails 48 `house.html` checks. The page is fine: the
+  gate compares stages on whichever level its sweep left on screen (first
+  floor, unchanged) and picks the last variant as "furnished". Fix the
+  gate (compare every level; pick the non-empty variant). Deferred.
 - Bare `update`s can hang in the connector; set a `statement_timeout`.
 - Over 400 lines: `check-frontend.mjs`, `pages/house.js` (split in Stage 6).

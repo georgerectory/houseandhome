@@ -104,6 +104,16 @@ as $$
       when p_text ~* 'thatch' and p_text !~* 'no(t)? thatch|thatch not|not thatched' then 'thatched'
       when p_text ~* 'not listed|unlisted' then 'neither'
       else lower(trim(p_text)) end
+    -- Agents describe a setting by its views; the matrix speaks of settlements.
+    when p_attribute = 'setting' then case
+      when p_text ~* 'city cent(re|er)' then 'city centre'
+      when p_text ~* 'town cent(re|er)|built-up|urban' then 'town'
+      when p_text ~* '\mhamlet' then 'hamlet'
+      when p_text ~* '\mlane\M' and p_text ~* 'farm|field|paddock|countryside|rural' then 'rural lane'
+      when p_text ~* 'farmland|\mfields?\M|paddocks?|countryside|open country' then 'village near farmland'
+      when p_text ~* 'edge of (the )?village|village edge' then 'village edge'
+      when p_text ~* '\mvillage\M' then 'village'
+      else lower(trim(p_text)) end
     when p_attribute in ('outbuildings','needs_extension','knotweed','requires_lodger') then case
       when p_text ~* '^\s*(no|none|false)\M' then 'no'
       when p_text ~* '^\s*(yes|true)\M' then 'yes'

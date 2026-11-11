@@ -123,7 +123,10 @@ begin
      or brain_norm_value('heating_system', 'Not stated') is not null
      or brain_norm_value('listed_or_thatched', 'Not listed; thatch not mentioned') <> 'neither'
      or brain_norm_value('listed_or_thatched', 'Grade II listed, thatched roof') <> 'grade ii and thatched'
-     or brain_norm_value('listed_or_thatched', 'Thatched cottage, not listed') <> 'thatched' then
+     or brain_norm_value('listed_or_thatched', 'Thatched cottage, not listed') <> 'thatched'
+     or brain_norm_value('setting', 'Southerly views over garden to paddocks; private plot backing fields') <> 'village near farmland'
+     or brain_norm_value('setting', 'Quiet country lane backing farmland') <> 'rural lane'
+     or brain_norm_value('setting', 'Town centre, close to shops') <> 'town' then
     perform fail('scoring: vocabulary', 'a free-text value did not map to the matrix vocabulary');
   end if;
   perform pass('scoring: free text maps to the matrix vocabulary, and "unknown" stays unknown');

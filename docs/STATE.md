@@ -33,8 +33,6 @@ scored; its floor area is an open contradiction (`r-l69-floor-area`).
 
 ## Known and deliberately left
 
-- Front-end gate: 48 `house.html` failures are the gate's, not the page's
-  (compares on the first floor; picks the empty variant). Deferred.
 - Over 400 lines: `ingest-research.mjs` (441), `check-frontend.mjs`,
   `pages/house.js`. Connector: set a `statement_timeout`; it prompts on
   any DROP or DELETE, so schema files avoid both words.

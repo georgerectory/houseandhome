@@ -108,3 +108,38 @@ test('report-style appendices load by heading; superseded tables are skipped; re
   assert.match(sql, /'r-same_topic'/);
   assert.match(sql, /'r-same_topic_2'/);
 });
+
+test('LISTING_FACTS land as facts with sources; a confirmed fact is never replaced; MARKET_STATS make places and rows', () => {
+  const reply = 'LISTING_FACTS\n```\nlisting,attribute,value,unit,source_url,source_date,label,notes\n'
+    + 'L55,EPC rating,F,,https://example.org/epc,2026-11-07,VERIFIED,\nL55,floor_area_m2,149,m2,,2026-11,LIKELY,Zoopla\n'
+    + 'L99,heating,oil,,,,CHECK,\n,missing listing,x,,,,,\n```\n'
+    + 'MARKET_STATS\n```\nplace,metric,segment,period,value,n,source_url,source_date,label\n'
+    + 'BA8,median_price_m2,p25,2025-12,"2,760",121,https://example.org/hm,2025-12-01,VERIFIED\n'
+    + 'Henstridge,mean price,detached,2026,385000,,,,VERIFIED\nNowhere,made_up_metric,all,2026,1,,,,CHECK\n```\n';
+  const { sql, counts } = toSql(reply, { household: 'h', date: '2026-11-07' });
+  assert.equal(counts.listing_facts, 3, 'the row with no listing is skipped');
+  assert.match(sql, /\('L55', 'epc_rating', 'F', null/);
+  assert.match(sql, /\('L55', 'floor_area_m2', null, 149, 'm2'/);
+  assert.match(sql, /'CHECK'/, 'LIKELY becomes CHECK');
+  assert.match(sql, /f\.confidence <> 'confirmed'/);
+  assert.match(sql, /research differs from a confirmed fact/);
+  assert.equal(counts.market_stats, 2, 'an unknown metric is skipped');
+  assert.match(sql, /\('ba8', 'BA8', 'postcode_district', 'median_price_m2', 'p25', '2025-12', 2760, 121/);
+  assert.match(sql, /\('henstridge', 'Henstridge', 'village', 'mean_price', 'detached'/);
+  assert.match(sql, /insert into sources/);
+  assert.match(sql, /select refresh_brain_links\('h'\);\ncommit;/);
+});
+
+test('a NEW house in LISTINGS takes its comparables and its facts, by NEW or by name, after it is created', () => {
+  const reply = 'LISTINGS\n```\nfor,name,address,postcode,type,beds,price,price_kind\nNEW,Test Cottage,"Test Cottage, Lane",ZZ1 1AA,detached,3,475000,guide\n```\n'
+    + 'COMPARABLES\n```\nfor,address,price,kind,date,type,beds,m2,source_url,days_on_market,price_cuts,confidence\nNEW,"1 Near Lane, Town",445000,sold,2024-09-13,Detached,2,136,https://example.org/c,,,medium\n```\n'
+    + 'LISTING_FACTS\n```\nlisting,attribute,value,unit,source_url,source_date,label,notes\nTest Cottage,epc_rating,D,,https://example.org/e,2026-11-07,VERIFIED,\n```\n';
+  const { sql, counts } = toSql(reply, { household: 'h', date: '2026-11-07' });
+  assert.equal(counts.comparables, 1);
+  assert.equal(counts.listing_facts, 1);
+  assert.ok(sql.indexOf('insert into ra_listings') < sql.indexOf('insert into ra_comparables'), 'the house exists before its comparables');
+  assert.match(sql, /\('Test Cottage', '1 Near Lane, Town'/);
+  assert.match(sql, /\('Test Cottage', 'epc_rating', 'D'/);
+  assert.match(sql, /lower\(split_part\(l\.name, ',', 1\)\) = lower\(split_part\(c\.code, ',', 1\)\)/);
+  assert.match(sql, /beds, floor_area_m2, source_id/);
+});

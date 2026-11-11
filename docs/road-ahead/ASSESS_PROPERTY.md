@@ -10,10 +10,12 @@ listing there and copying it for Claude.
 
 Five rules bind it:
 
-- **No scraping.** Rightmove and the other portals forbid it. The owner
-  pastes the listing's text and a floor-plan screenshot. An auctioneer's
-  catalogue or a lot page is read only when the owner asks, one page at
-  a time, never crawled.
+- **Read the link, never crawl (R-06, R-23 as corrected by S-120).** Any
+  link the owner sends - Rightmove and the other portals included - is
+  opened and read: that one page and its brochure or floor plan, on
+  request, never a bulk crawl. Every fact carries the URL and the date.
+  If the page cannot be reached (the session's network may need the host
+  allowed), say so plainly and ask for the text or a screenshot.
 - **No invented market facts.** Every comparable has an address, a
   price, a date and a source. A figure worked out rather than found is
   labelled ESTIMATE, and the answer says so.
@@ -23,6 +25,54 @@ Five rules bind it:
   appraisal, never a second listing.
 - **Drafted stays drafted.** What Claude writes lands `drafted` or
   `researched`; only the owner's word confirms anything.
+
+## 0. Reading the link: the access ladder
+
+The owner sends a link and expects the house read, researched and
+scored without being asked to do the reading. Work down this ladder and
+stop at the first rung that works; say which rung was used in the answer.
+
+1. **Fetch the page directly** (WebFetch): the listing, then its brochure
+   and floor plan. This needs the host allowed in the session's network.
+   The standing allowlist, set once in the cloud environment (environment
+   menu, Edit, Network access, Allowed domains; package managers left
+   ticked):
+
+       www.rightmove.co.uk          media.rightmove.co.uk
+       www.zoopla.co.uk             lid.zoocdn.com
+       www.onthemarket.com          media.onthemarket.com
+       www.primelocation.com        find-energy-certificate.service.gov.uk
+       check-long-term-flood-risk.service.gov.uk
+       checker.ofcom.org.uk         www.planningportal.co.uk
+
+   Agents' and auctioneers' own sites vary: add each the first time it is
+   needed.
+2. **If a host is refused** (DNS "not found" through the proxy): ask once
+   with the environment tools (an approval card). If the owner's app
+   cannot show the card, name the host and the settings path above in
+   one line - never more than once per host - and carry on down the
+   ladder in the same turn.
+3. **Find the same house elsewhere** (WebSearch runs outside the sandbox):
+   search the address, the agent, the village with the beds and price,
+   and the listing ID; read the agent's or another portal's copy if its
+   host is allowed.
+4. **The research hand-off.** A claude.ai chat has its own web access:
+   give the owner the research-wave prompt with this listing as `for=NEW`
+   and the link, and load the reply (LISTING_FACTS, COMPARABLES, EVIDENCE)
+   with `tools/ingest-research.mjs`.
+5. **Last: ask for the text or screenshots** - one line, with what is
+   already known.
+
+Whatever the rung: one page per link, never a crawl; every fact carries
+the URL and the date (a `sources` row); nothing is invented to fill a gap -
+an unknown stays unknown and is scored as coverage, not as a fail.
+
+Once the page is read, research it before scoring (the owner asked for
+deep investigation, R-23 and S-121): the EPC certificate and floor area,
+gov.uk flood bands, Ofcom broadband, planning history, the sold history
+of the house and its street, 8-12 sold comparables with floor areas, and
+the village's market figures. Then `brain_score` for both scopes, and
+answer.
 
 ## 1. Ground
 

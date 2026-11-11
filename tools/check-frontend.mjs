@@ -324,14 +324,37 @@ for (const theme of THEMES) {
         // DRAWING, not just the dropdown: a selector that looks like it
         // works and redraws the same house is worse than none.
         const stageIds = await page.$$eval('#stage option', (o) => o.map((x) => x.value));
-        const shape = () => page.evaluate(() => ({
+        const one = () => page.evaluate(() => ({
           rooms: document.querySelectorAll('.fp-room').length,
           furniture: document.querySelectorAll('.fp-furniture').length,
           swings: document.querySelectorAll('.fp-swing').length,
           walls: document.querySelectorAll('.fp-wall').length,
+          // What was drawn, not just how many: an opening knocked
+          // through moves a wall without changing the count.
+          sig: [...document.querySelectorAll('.fp-room, .fp-wall')]
+            .map((e) => e.getAttribute('d') || e.getAttribute('points')
+              || ['x', 'y', 'width', 'height', 'x1', 'y1', 'x2', 'y2'].map((a) => e.getAttribute(a)).join(','))
+            .join('|'),
           scrollW: document.documentElement.scrollWidth,
           clientW: document.documentElement.clientWidth,
         }));
+        // A stage or a variant can change one floor only, so the drawing
+        // is read on EVERY floor: comparing whichever floor the sweep
+        // happened to leave on screen reports a real change as none.
+        const shape = async () => {
+          const total = { rooms: 0, furniture: 0, swings: 0, walls: 0, sig: '', scrollW: 0, clientW: Infinity };
+          const levels = await page.$$eval('[data-level-id]', (b) => b.map((x) => x.dataset.levelId));
+          for (const lv of levels) {
+            await page.click(`[data-level-id="${lv}"]`);
+            await page.waitForTimeout(150);
+            const s1 = await one();
+            for (const k of ['rooms', 'furniture', 'swings', 'walls']) total[k] += s1[k];
+            total.sig += `${lv}:${s1.sig}#`;
+            total.scrollW = Math.max(total.scrollW, s1.scrollW);
+            total.clientW = Math.min(total.clientW, s1.clientW);
+          }
+          return total;
+        };
         // Every stage the building declares must be offered - no more, no
         // fewer. A one-stage building offers one; switching is then
         // proved the moment a second stage exists.
@@ -346,14 +369,15 @@ for (const theme of THEMES) {
           await page.selectOption('#stage', stageId);
           await page.waitForTimeout(250);
           const after = await shape();
-          if (after.rooms === before.rooms && after.walls === before.walls) {
+          if (after.sig === before.sig) {
             failures.push(`${label}: selecting ${stageId} redrew the same building`);
           }
           if (after.scrollW > after.clientW + 1) failures.push(`${label}: page scroll on ${stageId}`);
 
           const variantIds = await page.$$eval('#variant option', (o) => o.map((x) => x.value));
-          const furnished = variantIds[variantIds.length - 1];
-          if (variantIds.length > 1) {
+          // The furnished arrangement, not the empty one that lists last.
+          const furnished = variantIds.find((v) => !/empty/i.test(v)) || variantIds[variantIds.length - 1];
+          if (variantIds.length > 1 && !/empty/i.test(furnished)) {
             await page.selectOption('#variant', furnished);
             await page.waitForTimeout(250);
             const f = await shape();

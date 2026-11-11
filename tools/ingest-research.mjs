@@ -229,23 +229,46 @@ on conflict (id) do update set value = (select val from v), source = ${q(source)
     counts.chart_rows = chart.length;
   }
 
+  // A row may name its house by code (L55), by the reply's alias (P004), by
+  // NEW (the one new house this reply adds) or by the house's name.
+  const newHouses = csv(b.LISTINGS ?? '').filter((h) => /^new$/i.test(h.for || 'NEW') && (h.name || h.address));
+  const newName = newHouses.length === 1 ? (newHouses[0].name || newHouses[0].address) : null;
+  // A bare house name is accepted only where asked (LISTING_FACTS); an
+  // unknown alias elsewhere is skipped rather than guessed.
+  const houseRef = (raw, { names = false } = {}) => {
+    const t = String(raw ?? '').trim();
+    if (!t) return null;
+    if (/^[LG][0-9]{2,3}$/i.test(t)) return t.toUpperCase();
+    if (LISTING_FOR[t.toUpperCase()]) return LISTING_FOR[t.toUpperCase()];
+    if (/^new$/i.test(t)) return newName;
+    return names ? t : null;
+  };
+  const houseJoin = (alias) => `(l.code = ${alias} or (${alias} !~ '^[LG][0-9]+$' and lower(split_part(l.name, ',', 1)) = lower(split_part(${alias}, ',', 1))))`;
+  const deferred = [];
+
   // Comparables, set-based: one VALUES list, one insert, deduplicated on listing, house and price.
   const comps = [];
+  const compUrls = [];
   for (const c of csv(b.COMPARABLES ?? '')) {
-    const f = (c.for || '').toUpperCase();
-    const code = /^L[0-9]{2,3}$/.test(f) ? f : LISTING_FOR[f];
+    const code = houseRef(c.for);
     // A comparable without a price is not a comparable (and the column refuses it).
     if (!code || !c.address || num(c.price) == null) continue;
     const notes = [c.days_on_market && `${c.days_on_market} days`, c.price_cuts && `cuts: ${c.price_cuts}`, /auction|sstc|withdrawn/i.test(c.kind || '') && c.kind.toLowerCase()].filter(Boolean).join('; ') || null;
-    comps.push(`(${q(code)}, ${q(c.address)}, ${q([c.type, c.beds && `${c.beds}-bed`, c.m2 && `${c.m2} m2`].filter(Boolean).join(', '))}, ${num(c.price)}, ${q(KIND[(c.kind || 'sold').toLowerCase()] ?? 'asking')}, ${q(c.date)}, ${/^\d{4}-\d{2}-\d{2}$/.test(c.date) ? q(c.date) : 'null'}, ${q(c.source_url)}, ${q(notes)}, ${q((c.confidence || '').toUpperCase() === 'LOW' ? 'drafted' : 'researched')})`);
+    if (/^https?:\/\//.test(c.source_url || '')) compUrls.push(`(${q(c.source_url)})`);
+    comps.push(`(${q(code)}, ${q(c.address)}, ${q([c.type, c.beds && `${c.beds}-bed`, c.m2 && `${c.m2} m2`].filter(Boolean).join(', '))}, ${num(c.price)}, ${q(KIND[(c.kind || 'sold').toLowerCase()] ?? 'asking')}, ${q(c.date)}, ${/^\d{4}-\d{2}-\d{2}$/.test(c.date) ? q(c.date) : 'null'}, ${q(c.source_url)}, ${q(notes)}, ${q(/^low/i.test(c.confidence || '') ? 'drafted' : 'researched')}, ${num(c.beds) ?? 'null'}, ${num(c.m2) ?? 'null'})`);
   }
   if (comps.length) {
-    out.push(`insert into ra_comparables (household_id, listing_id, address, property_type, price, kind, when_text, on_date, source, url, notes, confidence)
-select distinct on (l.id, split_part(c.address, ',', 1), c.price) ${H}, l.id, c.address, c.ptype, c.price, c.kind, c.when_text, c.on_date::date, ${q(source)}, c.url, c.notes, c.conf
+    deferred.push(`insert into sources (household_id, key, kind, title, url, publisher, retrieved_on)
+select distinct on (u) ${H}, 'url:' || u, 'web', substring(u from '^https?://(?:www\\.)?([^/]+)'), u, substring(u from '^https?://(?:www\\.)?([^/]+)'), ${q(date)}::date
+  from (values ${compUrls.length ? compUrls.join(', ') : '(null::text)'}) v(u) where u ~ '^https?://'
+on conflict (household_id, key) do nothing;
+insert into ra_comparables (household_id, listing_id, address, property_type, price, kind, when_text, on_date, source, url, notes, confidence, beds, floor_area_m2, source_id)
+select distinct on (l.id, split_part(c.address, ',', 1), c.price) ${H}, l.id, c.address, c.ptype, c.price, c.kind, c.when_text, c.on_date::date, ${q(source)}, c.url, c.notes, c.conf,
+       c.beds::int, nullif(c.m2::numeric, 0), (select s.id from sources s where s.household_id = ${H} and s.key = 'url:' || c.url)
   from (values
 ${comps.join(',\n')}
-  ) c(code, address, ptype, price, kind, when_text, on_date, url, notes, conf)
-  join ra_listings l on l.household_id = ${H} and l.code = c.code
+  ) c(code, address, ptype, price, kind, when_text, on_date, url, notes, conf, beds, m2)
+  join ra_listings l on l.household_id = ${H} and ${houseJoin('c.code')}
  where not exists (select 1 from ra_comparables x where x.listing_id = l.id and split_part(x.address, ',', 1) = split_part(c.address, ',', 1) and coalesce(x.price, 0) = c.price);`);
     counts.comparables = comps.length;
   }
@@ -292,6 +315,7 @@ on conflict (id) do update set
   notes = concat_ws(' | ', ra_listings.notes, ${q(`${date}: price updated from research`)});`);
     counts.listings = houses.length;
   }
+  out.push(...deferred); // comparables, now that any NEW house exists
 
   const evidence = [];
   for (const e of csv(b.EVIDENCE ?? '')) evidence.push([e.topic || 'Research', e.claim, e.figure, [e.source_url, e.source_date, e.label].filter(Boolean).join(' | ')]);
@@ -346,7 +370,7 @@ on conflict (household_id, key) do nothing;`;
 
   const facts = csv(b.LISTING_FACTS ?? '').filter((f) => (f.listing || f.for) && f.attribute && String(f.value ?? '').trim() !== '')
     .map((f) => {
-      const code = LISTING_FOR[(f.listing || f.for).toUpperCase()] ?? (f.listing || f.for).toUpperCase();
+      const code = houseRef(f.listing || f.for, { names: true });
       const n = /^\d{4}-\d{2}/.test(f.value) ? null : num(f.value);
       const lab = label(f.label);
       return `(${q(code)}, ${q(slug(f.attribute))}, ${n == null ? q(f.value) : 'null'}, ${n ?? 'null'}, ${q(f.unit)}, ${q(f.source_url)}, ${q(asDate(f.source_date, date))}, ${q(lab)}, ${q(CONF[lab])}, ${q(f.notes)})`;
@@ -358,19 +382,19 @@ ${facts.join(',\n')}
 ${sourcesFrom('_lf')}
 -- A different researched value supersedes the current one; a confirmed fact is never replaced.
 update listing_facts f set status = 'superseded', note = concat_ws(' | ', f.note, ${q(`Superseded by research, ${date}`)})
-  from _lf v join ra_listings l on l.household_id = ${H} and l.code = v.code
+  from _lf v join ra_listings l on l.household_id = ${H} and ${houseJoin('v.code')}
  where f.listing_id = l.id and f.attribute = v.attr and f.status = 'active' and f.confidence <> 'confirmed'
    and (coalesce(f.value_text, '') <> coalesce(v.vtext, '') or coalesce(f.value_num, -1) <> coalesce(v.vnum, -1));
 insert into listing_facts (household_id, listing_id, attribute, value_text, value_num, unit, as_of, source_id, label, confidence, note)
 select ${H}, l.id, v.attr, v.vtext, v.vnum, v.unit, v.sdate::date,
        (select s.id from sources s where s.household_id = ${H} and s.key = 'url:' || v.url), v.lab, v.conf, v.note
-  from _lf v join ra_listings l on l.household_id = ${H} and l.code = v.code
+  from _lf v join ra_listings l on l.household_id = ${H} and ${houseJoin('v.code')}
 on conflict (listing_id, attribute) where status = 'active' do nothing;
 insert into contradictions (household_id, key, topic, source_a, position_a, source_b, position_b, what_it_changes, status)
 select ${H}, 'r-fact-' || l.code || '-' || v.attr || '-${date}', l.code || ' ' || v.attr || ': research differs from a confirmed fact',
        'Owner (confirmed)', coalesce(f.value_text, f.value_num::text), coalesce(v.url, ${q(source)}), coalesce(v.vtext, v.vnum::text),
        'Put to the owner; the confirmed fact stands until then', 'open'
-  from _lf v join ra_listings l on l.household_id = ${H} and l.code = v.code
+  from _lf v join ra_listings l on l.household_id = ${H} and ${houseJoin('v.code')}
   join listing_facts f on f.listing_id = l.id and f.attribute = v.attr and f.status = 'active' and f.confidence = 'confirmed'
  where (coalesce(f.value_text, '') <> coalesce(v.vtext, '') or coalesce(f.value_num, -1) <> coalesce(v.vnum, -1))
 on conflict do nothing;`);

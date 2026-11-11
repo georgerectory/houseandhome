@@ -15,8 +15,9 @@ Live, fingerprint matching (map: `docs/ARCHITECTURE.md`): Stage 0;
 Stage 2 core (`92_brain.sql`: the knowledge tables and `brain_context` /
 `brain_about` / `brain_search`; data backfilled; wave 3 loaded); Stage 3
 (31 criteria, 30 confirmed, S-109 to S-119; R-26 new); Stage 4 core
-(`93_scoring.sql`: `brain_score` - fit, money, value band, working). **Next:** fill the unknowns the scores flag (knotweed,
-mortgageability, broadband), then Stage 5 intake (link to verdict).
+(`93_scoring.sql`: `brain_score` - fit, money, value band, working). **Pending live (connector login failing 11 Nov):** the 93_scoring
+vocabulary update, and loading the Meadow Cottage reply (dry-run passed
+as L69; re-run the loader on the owner's pasted reply).
 
 ## Waiting on the owner
 

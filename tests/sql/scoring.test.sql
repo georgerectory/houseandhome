@@ -119,7 +119,11 @@ begin
      or brain_norm_value('condition', 'Dated, scope to improve') <> 'needs modernisation'
      or brain_norm_value('outbuildings', 'Detached stone barn with power') <> 'yes'
      or brain_norm_value('drainage', 'Mains drainage') <> 'mains'
-     or brain_norm_value('drainage', 'Unknown; oil hints at off-mains') is not null then
+     or brain_norm_value('drainage', 'Unknown; oil hints at off-mains') is not null
+     or brain_norm_value('heating_system', 'Not stated') is not null
+     or brain_norm_value('listed_or_thatched', 'Not listed; thatch not mentioned') <> 'neither'
+     or brain_norm_value('listed_or_thatched', 'Grade II listed, thatched roof') <> 'grade ii and thatched'
+     or brain_norm_value('listed_or_thatched', 'Thatched cottage, not listed') <> 'thatched' then
     perform fail('scoring: vocabulary', 'a free-text value did not map to the matrix vocabulary');
   end if;
   perform pass('scoring: free text maps to the matrix vocabulary, and "unknown" stays unknown');

@@ -73,7 +73,7 @@ set search_path = public
 as $$
   select case
     when p_text is null or trim(p_text) = '' then null
-    when p_text ~* '^\s*(unknown|not found|n/?a|check)\M' then null
+    when p_text ~* '^\s*(unknown|not found|not stated|not known|n/?a|check)\M' then null
     when p_attribute = 'heating_system' then case
       when p_text ~* 'no central heating|^\s*none' then 'none'
       when p_text ~* 'heat pump|ashp|gshp' then 'heat pump'
@@ -97,6 +97,12 @@ as $$
       when p_text ~* 'treatment' then 'treatment plant'
       when p_text ~* 'cess' then 'cesspit'
       when p_text ~* 'off-?mains|private' then 'off-mains'
+      else lower(trim(p_text)) end
+    when p_attribute = 'listed_or_thatched' then case
+      when p_text ~* 'grade\s*(ii|2|i|1)' and p_text ~* 'thatch' and p_text !~* 'no(t)? thatch|thatch not' then 'grade ii and thatched'
+      when p_text ~* 'grade\s*(ii\*?|2|i|1)' and p_text !~* 'not listed' then 'grade ii'
+      when p_text ~* 'thatch' and p_text !~* 'no(t)? thatch|thatch not|not thatched' then 'thatched'
+      when p_text ~* 'not listed|unlisted' then 'neither'
       else lower(trim(p_text)) end
     when p_attribute in ('outbuildings','needs_extension','knotweed','requires_lodger') then case
       when p_text ~* '^\s*(no|none|false)\M' then 'no'

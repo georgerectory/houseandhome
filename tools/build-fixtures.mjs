@@ -295,6 +295,16 @@ const assets = [
   make: null, model: null, status: 'wanted', warranty_expires_on: null, confidence: 'drafted',
 }));
 
+// Two shopping lines with an invented second-hand benchmark, in the
+// shape of mp_line_benchmark: one listed above what second hand costs
+// and one below it, so the Shopping page shows both flags in the demo.
+const secondHandLine = (title, good, fair) => {
+  const item = items.find((i) => i.title === title);
+  return { work_item_id: item.id, profiles: 1, second_hand_good: good, second_hand_fair: fair,
+    second_hand_max: fair * 2, cost_if_new: fair * 5, spent: 0, nothing_outstanding: false, is_unconfirmed: true };
+};
+const mp_line_benchmark = [secondHandLine('Lawn mower', 60, 120), secondHandLine('Spice rack and spices', 70, 120)];
+
 const data = {
   meta: {
     generated: new Date().toISOString().slice(0, 10),
@@ -313,7 +323,7 @@ const data = {
   ],
   pot: { name: 'House pot', monthly_contribution: 400, contribution_confidence: 'drafted', unallocated_balance: 0 },
   allocation_settings: { decay: 0.85, floor_share: 0.10 },
-  rooms, items, bills, assets,
+  rooms, items, bills, assets, mp_line_benchmark,
   // Invented sums in the shape of cost_rollup (86_costs.sql), so the
   // Plan, Money and Handbook sections render in demo mode. Not the
   // house's figures: those live in Supabase only.

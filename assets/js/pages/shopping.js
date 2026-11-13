@@ -16,6 +16,7 @@ import {
   TRIP_AXES, trips, totals, funding, readyToBuy, nextUp,
   benchmarks, estimateCheck, targetCost,
 } from '../engine/shopping.js';
+import { secondHandCheck } from '../engine/marketplace.js';
 import * as store from '../core/prefs.js';
 
 const user = await requireAuth();
@@ -39,6 +40,17 @@ const parked = dormant.reduce((n, i) => n + Number(i.cost_expected ?? 0), 0);
 const hire = inScope.filter((i) => i.is_hire)
   .reduce((n, i) => n + Number(i.cost_in_scope ?? 0), 0);
 const grand = totals(inScope);
+
+// SECOND HAND, BESIDE THE ESTIMATE. Where Marketplace profiles fill a
+// line, mp_line_benchmark says what they come to at the good and the
+// fair second-hand price. It is shown next to the estimate and never
+// replaces it: changing a cost is a review, with the owner.
+const secondHand = new Map((d.mp_line_benchmark ?? []).map((b) => [b.work_item_id, b]));
+const hunted = inScope.filter((i) => secondHand.has(i.id) && i.acquisition !== 'new');
+const huntedListed = hunted.reduce((n, i) => n + Number(targetCost(i) ?? 0), 0);
+const huntedGood = hunted.reduce((n, i) => n + Number(secondHand.get(i.id).second_hand_good), 0);
+const huntedFair = hunted.reduce((n, i) => n + Number(secondHand.get(i.id).second_hand_fair), 0);
+const huntedShort = hunted.filter((i) => secondHandCheck(i, secondHand.get(i.id))?.verdict === 'under');
 const ready = readyToBuy(inScope);
 
 const AXIS_KEY = 'hh-shop-axis';
@@ -60,6 +72,13 @@ function rowFor(i) {
   const flag = check && check.verdict !== 'within'
     ? `<p class="shop-flag">Estimate sits ${escape(check.verdict)} the benchmark range
        (${escape(money(check.low))} to ${escape(money(check.high))}).</p>` : '';
+  const used = i.acquisition === 'new' ? null : secondHand.get(i.id);
+  const usedCheck = secondHandCheck(i, used);
+  const usedHtml = used ? `<p class="shop-used">Second hand: ${escape(money(used.second_hand_good))} at the good price,
+      ${escape(money(used.second_hand_fair))} at the going rate.</p>
+    ${usedCheck?.verdict === 'under' ? `<p class="shop-flag">The estimate is below even the good second-hand price,
+      by ${escape(money(-usedCheck.gap))}.</p>` : ''}
+    ${usedCheck?.verdict === 'over' ? `<p class="shop-flag">The estimate is above the going second-hand rate.</p>` : ''}` : '';
   const marksHtml = marks.length
     ? `<ul class="shop-marks">${marks.map((r) => `<li>
         <span>${escape(titleCase(r.channel || 'unknown'))}</span>
@@ -67,7 +86,7 @@ function rowFor(i) {
         <span class="shop-mark-age">${r.stale ? 'Stale' : `${r.ageDays}d old`}</span>
       </li>`).join('')}</ul>` : '';
   return `<tr>
-    <td>${escape(i.title)}${flag}${marksHtml}</td>
+    <td>${escape(i.title)}${flag}${usedHtml}${marksHtml}</td>
     <td class="num ${prov.valueCls}">${escape(money(targetCost(i)))}</td>
     <td class="num">${escape(preciseMoney(f.saved))}</td>
     <td class="num">${f.funded ? 'Ready' : escape(money(f.shortfall))}</td>
@@ -116,6 +135,15 @@ function body() {
            Move the job that needs them and they appear.`
         : ''}</p>
   </section>
+
+  ${hunted.length ? `<p class="notice"><span class="notice__title">${hunted.length} line${hunted.length === 1 ? '' : 's'}
+      being hunted second hand</span>
+    Listed at ${escape(money(huntedListed))}; second hand they come to ${escape(money(huntedGood))} at the good price
+    and ${escape(money(huntedFair))} at the going rate.
+    ${huntedShort.length ? `${huntedShort.length} of them ${huntedShort.length === 1 ? 'is' : 'are'} listed below even the good
+      second-hand price, so the estimate cannot be met as it stands.` : ''}
+    No estimate has been changed: the second-hand figures rest on unconfirmed thresholds.
+    <a href="marketplace.html">Marketplace</a> has the detail.</p>` : ''}
 
   <section class="section">
     <div class="section__head"><h2>Ready to buy</h2></div>

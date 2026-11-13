@@ -29,8 +29,10 @@ export const TRIP_AXES = [
   // by both.
   //
   // This slot used to be a 'channel' axis reading `item.channel`.
-  // work_items HAS NO SUCH COLUMN - channel lives on price_references
-  // and purchase_options - so every item fell into "Channel not set"
+  // work_items HAS NO SUCH COLUMN - a channel belongs to a price or a
+  // purchase, not to a need: it lives on price_references, on
+  // spend_events, and for second-hand finds on mp_finds.platform
+  // (94_marketplace.sql) - so every item fell into "Channel not set"
   // and the tab had never once grouped anything, in any dataset, since
   // the day it shipped. The fixture carried no channel key either, so
   // no test could see it.

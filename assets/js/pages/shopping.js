@@ -143,7 +143,7 @@ function body() {
     ${huntedShort.length ? `${huntedShort.length} of them ${huntedShort.length === 1 ? 'is' : 'are'} listed below even the good
       second-hand price, so the estimate cannot be met as it stands.` : ''}
     No estimate has been changed: the second-hand figures rest on unconfirmed thresholds.
-    <a href="marketplace.html">Marketplace</a> has the detail.</p>` : ''}
+    The Marketplace page has the detail.</p>` : ''}
 
   <section class="section">
     <div class="section__head"><h2>Ready to buy</h2></div>

@@ -1,0 +1,102 @@
+/* marketplace.css - the Marketplace page.
+ *
+ * Read on a phone next to a listing, so one column at every width: a
+ * find is a card as wide as the screen, and a profile is a row that
+ * opens. Tokens only. Mobile first; the one layout change is at 1024px,
+ * clear of the 600-800px band where iPad portrait sits.
+ */
+
+.mp-finds { display: grid; gap: var(--space-4); margin-bottom: var(--space-4); }
+.mp-find { display: grid; gap: var(--space-2); min-width: 0; }
+.mp-find__head { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: baseline; justify-content: space-between; }
+.mp-find__head > h3 { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.mp-find__price { font-size: var(--text-lg); font-weight: 600; }
+.mp-find .card__meta { display: flex; flex-wrap: wrap; gap: var(--space-1); margin: 0; }
+
+.mp-line { margin: 0; font-size: var(--text-sm); overflow-wrap: anywhere; }
+.mp-strong { font-weight: 600; color: var(--ink); }
+.mp-dim { color: var(--ink-faint); font-size: var(--text-xs); }
+.mp-block { display: block; }
+.mp-note { color: var(--ink-muted); font-size: var(--text-sm); max-width: var(--measure); }
+
+/* A search is typed by hand into another app: mono, and selectable. */
+.mp-query, .mp-message {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  user-select: all;
+  overflow-wrap: anywhere;
+}
+.mp-message {
+  margin: 0 0 var(--space-2);
+  padding: var(--space-3);
+  background: var(--paper-sunken);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  white-space: pre-wrap;
+}
+
+.mp-list { list-style: none; margin: 0 0 var(--space-4); padding: 0; display: grid; gap: var(--space-2); }
+.mp-list > li {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-2);
+  padding-block: var(--space-2);
+  border-bottom: 1px solid var(--rule);
+  font-size: var(--text-sm);
+  min-width: 0;
+}
+.mp-list > li > .mp-dim { flex-basis: 100%; }
+
+/* --- The grade ------------------------------------------------------ */
+.mp-grade { font-weight: 600; }
+.mp-grade--a, .mp-grade--b { background: var(--ok-soft); border-color: var(--ok); color: var(--ok); }
+.mp-grade--c { background: var(--warn-soft); border-color: var(--warn); color: var(--ink); }
+.mp-grade--x { background: var(--alert-soft); border-color: var(--alert); color: var(--alert); }
+
+.mp-checks { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-1); font-size: var(--text-sm); }
+.mp-check { padding-inline-start: var(--space-3); border-inline-start: 3px solid var(--rule-strong); overflow-wrap: anywhere; }
+.mp-check > .mp-dim { display: block; }
+.mp-check--pass { border-color: var(--ok); }
+.mp-check--fail { border-color: var(--alert); }
+.mp-check--unseen { border-color: var(--warn); }
+.mp-check__mark { font-weight: 600; }
+
+/* --- The price ladder ------------------------------------------------
+ * Four rungs and, on a find, a mark for what is being asked. Positions
+ * arrive as --at, a percentage along the track.
+ */
+.mp-ladder { margin-block: var(--space-2); }
+.mp-ladder__track {
+  position: relative;
+  height: var(--space-2);
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--ok-soft), var(--warn-soft), var(--alert-soft));
+  border: 1px solid var(--rule);
+}
+.mp-ladder__mark {
+  position: absolute;
+  inset-block: calc(var(--space-1) * -1);
+  inset-inline-start: var(--at);
+  width: 3px;
+  margin-inline-start: -1px;
+  border-radius: 2px;
+  background: var(--ink);
+}
+.mp-ladder__rungs { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); margin-top: var(--space-1); font-size: var(--text-xs); }
+.mp-ladder__rung { display: inline-flex; gap: var(--space-1); color: var(--ink-muted); }
+.mp-ladder__label { color: var(--ink-faint); }
+
+/* --- A profile row --------------------------------------------------- */
+details.mp-profile > summary {
+  min-height: var(--tap-min);
+  gap: var(--space-2);
+  color: var(--ink);
+  font-size: var(--text-base);
+}
+.mp-profile__rank { color: var(--ink-faint); min-width: 2ch; }
+.mp-profile__name { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+details.mp-profile > div { display: grid; gap: var(--space-2); }
+details.mp-fold > summary { min-height: var(--tap-min); }
+
+@media (min-width: 1024px) {
+  .mp-finds { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+}

@@ -269,3 +269,57 @@ export async function loadRoadAhead() {
   if (!roadCache) roadCache = await (isDemo() ? loadRoadFixture() : loadRoadLive());
   return roadCache;
 }
+
+// --- Marketplace -----------------------------------------------------
+// Read by the Marketplace page only, so no other page pays for it. The
+// derived views do the work in Postgres - the board, the ledger with
+// its grade, the totals, the evidence - and the demo fixture carries
+// the same keys, computed by the same engine from invented rows
+// (tools/build-marketplace-fixture.mjs). Marketplace rows belong to the
+// household, not to a house, so nothing here is scoped by property.
+
+let marketCache = null;
+
+async function loadMarketFixture() {
+  const res = await fetch(new URL('../../../data/fixtures/marketplace.json', import.meta.url));
+  if (!res.ok) throw new Error(`fixture load failed: ${res.status}`);
+  return res.json();
+}
+
+async function loadMarketLive() {
+  const sb = await client();
+  if (!sb) return null;
+  const parts = {
+    mp_brief: sb.from('mp_brief').select('*').maybeSingle(),
+    mp_board: sb.from('mp_board').select('*').order('sort_order'),
+    mp_find_ledger: sb.from('mp_find_ledger').select('*').order('seen_on', { ascending: false }),
+    mp_totals: sb.from('mp_totals').select('*').order('tier_rank'),
+    mp_searches: sb.from('mp_searches').select('*').order('sort_order'),
+    mp_grounds: sb.from('mp_grounds').select('*').eq('status', 'active').order('sort_order'),
+    mp_makers: sb.from('mp_makers').select('*').eq('status', 'active').order('name'),
+    mp_checks: sb.from('mp_checks').select('*').eq('status', 'active').order('sort_order'),
+    mp_price_evidence: sb.from('mp_price_evidence').select('*'),
+    mp_threshold_review: sb.from('mp_threshold_review').select('*'),
+    mp_line_benchmark: sb.from('mp_line_benchmark').select('*'),
+    // Only what decides whether a large piece may be bought yet.
+    houses: sb.from('properties').select('status').in('status', ['committed', 'owned']),
+  };
+  const names = Object.keys(parts);
+  const results = await Promise.all(Object.values(parts));
+  // A broken read is raised, never rendered as an empty hunt.
+  const failed = results.map((r, i) => (r.error ? `${names[i]}: ${r.error.message}` : null)).filter(Boolean);
+  if (failed.length) throw new Error(`Could not read Marketplace - ${failed.join('; ')}`);
+  const data = Object.fromEntries(names.map((n, i) => [n, results[i].data ?? (n === 'mp_brief' ? null : [])]));
+  const has = (s) => data.houses.some((h) => h.status === s);
+  const today = new Date().toISOString().slice(0, 10);
+  return {
+    meta: { generated: today, today, note: 'Live data.' },
+    house_state: has('owned') ? 'moved' : has('committed') ? 'exchanged' : 'none',
+    ...data,
+  };
+}
+
+export async function loadMarketplace() {
+  if (!marketCache) marketCache = await (isDemo() ? loadMarketFixture() : loadMarketLive());
+  return marketCache;
+}

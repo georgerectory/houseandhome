@@ -123,6 +123,135 @@ begin
 end $$;
 
 -- ---------------------------------------------------------------
+-- THE QUALITY LAYER. The grade is derived from the answers; the guard
+-- refuses a verdict the grade and the fit do not support.
+-- ---------------------------------------------------------------
+update mp_brief set travel_bands = '[{"band":"A","miles_max":10,"minutes_max":20},
+                                     {"band":"B","miles_max":25,"minutes_max":40}]'::jsonb
+ where household_id = 'a1a1a1a1-0000-0000-0000-000000000001';
+
+insert into mp_makers (id, household_id, name, category, standing) values
+  ('a1a1a1a1-5555-0000-0000-000000000001','a1a1a1a1-0000-0000-0000-000000000001','Goodwright and Sons','storage','seek'),
+  ('a1a1a1a1-5555-0000-0000-000000000002','a1a1a1a1-0000-0000-0000-000000000001','Flatpack Regency','storage','avoid'),
+  ('b1b1b1b1-5555-0000-0000-000000000001','b1b1b1b1-0000-0000-0000-000000000001','B maker','storage','seek');
+
+insert into mp_checks (household_id, profile_id, key, kind, question, must_pass, distinction, doorstep, sort_order) values
+  ('a1a1a1a1-0000-0000-0000-000000000001','a1a1a1a1-2222-0000-0000-000000000001','carcass','material','Is the carcass solid timber?', true, false, false, 1),
+  ('a1a1a1a1-0000-0000-0000-000000000001','a1a1a1a1-2222-0000-0000-000000000001','joints','construction','Are the drawers dovetailed?', true, false, true, 2),
+  ('a1a1a1a1-0000-0000-0000-000000000001','a1a1a1a1-2222-0000-0000-000000000001','linings','construction','Oak drawer linings?', false, true, true, 3),
+  ('b1b1b1b1-0000-0000-0000-000000000001','b1b1b1b1-2222-0000-0000-000000000001','any','condition','Sound?', true, false, true, 1);
+
+do $$
+declare
+  prof constant uuid := 'a1a1a1a1-2222-0000-0000-000000000001';
+  ok   constant jsonb := '{"carcass":{"answer":"pass","evidence":"photo 3, end grain"},"joints":{"answer":"pass","evidence":"photo 4"}}';
+  g text;
+begin
+  if mp_grade(prof, '{}', null) <> 'C' then perform fail('grade', 'all unseen is not C'); end if;
+  if mp_grade(prof, '{"carcass":{"answer":"pass"}}', null) <> 'C' then perform fail('grade', 'one unseen is not C'); end if;
+  if mp_grade(prof, ok, null) <> 'B' then perform fail('grade', 'all must-pass passed is not B'); end if;
+  if mp_grade(prof, ok || '{"linings":{"answer":"pass"}}', null) <> 'A' then perform fail('grade', 'distinction did not lift to A'); end if;
+  if mp_grade(prof, ok, 'a1a1a1a1-5555-0000-0000-000000000001') <> 'A' then perform fail('grade', 'a seek maker did not lift to A'); end if;
+  if mp_grade(prof, ok || '{"joints":{"answer":"fail"}}', null) <> 'X' then perform fail('grade', 'a failed must-pass is not X'); end if;
+  if mp_grade(prof, ok || '{"linings":{"answer":"fail"}}', null) <> 'B' then perform fail('grade', 'a failed optional check changed the grade'); end if;
+  if mp_grade(prof, ok, 'a1a1a1a1-5555-0000-0000-000000000002') <> 'X' then perform fail('grade', 'an avoid maker is not X'); end if;
+  if mp_grade('a1a1a1a1-2222-0000-0000-000000000002', '{}', null) <> 'C' then perform fail('grade', 'a profile with no checks is not C'); end if;
+  if mp_grade(null, '{}', null) is not null then perform fail('grade', 'no profile has a grade'); end if;
+  perform pass('marketplace grade: A, B, C and X each reached, by checks and by maker');
+
+  if mp_travel_band('a1a1a1a1-0000-0000-0000-000000000001', 10, null) <> 'A'
+     or mp_travel_band('a1a1a1a1-0000-0000-0000-000000000001', 10.1, null) <> 'B'
+     or mp_travel_band('a1a1a1a1-0000-0000-0000-000000000001', null, 30) <> 'B'
+     or mp_travel_band('a1a1a1a1-0000-0000-0000-000000000001', 26, null) <> 'beyond'
+     or mp_travel_band('a1a1a1a1-0000-0000-0000-000000000001', null, null) is not null then
+    perform fail('travel band', 'wrong band'); end if;
+  perform pass('marketplace travel band: by miles, by minutes, beyond, and null when unknown');
+end $$;
+
+-- Each branch of the guard. `try` returns the refusal code, or 'ok'.
+create or replace function try_verdict(p_verdict text, p_checks jsonb, p_fit int, p_asking numeric,
+  p_miles numeric, p_profile uuid default 'a1a1a1a1-2222-0000-0000-000000000001', p_maker uuid default null)
+returns text language plpgsql as $$
+begin
+  insert into mp_finds (household_id, profile_id, title, verdict, checks, style_fit, asking_price,
+                        distance_miles, maker_id, maker_evidence)
+  values ('a1a1a1a1-0000-0000-0000-000000000001', p_profile, 'guard case', p_verdict, p_checks, p_fit,
+          p_asking, p_miles, p_maker, case when p_maker is not null then 'label seen' end);
+  return 'ok';
+exception when check_violation then
+  return substring(sqlerrm from '\(([a-z_]+)\)');
+end $$;
+
+do $$
+declare
+  ok   constant jsonb := '{"carcass":{"answer":"pass"},"joints":{"answer":"pass"}}';
+  door constant jsonb := '{"carcass":{"answer":"pass"}}';
+  r record;
+begin
+  for r in select * from (values
+    ('buy at B, fit 5',                 try_verdict('buy',   ok,  5, 120, null), 'ok'),
+    ('buy at B, fit 3',                 try_verdict('buy',   ok,  3, 120, null), 'fit'),
+    ('buy at B, fit unknown',           try_verdict('buy',   ok,  null, 120, null), 'fit'),
+    ('buy at C',                        try_verdict('buy',   '{}', 5, 120, null), 'unproven'),
+    ('offer at C, fit 4',               try_verdict('offer', '{}', 4, 120, null), 'ok'),
+    ('offer at C, fit 3',               try_verdict('offer', '{}', 3, 120, null), 'fit'),
+    ('watch at C, fit 3',               try_verdict('watch', '{}', 3, 120, null), 'ok'),
+    ('watch at X',                      try_verdict('watch', '{"joints":{"answer":"fail"}}', 5, 120, null), 'grade_x'),
+    ('offer at X',                      try_verdict('offer', '{"joints":{"answer":"fail"}}', 5, 120, null), 'grade_x'),
+    ('pass at X',                       try_verdict('pass',  '{"joints":{"answer":"fail"}}', 5, 120, null), 'ok'),
+    ('buy with an avoid maker',         try_verdict('buy',   ok, 5, 120, null,
+                                          'a1a1a1a1-2222-0000-0000-000000000001', 'a1a1a1a1-5555-0000-0000-000000000002'), 'grade_x'),
+    ('watch at fit 2',                  try_verdict('watch', ok,  2, 120, null), 'wrong_for_house'),
+    ('pass at fit 1',                   try_verdict('pass',  ok,  1, 120, null), 'ok'),
+    ('buy with no profile',             try_verdict('buy',   '{}', 5, 5, null, null), 'no_profile'),
+    ('watch with no profile',           try_verdict('watch', '{}', 5, 5, null, null), 'ok'),
+    ('exception: steal, band A, doorstep', try_verdict('buy', door, 5, 40, 5), 'ok'),
+    ('exception needs band A',          try_verdict('buy',   door, 5, 40, 20), 'unproven'),
+    ('exception needs a known distance', try_verdict('buy',  door, 5, 40, null), 'unproven'),
+    ('exception needs the steal price', try_verdict('buy',   door, 5, 80, 5), 'unproven'),
+    ('exception needs doorstep checks', try_verdict('buy',   '{}', 5, 40, 5), 'unproven'),
+    ('exception still needs the fit',   try_verdict('buy',   door, 3, 40, 5), 'fit')
+  ) as t(label, got, want) loop
+    if r.got is distinct from r.want then
+      perform fail('marketplace guard: ' || r.label, 'got ' || coalesce(r.got, 'null') || ', want ' || r.want);
+    end if;
+  end loop;
+  perform pass('marketplace guard: 21 cases - buy, offer, watch, pass, X, fit and the one exception');
+
+  -- The guard fires on an update too.
+  begin
+    update mp_finds set verdict = 'buy' where id = 'a1a1a1a1-3333-0000-0000-000000000003';
+    perform fail('marketplace guard', 'an update to buy with nothing proven was accepted');
+  exception when check_violation then null; end;
+  perform pass('marketplace guard: refuses on update as on insert');
+
+  begin
+    insert into mp_finds (household_id, title, maker_id)
+    values ('a1a1a1a1-0000-0000-0000-000000000001', 'claimed', 'a1a1a1a1-5555-0000-0000-000000000001');
+    perform fail('marketplace maker', 'a maker with no evidence was accepted');
+  exception when check_violation then null; end;
+  perform pass('marketplace maker: a maker is set with what was seen, or not at all');
+end $$;
+
+-- A check added LATER does not rewrite history, but the ledger shows
+-- the verdict no longer stands.
+do $$
+declare l record;
+begin
+  select * into l from mp_find_ledger where title = 'guard case' and verdict = 'buy' and quality_grade = 'B' limit 1;
+  if not l.verdict_stands then perform fail('ledger', 'a sound buy does not stand'); end if;
+  insert into mp_checks (household_id, profile_id, key, kind, question)
+  values ('a1a1a1a1-0000-0000-0000-000000000001','a1a1a1a1-2222-0000-0000-000000000001','worm','condition','Any live woodworm?');
+  select * into l from mp_find_ledger where id = l.id;
+  if l.quality_grade <> 'C' or l.verdict_stands or l.verdict_refusal <> 'unproven'
+     or jsonb_array_length(l.unseen_checks) <> 1 or l.unseen_checks -> 0 ->> 'key' <> 'worm' then
+    perform fail('ledger', format('grade %s stands %s refusal %s', l.quality_grade, l.verdict_stands, l.verdict_refusal));
+  end if;
+  update mp_checks set status = 'retired' where key = 'worm';
+  perform pass('marketplace ledger: a verdict a later check undermines says so, with the question to ask');
+end $$;
+
+-- ---------------------------------------------------------------
 -- RLS: user B sees nothing of household A, on every mp_ table.
 -- ---------------------------------------------------------------
 grant usage on schema public to authenticated;
@@ -134,7 +263,7 @@ do $$
 declare t text; n int;
 begin
   foreach t in array array['mp_brief','mp_profiles','mp_finds','mp_searches','mp_grounds',
-                           'mp_board','mp_find_ledger','mp_totals'] loop
+                           'mp_makers','mp_checks','mp_board','mp_find_ledger','mp_totals'] loop
     execute format('select count(*) from %I where household_id = %L', t,
                    'a1a1a1a1-0000-0000-0000-000000000001') into n;
     if n <> 0 then perform fail('marketplace RLS', format('user B reads %s rows of %s', n, t)); end if;

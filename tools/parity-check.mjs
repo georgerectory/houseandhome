@@ -14,6 +14,7 @@ import { shoppingList } from '../assets/js/engine/demand.js';
 import { rank } from '../assets/js/engine/priority.js';
 import { readinessReport } from '../assets/js/engine/readiness.js';
 import { roadAheadParity } from './parity-road-ahead.mjs';
+import { marketplaceParity } from './parity-marketplace.mjs';
 
 const PGBIN = process.env.PGBIN || '/usr/lib/postgresql/16/bin';
 const DB = process.env.PARITY_DB || 'househome_parity';
@@ -400,6 +401,11 @@ if (readyDiffs === 0 && allLabels) {
 const road = roadAheadParity(psql, HH);
 failures += road.failures;
 
+// Marketplace: the band, the grade, the guard, the queue and the alert
+// ration, in engine/marketplace.js and in 95_/96_marketplace_*.sql.
+const market = marketplaceParity(psql, HH);
+failures += market.failures;
+
 console.log('');
-console.log(failures === 0 ? `Parity: all ${CASES.length + 3 + road.cases} cases identical` : `Parity: ${failures} case(s) failed`);
+console.log(failures === 0 ? `Parity: all ${CASES.length + 3 + road.cases + market.cases} cases identical` : `Parity: ${failures} case(s) failed`);
 process.exit(failures === 0 ? 0 : 1);

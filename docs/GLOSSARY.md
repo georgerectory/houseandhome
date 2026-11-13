@@ -52,8 +52,50 @@ question from priority: what is doable, not what matters most.
 `dormant`, `standalone`, `closed`. Derived from `requires_material`, so
 no digging means no digger.
 
-**acquisition** — `new`, `owned`, `hire`. `owned` costs nothing and
-`hire` is never owned, so the totals split them.
+**acquisition** — how a thing is come by: `new`, `used`, `either`,
+`reclaimed`, `owned`, `hire` and others. `owned` costs nothing and
+`hire` is never owned, so the totals split them. `new` on a line that
+could be second hand means new ON PURPOSE.
+
+## Buying second hand
+
+**profile** — one KIND of thing being hunted (`mp_profiles`): a spec,
+what disqualifies it, a price ladder per unit, and when the house needs
+it. Not a listing.
+
+**find** — one listing actually looked at (`mp_finds`), from the
+screenshot to the collection. A find is a lot; the ladder is per unit.
+
+**band** — where a find's unit price sits on its profile's ladder:
+`steal`, `good`, `fair`, `high`, `over`. Computed, never typed.
+
+**grade** — the quality of a find: `A`, `B`, `C` (unproven) or `X`
+(fails). Derived from the checks and the maker. Says nothing about
+whether it suits the house; that is `style_fit`.
+
+**check** — one question on a profile's checklist (`mp_checks`), answered
+on a find as `pass`, `fail` or `unseen`, with the evidence. `must_pass`
+checks decide the grade; `distinction` checks lift a B to an A;
+`doorstep` checks can be settled at the door.
+
+**verdict** — `buy`, `offer`, `watch` or `pass`. Typed, with its reason,
+and refused by a trigger when the grade and the fit do not support it.
+
+**maker** — a name worth knowing (`mp_makers`): `seek`, `acceptable` or
+`avoid`. Counts only when its mark was seen, never on a seller's word.
+
+**ground** — somewhere worth looking (`mp_grounds`): a saleroom, a
+charity furniture shop, a car boot, an area of Marketplace.
+
+**alert / sweep** — two kinds of saved search. An alert pings the phone
+and is rationed to ten; a sweep is run by hand on its cadence, because
+alerts cannot be relied on alone.
+
+**fallback** — what to do when a day-one need has not turned up in its
+patience window: buy new, borrow, or a placeholder.
+
+**placeholder** — a stand-in bought under a fallback. In use, does not
+fill its profile, and its price teaches nothing.
 
 ## The graph
 

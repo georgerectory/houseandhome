@@ -58,6 +58,12 @@ The house-manager tables (rooms, work items, money, stock, the building
 model) are unchanged and described in `docs/DECISIONS.md` and
 `docs/RENOVATION-SYSTEM.md`.
 
+Buying second hand has its own small model beside these - profiles,
+checks, makers, finds, price observations, searches and grounds, the
+`mp_` tables - with its own grounding call, `mp_context(household)`. It
+belongs to the household, not to a house, and points at `sources` for
+its price evidence. `docs/MARKETPLACE.md` is the reference.
+
 ## The preference matrix
 
 One row per criterion (`C-01`...). Each has:

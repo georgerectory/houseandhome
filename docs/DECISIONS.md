@@ -97,3 +97,24 @@ Thirteen typed kinds. `requires_material` is what turns a job into a
 shopping list; `matches_style` is what keeps fittings consistent across
 rooms. Links close (`valid_to`), never delete. A link you write is
 `proposed` until the owner confirms it.
+
+**Second hand: the band and the grade are computed; the verdict is typed
+and guarded.** A find stores what was asked and what was SEEN. Where the
+price sits on the profile's ladder is derived, and so is the quality
+grade - from the answers to the profile's checks and from the maker,
+each answer carrying its evidence. The verdict stays typed, with its
+reason, because a thing can be cheap and wrong; but a trigger refuses a
+`buy` the grade and the style fit do not support. Quality and fit are
+two tests and a refusal says which failed. Three more rules follow from
+the same idea:
+
+- **Bought is derived.** Outstanding, spent and saved come from the
+  finds; a placeholder is counted apart and fills nothing.
+- **Thresholds are earned, not typed.** Dated sold prices suggest; they
+  never overwrite. An asking price is evidence of hope and drives
+  nothing.
+- **A purchase never closes a shopping line.** A line can be wider than
+  the profiles that fill it, so the function reports and the owner
+  decides.
+
+`docs/MARKETPLACE.md` is the reference.

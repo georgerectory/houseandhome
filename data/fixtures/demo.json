@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generated": "2026-11-04",
+    "generated": "2026-11-13",
     "note": "Demo dataset. Every row is drafted and unconfirmed: no figure here has been checked, and the interface must present all of it as provisional."
   },
   "household": {
@@ -3986,6 +3986,30 @@
       "status": "wanted",
       "warranty_expires_on": null,
       "confidence": "drafted"
+    }
+  ],
+  "mp_line_benchmark": [
+    {
+      "work_item_id": "buy-0004",
+      "profiles": 1,
+      "second_hand_good": 60,
+      "second_hand_fair": 120,
+      "second_hand_max": 240,
+      "cost_if_new": 600,
+      "spent": 0,
+      "nothing_outstanding": false,
+      "is_unconfirmed": true
+    },
+    {
+      "work_item_id": "buy-0012",
+      "profiles": 1,
+      "second_hand_good": 70,
+      "second_hand_fair": 120,
+      "second_hand_max": 240,
+      "cost_if_new": 600,
+      "spent": 0,
+      "nothing_outstanding": false,
+      "is_unconfirmed": true
     }
   ],
   "cost_rollup": [
@@ -10669,7 +10693,7 @@
       "key": null,
       "title": "Viewing at Forest View",
       "description": "Take the viewing checklist, a torch, a tape and a practical friend.",
-      "on_date": "2026-11-07",
+      "on_date": "2026-11-16",
       "starts_at": null,
       "location": "Forest View, Tiptoe Road, Wootton BH25 5SJ",
       "status": "planned",
@@ -10682,7 +10706,7 @@
       "key": "open-house",
       "title": "Open house",
       "description": "Guide price plus an open house signals a best-and-final round.",
-      "on_date": "2026-11-07",
+      "on_date": "2026-11-16",
       "starts_at": null,
       "location": null,
       "status": "planned",
@@ -10695,7 +10719,7 @@
       "key": "gate",
       "title": "The decision gate",
       "description": "Consent, three fixed quotes, value evidence, finance agreed. All pass: build. Any fail: sell with consent.",
-      "on_date": "2028-02-22",
+      "on_date": "2028-03-02",
       "starts_at": null,
       "location": null,
       "status": "planned",

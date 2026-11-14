@@ -4,35 +4,36 @@ In flight; overwritten in place. Keep it under 40 lines.
 
 ## Search mode: no active house (7 Nov 2026)
 
-P-003 archived (R-24); P-004 candidate. Leads: L55, then L65 (the viewing
-must find why it always sells well under local per-m2). Wave 3 research
-reports L62 and L64(a) Sold STC and recommends dropping L56 and L66 - the
-owner decides; nothing was closed.
+P-003 archived (R-24); P-004 candidate. Leads: L55, then L65. Wave 3
+research reports L62 and L64(a) Sold STC and recommends dropping L56 and
+L66 - the owner decides; nothing was closed. The overhaul
+(`docs/OVERHAUL-PLAN.md`) is live through Stage 4 core.
 
-## The overhaul (`docs/OVERHAUL-PLAN.md`)
+## Marketplace - built, live, fingerprint matching
 
-Live, fingerprint matching (map: `docs/ARCHITECTURE.md`): Stage 0;
-Stage 2 core (`92_brain.sql`: the knowledge tables and `brain_context` /
-`brain_about` / `brain_search`; data backfilled; wave 3 loaded); Stage 3
-(31 criteria, 30 confirmed, S-109 to S-119; R-26 new); Stage 4 core
-(`93_scoring.sql`: `brain_score` - fit, money, value band, working; the
-vocabulary maps heating, condition, drainage, listed/thatched and
-setting). Meadow Cottage (L69) loaded 11 Nov from the research reply and
-scored; its floor area is an open contradiction (`r-l69-floor-area`).
+`94`-`96_marketplace*.sql`, `engine/marketplace.js`, `marketplace.html`;
+protocol in `docs/MARKETPLACE.md`. Ground with `mp_context`. 42 profiles,
+125 checks, 73 makers (drafted), 7 finds (none proven). 14 Nov:
+`tools/auction-lots.mjs` reads salerooms' published lots (two readers:
+`rows`, `grid`); 402 sold prices from twelve sales loaded; two grounds
+wired. A sweep bound to the build session (Mon and Thu) writes coming
+lots as `watch` finds (shape 5). Cloud environment `houseandhome`.
 
 ## Waiting on the owner
 
-- Nine `w3-` contradictions: the research recalled a stale DIP, stale
-  savings and a higher L55 ceiling than the confirmed walk-away. Its
-  affordability table was NOT loaded; the confirmed figures stand.
-- Close L62 / L64 (Sold STC)? Drop L56 / L66? The 13 Nov viewing booking
-  names two houses reported Sold STC.
-- C-30 (House 1 net profit) is Claude's call at the owner's request:
-  drafted until confirmed.
+- Marketplace: the ladders. One saleroom's medians run about twice the
+  typed thresholds (`mp_threshold_review`); nothing was changed. Also a
+  review of the lines listed below the good second-hand price.
+- Nine `w3-` contradictions; the confirmed figures stand.
+- Close L62 / L64 (Sold STC)? Drop L56 / L66?
+- C-30 (House 1 net profit) is drafted until confirmed.
 - Eight open plan decisions; three `fv-` contradictions.
 
 ## Known and deliberately left
 
-- Over 400 lines: `ingest-research.mjs` (441), `check-frontend.mjs`,
+- Marketplace gaps are listed at the foot of `docs/MARKETPLACE.md`:
+  makers and checks unverified, premiums missing on loaded hammer
+  prices, travel bands unrouted, the search URL unverified (no link).
+- Over 400 lines: `ingest-research.mjs`, `check-frontend.mjs`,
   `pages/house.js`. Connector: set a `statement_timeout`; it prompts on
-  any DROP or DELETE, so schema files avoid both words.
+  the bare words DROP and DELETE, in data too, so avoid both.

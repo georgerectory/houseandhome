@@ -93,6 +93,7 @@ when the work touches it:
 | `docs/STATE.md` | Always, straight after this. What is in flight. |
 | `docs/RENOVATION-SYSTEM.md` | Anything touching properties, the lifecycle, scopes, the template or the library. |
 | `docs/road-ahead/README.md` | Road Ahead: listings, roads, scenarios, variables, auctions, a sit-down or a re-base. |
+| `docs/MARKETPLACE.md` | A listing or screenshot; a price profile; an alert; a purchase. Buying second hand. |
 | `docs/ARCHITECTURE.md` | The property brain at a glance: modes, the three calls, the entity model, the preference matrix, link strength. |
 | `docs/OVERHAUL-PLAN.md` | The staged rebuild into a property brain: what each stage does and why. |
 | `docs/properties/<ref>/` | One property's specifics (P-004 now). Archived ones move to `docs/properties-archive/`. |
@@ -299,7 +300,7 @@ this repository, which holds the code and the variable schema only.
 | `npm run test:unit` | The allocation, priority and geometry engines behave as stated, and Road Ahead's engine matches the Rectory kit's own Python on invented inputs (the golden master). |
 | `npm run test:geometry` | Every stage of every building IS a building - rooms that do not overlap, a shell that closes, a floor with something under it - and agrees with the drawings it was measured from. |
 | `npm run test:sql` | The schema applies to a real Postgres; guards, triggers and RLS isolation all hold. |
-| `npm run test:parity` | The JS engine and the SQL engine agree to the micro-pound. |
+| `npm run test:parity` | The JS engine and the SQL engine agree to the micro-pound, and on the Marketplace band, grade, verdict guard and hunt order. |
 | `npm run test:frontend` | Real Chromium, six viewports, both themes: no horizontal scroll, no overflow, no target under 24px, no console errors, landmarks present. |
 | `npm run test:checksums` | Road Ahead's engine reproduces every figure the Rectory kit published, exactly, on the owner's private inputs. |
 

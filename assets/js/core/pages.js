@@ -50,6 +50,11 @@ export const PAGES = [
     lede: 'What to buy, grouped into trips, with what each run costs.',
   },
   {
+    href: 'marketplace.html',
+    label: 'Marketplace',
+    lede: 'What to hunt for second hand, what it is worth, and what has turned up.',
+  },
+  {
     href: 'theme.html',
     label: 'Theme',
     lede: 'What to buy and what to reject: paint, timber, lighting, ironmongery and finishes.',

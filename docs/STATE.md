@@ -20,10 +20,10 @@ price observations. Six shopping lines added `drafted`
 
 ## Waiting on the owner
 
-- Marketplace: confirm the style brief; confirm or correct the price
-  ladders (two chests are disputed by their own evidence - see
-  `mp_threshold_review`); a review of the lines listed below the good
-  second-hand price. Distances on the seven finds were never recorded.
+- Marketplace: brief CONFIRMED and radius unit (km) settled 14 Nov. Open:
+  the two chest ladders (`mp_threshold_review`; mahogany now has 12 sold
+  prices, pine none new); a review of the lines listed below the good
+  second-hand price; distances on the seven finds.
 - Nine `w3-` contradictions; the confirmed figures stand.
 - Close L62 / L64 (Sold STC)? Drop L56 / L66?
 - C-30 (House 1 net profit) is drafted until confirmed.
@@ -37,4 +37,5 @@ price observations. Six shopping lines added `drafted`
 - Over 400 lines: `ingest-research.mjs`, `check-frontend.mjs`,
   `pages/house.js`. Connector: set a `statement_timeout`; it prompts on
   the bare words DROP and DELETE, in data too, so avoid both.
-- The front-end gate needs Playwright resolvable from `node_modules`.
+- Auction-house sites are not reachable from a cloud session: prices
+  come from search summaries until those hosts are allowed.

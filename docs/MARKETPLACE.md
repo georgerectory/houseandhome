@@ -197,7 +197,6 @@ anything whose fallback is due.
 - Drive times, miles and the travel bands are estimates; none was
   routed. They are measured from the present home and need re-basing
   after a move.
-- `mp_searches.radius_km` assumes the app works in kilometres.
 - The Marketplace search URL format has not been verified, so the page
   shows each query as selectable text and no link.
 - There is no house and no completion date: `needed_by` is null

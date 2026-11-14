@@ -103,6 +103,35 @@ Every find with a price lands as an `asking` observation and every
 purchase as `own_purchase`, by trigger and by function, so nothing
 depends on remembering.
 
+### Where the evidence comes from
+
+There is no current published index of ordinary antique furniture
+prices: the long-running annual one ended in 2016. What exists instead
+is better for this purpose. Some salerooms publish EVERY lot of a sale
+with its hammer price and their premium, cheap lots beside dear ones,
+so a year of those pages is an unbiased sample of what ordinary pieces
+make - where a search engine's summary only surfaces the lots somebody
+wrote about.
+
+`tools/auction-lots.mjs` reads such pages, one request every two
+seconds, and matches each lot to a profile by the profile's `lot_match`
+and `lot_exclude` patterns. A lot that matches two profiles is given to
+neither; a lot of several things is recorded `is_typical = false`. It
+writes one idempotent statement to run through the connector. Which
+saleroom to read is on the ground: `mp_grounds.url`, `results_section`
+and `catalogue_section`.
+
+Two cautions. A match is made by pattern, not by eye, so a profile's
+evidence is only as good as its patterns: read a sample before trusting
+a median. And one saleroom is one market: a house that sells good
+Georgian furniture will run above a general sale of house-clearance
+lots, so its median is the price of a BETTER piece, not a reason on its
+own to raise a ladder.
+
+Read a site's robots rules before pointing the tool at it, and leave
+alone any that bars automated agents. Several price guides and listing
+sites do; a saleroom's own results pages usually do not.
+
 ## The hunt order
 
 `mp_hunt_queue`, and `huntQueue()` in the engine, rank every profile
@@ -186,6 +215,40 @@ the row is the owner's decision.
 `mp_hunt_queue`: the next five and why, the alerts to have set, and
 anything whose fallback is due.
 
+### 5. The automated sweep - no owner present
+
+A scheduled task runs this, in the cloud environment that allows the
+salerooms' hosts, with the Supabase connector. It writes only what this
+section names, and it never moves a verdict past `watch`.
+
+1. `select id from households;` then `mp_context`.
+2. Write the hunted profiles to a file outside the repository:
+
+       select json_agg(json_build_object('key', key, 'lot_match', lot_match,
+         'lot_exclude', lot_exclude, 'price_good', price_good,
+         'price_fair', price_fair, 'price_max', price_max))
+         from mp_hunt_queue q join mp_profiles p on p.id = q.profile_id
+        where p.lot_match is not null;
+
+   For RESULTS use every profile with a pattern, hunted or not.
+3. For each active ground with a `catalogue_section`: run the tool in
+   `catalogue` mode and run `candidates.sql`. Each coming lot that
+   matches a hunted profile lands as a find on `watch`, with the most to
+   bid so the good price is met all in. It is written once, by its URL.
+4. For each active ground with a `results_section`: find the latest
+   `observed_on` already held for it, run the tool in `results` mode
+   with `--since` the day after, and run `observations.sql`.
+5. Read back `mp_threshold_review` and the new finds.
+6. Finish with a short report: lots worth viewing (saleroom, sale date,
+   lot, what it is, the most to bid), sales loaded, and any threshold
+   the evidence now disputes. If there is nothing new, say so in one
+   line.
+
+The sweep covers what salerooms publish. It does not and cannot cover
+Facebook Marketplace, which shows listings only to a signed-in person
+and forbids automated collection: those still arrive as the owner's own
+alerts, and as the screenshots he sends.
+
 ## Known gaps
 
 - Most profiles are `drafted`. Every maker and every check was seeded
@@ -199,5 +262,7 @@ anything whose fallback is due.
   after a move.
 - The Marketplace search URL format has not been verified, so the page
   shows each query as selectable text and no link.
+- One saleroom's results are loaded so far, and it sells better pieces
+  than a general sale: its medians run about twice the typed ladders.
 - There is no house and no completion date: `needed_by` is null
   everywhere and every large piece waits.

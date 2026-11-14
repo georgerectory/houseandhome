@@ -622,3 +622,26 @@ $$;
 
 comment on function public.mp_context(uuid) is
   'The brief, the state of the house purchase, the money by tier, every profile still hunted, the top of the queue, live finds with their grade, purchases, the alerts in force and the ones to change, and the thresholds the evidence disputes. Call it before judging a listing.';
+
+-- ---------------------------------------------------------------
+-- Matching a published lot to a profile, by machine.
+--
+-- A saleroom that publishes every lot of a sale - with its hammer price
+-- afterwards, with its estimate beforehand - is both the best price
+-- evidence there is and a list of things to go and view. To use either
+-- without a person reading four hundred descriptions, a profile says
+-- what a lot of its kind is CALLED: `lot_match`, a case-insensitive
+-- regular expression, and `lot_exclude` for what disqualifies it
+-- (reproduction, modern, a different piece that shares a word). A lot
+-- that matches two profiles is given to neither. tools/auction-lots.mjs
+-- does the reading; where to read is on the ground.
+-- ---------------------------------------------------------------
+alter table public.mp_profiles
+  add column if not exists lot_match text,
+  add column if not exists lot_exclude text;
+
+alter table public.mp_grounds
+  -- Where the ground publishes what its lots SOLD for, and what is
+  -- coming up. The path under `url` that tools/auction-lots.mjs reads.
+  add column if not exists results_section text,
+  add column if not exists catalogue_section text;

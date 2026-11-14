@@ -645,3 +645,9 @@ alter table public.mp_grounds
   -- coming up. The path under `url` that tools/auction-lots.mjs reads.
   add column if not exists results_section text,
   add column if not exists catalogue_section text;
+
+-- Which page shape a ground publishes its lots in: 'rows' (a row per
+-- lot with its price) or 'grid' (the catalogue platform many regional
+-- salerooms share). tools/auction-lots.mjs has a reader for each.
+alter table public.mp_grounds
+  add column if not exists reader text check (reader is null or reader in ('rows','grid'));

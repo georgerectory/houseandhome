@@ -11,6 +11,10 @@
 //        --profiles profiles.json --household <uuid> --ground <key> \
 //        --where "<name>" --out <dir>
 //
+// A ground whose `reader` is 'grid' is on the catalogue platform many
+// regional salerooms share: add --reader grid and give --section the
+// auctions page (usually `auctions`). Only coming sales are read there.
+//
 // Each mode writes one SQL statement (observations.sql, candidates.sql)
 // to be run through the Supabase connector. Both are idempotent.
 //
@@ -26,6 +30,7 @@ import { writeFileSync, readFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   parseSales, lastPage, parseLots, toObservations, toCandidates, observationsSql, candidatesSql,
+  parseCatalogues, gridLotCount, parseGridLots, parseLotPage, triggerWords, GRID_PAGE,
 } from './auction-lots-lib.mjs';
 
 const [mode, ...rest] = process.argv.slice(2);
@@ -57,6 +62,57 @@ async function saleLots(saleId, firstHtml) {
   const pages = lastPage(firstHtml, section, saleId);
   for (let p = 2; p <= pages; p += 1) lots.push(...parseLots(await get(`/${section}/${saleId}/${p}/`)));
   return lots;
+}
+
+/** The best few lots per profile: promising first, then the lowest
+ *  estimate, so one sale cannot bury the page in fifty chests. */
+function best(candidates) {
+  const per = Number(arg('per-profile', 3));
+  const byKey = new Map();
+  const order = (a, b) => Number(b.promising) - Number(a.promising) || (a.estimateLow ?? 1e9) - (b.estimateLow ?? 1e9);
+  for (const c of [...candidates].sort(order)) {
+    if (!byKey.has(c.key)) byKey.set(c.key, []);
+    if (byKey.get(c.key).length < per) byKey.get(c.key).push(c);
+  }
+  return [...byKey.values()].flat();
+}
+
+// --- Reader "grid": the shared catalogue platform ---------------------
+// Read the grid for teasers, open only the lot pages a trigger word
+// points at, and let the whole description decide.
+if (arg('reader') === 'grid') {
+  if (mode !== 'catalogue') { console.error('the grid reader reads coming sales only'); process.exit(2); }
+  const today = new Date().toISOString().slice(0, 10);
+  const words = new RegExp(`\\b(${triggerWords(profiles).join('|')})`, 'i');
+  const catalogues = arg('catalogue') ? [arg('catalogue')] : parseCatalogues(await get(`/${section}/`));
+  const all = [];
+  for (const path of catalogues) {
+    const first = await get(path);
+    const total = gridLotCount(first) ?? 0;
+    const teasers = parseGridLots(first);
+    const pages = Math.min(40, Math.ceil(total / GRID_PAGE));
+    for (let page = 2; page <= pages; page += 1) teasers.push(...parseGridLots(await get(`${path}?currentPageNo=${page}`)));
+    const open = teasers.filter((l) => words.test(l.teaser)).slice(0, Number(arg('max-lots', 250)));
+    const lots = [];
+    let saleDate = null;
+    let premium = Number(arg('premium', 30));
+    for (const l of open) {
+      const page = parseLotPage(await get(l.path));
+      saleDate ??= page.saleDate;
+      premium = page.premiumPct ?? premium;
+      if (page.description) lots.push({ ...l, ...page });
+    }
+    const coming = saleDate == null || saleDate >= today || arg('catalogue');
+    const found = coming ? toCandidates(lots.map((l) => ({ ...l, hammer: null })), { profiles, premiumPct: premium }) : [];
+    for (const c of found) all.push({ ...c, sale_date: saleDate, url: String(new URL(c.path, base)) });
+    console.log(`${path}: ${total} lots, ${open.length} opened, sale ${saleDate ?? 'undated'}, premium ${premium}%, ${found.length} match a hunted profile`);
+  }
+  const kept = best(all);
+  writeFileSync(join(out, 'candidates.json'), JSON.stringify(kept, null, 1));
+  const sql = candidatesSql(kept, { household: arg('household'), groundKey: arg('ground'), saleroom: arg('where', base), seenOn: today });
+  if (sql) writeFileSync(join(out, 'candidates.sql'), `${sql}\n`);
+  console.log(`catalogue: ${all.length} lots match a hunted profile, the best ${kept.length} kept`);
+  process.exit(0);
 }
 
 const index = await get(`/${section}/`);
@@ -92,8 +148,9 @@ if (mode === 'results') {
       all.push({ ...c, sale_date: s.date, url: c.path ? String(new URL(c.path, base)) : null });
     }
   }
-  writeFileSync(join(out, 'candidates.json'), JSON.stringify(all, null, 1));
-  const sql = candidatesSql(all, { household: arg('household'), groundKey: arg('ground'), saleroom: arg('where', base), seenOn: today });
+  const kept = best(all);
+  writeFileSync(join(out, 'candidates.json'), JSON.stringify(kept, null, 1));
+  const sql = candidatesSql(kept, { household: arg('household'), groundKey: arg('ground'), saleroom: arg('where', base), seenOn: today });
   if (sql) writeFileSync(join(out, 'candidates.sql'), `${sql}\n`);
   console.log(`catalogue: ${all.length} lots match a hunted profile, ${all.filter((c) => c.promising).length} promising on the estimate`);
 }

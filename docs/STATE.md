@@ -14,10 +14,10 @@ L66 - the owner decides; nothing was closed. The overhaul
 `94`-`96_marketplace*.sql`, `engine/marketplace.js`, `marketplace.html`;
 protocol in `docs/MARKETPLACE.md`. Ground with `mp_context`. 42 profiles,
 125 checks, 73 makers (drafted), 7 finds (none proven). 14 Nov:
-`tools/auction-lots.mjs` reads a saleroom's published lots; 402 sold
-prices from twelve sales loaded; a scheduled sweep writes coming lots
-as `watch` finds (shape 5). Cloud environment `houseandhome` allows the
-hosts; scheduled runs use it.
+`tools/auction-lots.mjs` reads salerooms' published lots (two readers:
+`rows`, `grid`); 402 sold prices from twelve sales loaded; two grounds
+wired. A sweep bound to the build session (Mon and Thu) writes coming
+lots as `watch` finds (shape 5). Cloud environment `houseandhome`.
 
 ## Waiting on the owner
 

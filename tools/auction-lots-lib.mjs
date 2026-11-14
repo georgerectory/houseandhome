@@ -35,7 +35,7 @@ const MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 
 export function parseDate(s) {
   const m = /(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]+)\s+(\d{4})/.exec(String(s ?? ''));
   if (!m) return null;
-  const month = MONTHS.indexOf(m[2].toLowerCase());
+  const month = MONTHS.findIndex((name) => name.startsWith(m[2].toLowerCase().slice(0, 3)));
   if (month < 0) return null;
   return `${m[3]}-${String(month + 1).padStart(2, '0')}-${String(m[1]).padStart(2, '0')}`;
 }
@@ -93,6 +93,78 @@ export function parseLots(html) {
       path: link ? link[1] : null,
     };
   }).filter((l) => l.description);
+}
+
+// --- The second page shape -------------------------------------------
+// Many regional salerooms share one catalogue platform: a list of
+// auctions, a grid of lots sixty to a page showing only the first few
+// words of each description, and a page per lot with the whole of it.
+// So the grid is read to find lots that MIGHT matter, and only those
+// lot pages are fetched.
+
+/** Catalogue paths on an auctions page, in page order, without lots. */
+export function parseCatalogues(html) {
+  const seen = new Set();
+  for (const m of String(html ?? '').matchAll(/href="(\/catalogue\/[0-9a-f]{32}\/[0-9a-f]{32}\/[^"#?]+\/)"/gi)) seen.add(m[1].toLowerCase());
+  return [...seen];
+}
+
+/** How many lots a catalogue page says the sale has, or null. */
+export function gridLotCount(html) {
+  const m = /-\s*([\d,]+)\s+Lots\b/.exec(text(html));
+  return m ? Number(m[1].replace(/,/g, '')) : null;
+}
+
+/** The lots on one grid page: [{ lot, teaser, path }]. */
+export function parseGridLots(html) {
+  return String(html ?? '').split('class="grid-lot"').slice(1).map((block) => {
+    const head = /<h4><a href="(\/catalogue\/lot\/[^"]+)">\s*Lot\s*(\w+)\s*<\/a><\/h4>/.exec(block);
+    const teaser = /class="no-hover">\s*<p[^>]*>\s*([\s\S]*?)\s*<\/p>/.exec(block);
+    return head && teaser ? { lot: head[2], teaser: text(teaser[1]), path: head[1] } : null;
+  }).filter(Boolean);
+}
+
+/** Lots to a grid page on the shared platform. */
+export const GRID_PAGE = 60;
+
+/** One lot page: the whole description, the estimate, the hammer once
+ *  the sale is over, the sale date and the premium for a bid in the room. */
+export function parseLotPage(html) {
+  const t = text(String(html ?? '').replace(/<(script|style)[\s\S]*?<\/\1>/gi, ' '));
+  const est = /Estimate £\s?([\d,]+)(?:\s*-\s*£\s?([\d,]+))?/.exec(t);
+  const hammer = /Hammer £\s?([\d,]+)/.exec(t);
+  const desc = /(?:Estimate £[\d,]+(?:\s*-\s*£[\d,]+)?|Hammer £[\d,]+)\s+Fees\s+([\s\S]*?)\s+Watch Lot\b/.exec(t);
+  const premium = /Room and Absentee Bids:\s*([\d.]+)% inc VAT/i.exec(t);
+  const n = (v) => (v ? Number(v.replace(/,/g, '')) : null);
+  return {
+    description: desc ? desc[1].replace(/^#/, '').trim() : null,
+    estimateLow: n(est?.[1]), estimateHigh: n(est?.[2] ?? est?.[1]),
+    hammer: n(hammer?.[1]),
+    saleDate: parseDate((/Auction Date:\s*([^|]{0,40})/.exec(t) ?? [])[1]),
+    premiumPct: premium ? Number(premium[1]) : null,
+  };
+}
+
+const NOT_A_THING = new Set(['mahogany', 'walnut', 'brass', 'iron', 'pine', 'farmhouse', 'kitchen', 'leather', 'front', 'fronted',
+  'straight', 'pair', 'three', 'four', 'five', 'eight', 'back', 'bar', 'short', 'long', 'with', 'table', 'chair', 'chairs',
+  'plated', 'silver', 'plate', 'part', 'dinner', 'turned', 'ceramic', 'porcelain', 'persian', 'turkish', 'caucasian', 'afghan',
+  'lined', 'interlined', 'gallery', 'serving', 'double', 'frame', 'wall', 'hall', 'side', 'occasional', 'dining', 'writing']);
+
+/**
+ * The words that make a grid teaser worth opening its lot page for:
+ * the nouns in the profiles' own patterns ("chest", "bookcase",
+ * "overmantel"), plus the bare "table", "chairs" and "mirror" that so
+ * many furniture descriptions turn on. Deliberately generous - the full
+ * description decides, this only saves fetching every page.
+ */
+export function triggerWords(profiles) {
+  const words = new Set(['table', 'chairs', 'mirror', 'desk']);
+  for (const p of profiles ?? []) {
+    for (const w of String(p.lot_match ?? '').replace(/\\[a-z]/g, ' ').replace(/\[[^\]]*\]|\{[^}]*\}/g, ' ').match(/[a-z]{4,}/g) ?? []) {
+      if (!NOT_A_THING.has(w)) words.add(w);
+    }
+  }
+  return [...words].sort();
 }
 
 // More than one thing in the lot: a real price that says little about

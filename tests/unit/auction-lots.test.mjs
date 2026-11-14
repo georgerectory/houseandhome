@@ -4,6 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   parseDate, parseSales, lastPage, parseLots, classify, toObservations, toCandidates, observationsSql, candidatesSql, safeText,
+  parseCatalogues, gridLotCount, parseGridLots, parseLotPage, triggerWords,
 } from '../../tools/auction-lots-lib.mjs';
 
 const row = (n, desc, price) => `<div class="lot-row"><a href="/lots/${n}/x/" class="lot-lnk">
@@ -96,4 +97,30 @@ test('coming lots are written to watch, never to buy, and the SQL cannot stall a
   assert.ok(!/\b(drop|delete)\b/i.test(sql));
   assert.equal(safeText('drop-leaf, Drop handles, a drop'), 'dropleaf, Drophandles, a dropped');
   assert.equal(candidatesSql([], {}), null);
+});
+
+test('the shared catalogue platform: catalogues, the grid and a lot page', () => {
+  const A = 'a'.repeat(32); const B = 'b'.repeat(32);
+  const auctions = `<a href="/catalogue/${A}/${B}/homes-antiques/">x</a><a href="/catalogue/${A}/${B}/homes-antiques/">y</a>
+    <a href="/catalogue/lot/${A}/${B}/homes-antiques-lot-1/">lot</a>`;
+  assert.deepEqual(parseCatalogues(auctions), [`/catalogue/${A}/${B}/homes-antiques/`]);
+  const grid = `Homes &amp; Antiques - 1,527 Lots
+    <div id="lotX" class="grid-lot"><div class="catalogue-description">
+    <h4><a href="/catalogue/lot/${A}/${B}/homes-antiques-lot-75/">Lot 75 </a></h4>
+    <a href="/catalogue/lot/${A}/${B}/homes-antiques-lot-75/" class="no-hover"> <p style="--h: 45px"> A Regency mahogany ebony strung linen pr... </p>
+    <p class="lotEst">Estimate £150 - £250</p></a></div></div>`;
+  assert.equal(gridLotCount(grid), 1527);
+  assert.deepEqual(parseGridLots(grid), [{ lot: '75', teaser: 'A Regency mahogany ebony strung linen pr...', path: `/catalogue/lot/${A}/${B}/homes-antiques-lot-75/` }]);
+  const coming = parseLotPage(`<div>1 /4 Estimate £150 - £250 <a>Fees</a> A Regency mahogany linen press, the pair of panelled doors over a four drawer base
+    <b>Watch Lot</b> Prev Lot Closed Auction Date: 7th Nov 2026 at 9am Room and Absentee Bids: 27.6% inc VAT* Online: 31.2% inc VAT*</div><script>Hammer £9</script>`);
+  assert.deepEqual(coming, { description: 'A Regency mahogany linen press, the pair of panelled doors over a four drawer base',
+    estimateLow: 150, estimateHigh: 250, hammer: null, saleDate: '2026-11-07', premiumPct: 27.6 });
+  assert.equal(parseLotPage('<p>Hammer £1,170 Fees #A Victorian chest Watch Lot Auction Date: 5th Sep 2026</p>').hammer, 1170);
+  assert.equal(parseLotPage('<p>nothing here</p>').description, null);
+});
+
+test('trigger words come from the profiles and leave the materials out', () => {
+  const w = triggerWords([{ lot_match: 'mahogany[^.]{0,60}chest of[^.]{0,40}drawers|pine chest\\b' }, { lot_match: 'overmantel|giltwood[^.]{0,40}mirror' }]);
+  assert.ok(w.includes('chest') && w.includes('drawers') && w.includes('overmantel') && w.includes('table'));
+  assert.ok(!w.includes('mahogany') && !w.includes('pine'));
 });

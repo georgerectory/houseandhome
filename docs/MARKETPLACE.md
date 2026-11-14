@@ -118,8 +118,11 @@ seconds, and matches each lot to a profile by the profile's `lot_match`
 and `lot_exclude` patterns. A lot that matches two profiles is given to
 neither; a lot of several things is recorded `is_typical = false`. It
 writes one idempotent statement to run through the connector. Which
-saleroom to read is on the ground: `mp_grounds.url`, `results_section`
-and `catalogue_section`.
+saleroom to read is on the ground: `mp_grounds.url`, `reader`,
+`results_section` and `catalogue_section`. There are two readers:
+`rows`, for a saleroom that lists a row per lot with its price, and
+`grid`, for the catalogue platform many regional salerooms share, where
+only coming sales are read.
 
 Two cautions. A match is made by pattern, not by eye, so a profile's
 evidence is only as good as its patterns: read a sample before trusting
@@ -222,19 +225,22 @@ salerooms' hosts, with the Supabase connector. It writes only what this
 section names, and it never moves a verdict past `watch`.
 
 1. `select id from households;` then `mp_context`.
-2. Write the hunted profiles to a file outside the repository:
+2. Write the profiles that may be BOUGHT now to a file outside the
+   repository - a piece that is only being watched for its price is not
+   a lot to go and view:
 
-       select json_agg(json_build_object('key', key, 'lot_match', lot_match,
-         'lot_exclude', lot_exclude, 'price_good', price_good,
-         'price_fair', price_fair, 'price_max', price_max))
+       select json_agg(json_build_object('key', p.key, 'lot_match', p.lot_match,
+         'lot_exclude', p.lot_exclude, 'price_good', p.price_good,
+         'price_fair', p.price_fair, 'price_max', p.price_max))
          from mp_hunt_queue q join mp_profiles p on p.id = q.profile_id
-        where p.lot_match is not null;
+        where p.lot_match is not null and q.mode = 'buy';
 
    For RESULTS use every profile with a pattern, hunted or not.
 3. For each active ground with a `catalogue_section`: run the tool in
-   `catalogue` mode and run `candidates.sql`. Each coming lot that
-   matches a hunted profile lands as a find on `watch`, with the most to
-   bid so the good price is met all in. It is written once, by its URL.
+   `catalogue` mode (`--reader` from the ground's `reader`) and run
+   `candidates.sql`. The best three coming lots per profile land as
+   finds on `watch`, with the most to bid so the good price is met all
+   in. Each is written once, by its URL.
 4. For each active ground with a `results_section`: find the latest
    `observed_on` already held for it, run the tool in `results` mode
    with `--since` the day after, and run `observations.sql`.

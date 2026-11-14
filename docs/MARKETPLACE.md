@@ -163,6 +163,51 @@ scarce profiles; then the queue. Saved-search alerts are known to arrive
 late or not at all, which is why the sweeps exist. `last_run_on` is
 written when the owner says a sweep is done, never by the page.
 
+## The channels, and what each is for
+
+No one channel fills a house. Each has a job, and the system treats
+them differently because they fail differently.
+
+| Channel | What it is good for | How listings arrive |
+|---|---|---|
+| Private sellers on Marketplace and the like | The real bargains: a seller who does not know what the thing is, priced to be gone by the weekend. Speed wins. | The owner's own alerts and sweeps; he shares the link or a screenshot, and gets a verdict in one reply. |
+| Salerooms | Honest descriptions, a known premium, a viewing day, and the price evidence everything else is measured against. Rarely a steal, often fair. | The automated sweep (shape 5). |
+| eBay | Named makers and small things that post well; collection-only furniture nobody else will drive for. | The official API, once the owner has made a free developer key. Live listings only: eBay does not release sold prices this way. |
+| Charity furniture shops, car boots, fairs | Cheap, good, and in the hand, so every check can be answered on the spot. | In person; the page lists them by travel band. |
+
+**Marketplace cannot be read by machine, and this system does not try.**
+It shows listings only to a signed-in person and its terms forbid
+automated collection; tools that log in as the owner risk the account,
+and losing the account loses the channel. So the owner's part is kept
+as small as it can honestly be: a dozen sharp alerts, not hundreds, two
+short sweeps a week, and one tap to share anything that passes the
+three-second test on the page (right material, right period, under the
+ceiling). What makes that worth his time is on this side of the share:
+the profile, the checks, the ladder and the message are already
+written.
+
+**How a naive listing reads.** A seller who does not know what he has
+does not write "Georgian mahogany". He writes "old brown chest of
+drawers", "grandad's desk", "heavy wooden wardrobe, needs gone". Each
+profile's `misspellings` and the plain-word sweeps in `mp_searches`
+exist to find those, and they are where the low offer that gets
+accepted comes from.
+
+## The reference shelf
+
+Where a check, a maker or a rule can be verified. A maker or a check
+stays `drafted` until one of these, or a source as good, stands behind
+it; the `sources` row says which.
+
+| For | Source |
+|---|---|
+| Furniture makers, 1640-1840 and later | British and Irish Furniture Makers Online (BIFMO), the Furniture History Society's free dictionary of makers. |
+| Country chairs and regional work | The Regional Furniture Society, and its index of regional chair makers within BIFMO. |
+| Upholstery fire labels | The Furniture and Furnishings (Fire) (Safety) Regulations 1988, on legislation.gov.uk: what must carry a label, and the pre-1950 exemption. |
+| Silver and plate marks | The assay offices' own hallmark guides for sterling; makers' marks references for electroplate. |
+| What a period piece looks like | Museum collections with dated, described objects - the V&A's furniture collection above all. |
+| What things sell for | Salerooms' own published results (above). There has been no published furniture price index since 2016. |
+
 ## Session shapes
 
 Ground every one with `select mp_context('<household>')`.

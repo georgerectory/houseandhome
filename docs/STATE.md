@@ -37,5 +37,4 @@ price observations. Six shopping lines added `drafted`
 - Over 400 lines: `ingest-research.mjs`, `check-frontend.mjs`,
   `pages/house.js`. Connector: set a `statement_timeout`; it prompts on
   the bare words DROP and DELETE, in data too, so avoid both.
-- Auction-house sites are not reachable from a cloud session: prices
-  come from search summaries until those hosts are allowed.
+- Auction sites are blocked in a cloud session: search summaries only.

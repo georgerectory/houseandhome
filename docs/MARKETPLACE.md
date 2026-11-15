@@ -12,6 +12,34 @@ in Supabase only. This repository holds the schema, the engine and
 invented fixtures. Nothing that names what the owner has looked at, where
 he lives or which salerooms he uses belongs in a committed file.
 
+## Who does what
+
+The owner is furnishing a house. He is not an antiques dealer and was
+never meant to become one. So the line is drawn by KNOWLEDGE:
+
+| The owner supplies | Claude supplies, and never asks him for |
+|---|---|
+| His taste: the style brief, once. | What a thing is, and whether it is any good. |
+| His eyes: a screenshot or a link. | What it is worth: every price ladder, from sold prices. |
+| His decision to spend, and the collecting. | The style fit score against the brief. |
+| What the seller said. | The checks, the makers, the tells, and verifying them. |
+| | What to offer, where to stop, and the words to send. |
+
+A question to the owner is allowed when only he can answer it - does he
+like it, has he room for it, what did the seller say. A question that
+turns on knowing the market, the materials or the trade is Claude's to
+research and answer, and to keep researching. "Confirm this price" is
+never one of them.
+
+**What the system can promise, and what it cannot.** It cannot promise
+that good things will turn up; nobody can. It can promise a rule that
+is kept on every purchase: while nothing is urgent, **nothing is bought
+above the good price** - and the good price is the lower quartile of
+what the same thing actually sold for. A purchase at or under it is
+cheaper than three in four comparable sales. That is what "a steal"
+means here, and it is measured, not felt. The trade is speed: a
+ceiling that low fills the house more slowly.
+
 ## What it is built to prevent
 
 | Failure | What prevents it |
@@ -233,9 +261,11 @@ Ground every one with `select mp_context('<household>')`.
    `distance_miles`, or the trip cannot be costed and band A cannot be
    claimed.
 6. The verdict by the guard, with the reason in two sentences.
-7. Opening offer and ceiling by the offer rule: above fair, open at the
-   good price; between good and fair, 15 to 25 per cent under with a
-   reason; at or under good, pay the asking price and go today.
+7. Opening offer and ceiling by the offer rule (`offerRange`). While
+   nothing is urgent - no house, or not a day-one need - the GOOD price
+   is the ceiling: open at three quarters of good, stop at good, and at
+   or under good pay the asking price and go today. Only a day-one need
+   with a house waiting may pay up to fair.
 8. The message to send, ready to copy; for a `watch`, the questions and
    the photographs that settle them. Text only - the owner sends it. No
    deposits and no moving off the platform, ever.
@@ -309,9 +339,10 @@ alerts, and as the screenshots he sends.
 
 ## Known gaps
 
-- Most profiles are `drafted`. Every maker and every check was seeded
-  from general knowledge and is `drafted` until verified against a dated
-  source.
+- Ladders with too few sold prices are still estimates, and are the
+  next thing to research. Every maker and every check was seeded from
+  general knowledge and is `drafted` until verified against a source:
+  that verification is Claude's to do, not the owner's.
 - Several loaded hammer prices were quoted in groups, without a house
   and date each, or without the house's premium. They are marked
   `drafted` and say so in their note.

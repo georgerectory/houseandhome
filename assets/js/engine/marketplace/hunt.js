@@ -7,7 +7,10 @@
 // never overwrites.
 
 const round2 = (n) => Math.round((n + Number.EPSILON) * 100) / 100;
-const TRUSTED = new Set(['confirmed', 'actual']);
+// A second-hand price is trusted when SOLD PRICES stand behind it, not
+// when the owner has nodded at it: he does not know these markets, and
+// pricing is Claude's job. `researched` is a ladder set from evidence.
+const TRUSTED = new Set(['researched', 'confirmed', 'actual']);
 const LIVE = new Set(['spotted', 'messaged', 'offered', 'agreed']);
 const TIER_RANK = { day_one: 1, first_month: 2, first_year: 3, opportunistic: 4 };
 const LEAD = { rare: 2, scarce: 1 };
@@ -153,7 +156,8 @@ export function sweepsDue(searches, today) {
 }
 
 /** The money by tier - mp_totals. `unconfirmed_budget` is how much of
- *  the budget rests on thresholds nobody has confirmed. */
+ *  the budget rests on ladders that are still estimates, with no sold
+ *  prices behind them. */
 export function tierTotals(boardRows) {
   const rows = (boardRows ?? []).filter((b) => b.status !== 'dropped' && b.status !== 'idea');
   const sum = (list, f) => round2(list.reduce((n, b) => n + f(b), 0));

@@ -392,7 +392,7 @@ select
   round(sum(b.wanted_qty * b.price_new), 2)             as cost_if_new,
   round(sum(b.spent), 2)                                as spent,
   bool_and(b.wanted_qty = 0 or b.qty_outstanding = 0)   as nothing_outstanding,
-  bool_or(b.price_confidence not in ('confirmed','actual')) as is_unconfirmed
+  bool_or(b.price_confidence not in ('researched','confirmed','actual')) as is_unconfirmed
 from public.mp_board b
 where b.work_item_id is not null and b.status not in ('dropped','idea')
 group by b.household_id, b.work_item_id;
@@ -654,3 +654,38 @@ alter table public.mp_grounds
 -- salerooms share). tools/auction-lots.mjs has a reader for each.
 alter table public.mp_grounds
   add column if not exists reader text check (reader is null or reader in ('rows','grid'));
+
+-- ---------------------------------------------------------------
+-- mp_totals once more: what "unconfirmed" means for a second-hand
+-- price.
+--
+-- Everywhere else in this system a figure is trusted when the owner
+-- has confirmed it. Here that would be backwards: he does not know what
+-- a Georgian chest sells for and was never the right person to ask.
+-- A ladder is trusted when SOLD PRICES stand behind it - `researched`,
+-- set from the evidence - so unconfirmed_budget is the budget that
+-- still rests on an estimate.
+-- ---------------------------------------------------------------
+create or replace view public.mp_totals
+with (security_invoker = on) as
+select
+  b.household_id,
+  b.tier,
+  min(b.tier_rank)                                      as tier_rank,
+  count(*)                                              as profiles,
+  count(*) filter (where b.wanted_qty > 0 and b.qty_outstanding = 0) as profiles_filled,
+  round(coalesce(sum(b.wanted_qty * b.price_good), 0), 2) as budget_good,
+  round(coalesce(sum(b.wanted_qty * b.price_fair), 0), 2) as budget_fair,
+  round(coalesce(sum(b.wanted_qty * b.price_max), 0), 2)  as budget_ceiling,
+  round(coalesce(sum(b.wanted_qty * b.price_new), 0), 2)  as cost_if_new,
+  round(coalesce(sum(b.spent), 0), 2)                   as spent,
+  round(coalesce(sum(b.budget_outstanding), 0), 2)      as outstanding_good,
+  round(coalesce(sum(b.wanted_qty * b.price_good)
+        filter (where b.price_confidence not in ('researched','confirmed','actual')), 0), 2)
+                                                        as unconfirmed_budget
+from public.mp_board b
+where b.status not in ('dropped','idea')
+group by b.household_id, b.tier;
+
+comment on view public.mp_totals is
+  'Second-hand budget by tier at the good, fair and ceiling prices, against what the same things cost new. unconfirmed_budget is how much still rests on an estimate with no sold prices behind it.';

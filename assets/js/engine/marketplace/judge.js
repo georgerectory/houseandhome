@@ -126,12 +126,20 @@ export function tripWorth({ fair, price, roundTripMiles, costPerMile = 0.45 }) {
 }
 
 /**
- * Where to open and where to stop, for the whole lot, by the offer
- * rule: above fair, open at the good price; between good and fair, a
- * fifth under asking with a reason; at or under good, pay the asking
- * price and go today.
+ * Where to open and where to stop, for the whole lot.
+ *
+ * PATIENT (the default while nothing is urgent): the good price is the
+ * CEILING, not the target. Good is the lower quartile of what the thing
+ * sells for, so anything bought at or under it is cheaper than three in
+ * four comparable sales - that is what "a steal" means here, measured.
+ * Open at three quarters of good; stop at good; at or under good, pay
+ * the asking price and go today.
+ *
+ * NOT PATIENT (a day-one need with a house waiting): above fair, open
+ * at the good price and stop at fair; between good and fair, a fifth
+ * under asking.
  */
-export function offerRange(row) {
+export function offerRange(row, { patient = true } = {}) {
   const qty = Number(row.quantity ?? 1);
   const asking = num(row.asking_price);
   const good = num(row.price_good);
@@ -139,6 +147,7 @@ export function offerRange(row) {
   if (asking == null || good == null || fair == null) return null;
   const b = row.price_band ?? band(asking / qty, row);
   if (b === 'steal' || b === 'good') return { kind: 'accept', open: asking, stop: asking };
+  if (patient) return { kind: 'offer', open: Math.round(good * qty * 0.75), stop: round2(good * qty) };
   if (b === 'fair') return { kind: 'offer', open: Math.max(round2(good * qty), Math.round(asking * 0.8)), stop: asking };
   return { kind: 'offer', open: round2(good * qty), stop: round2(fair * qty) };
 }
@@ -167,14 +176,14 @@ const PHOTOS = {
  *   offer   the opening offer, one reason and a collection time
  *   accept  the asking price, today
  */
-export function sellerMessage(row, kind) {
+export function sellerMessage(row, kind, opts) {
   const what = row.title;
   if (kind === 'accept') {
     return `Hello, I would like the ${what} at your asking price of £${num(row.asking_price)}. `
       + 'I can collect today or tomorrow and pay on collection. When would suit you?';
   }
   if (kind === 'offer') {
-    const open = num(row.opening_offer) ?? offerRange(row)?.open;
+    const open = num(row.opening_offer) ?? offerRange(row, opts)?.open;
     if (open == null) return null;
     return `Hello, I like the ${what}. Would you take £${open}? I can collect this week at a time `
       + 'that suits you and pay on collection.';

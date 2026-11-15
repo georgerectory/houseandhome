@@ -99,14 +99,22 @@ test('a trip is a margin, not a yes or no', () => {
   assert.equal(tripWorth({ fair: 100, price: 50, roundTripMiles: 100, costPerMile: 0.5 }).margin, 0);
 });
 
-test('the offer rule', () => {
+test('the offer rule: patient by default, the good price is the ceiling', () => {
   const row = (asking, quantity = 1) => ({ ...P, asking_price: asking, quantity });
   assert.deepEqual(offerRange(row(60)), { kind: 'accept', open: 60, stop: 60 });
-  assert.deepEqual(offerRange(row(120)), { kind: 'offer', open: 96, stop: 120 });
-  assert.deepEqual(offerRange(row(90)), { kind: 'offer', open: 80, stop: 90 }, 'never opens under the good price');
-  assert.deepEqual(offerRange(row(250)), { kind: 'offer', open: 80, stop: 130 });
-  assert.deepEqual(offerRange(row(500, 2)), { kind: 'offer', open: 160, stop: 260 }, 'a lot is priced per unit');
+  assert.deepEqual(offerRange(row(120)), { kind: 'offer', open: 60, stop: 80 });
+  assert.deepEqual(offerRange(row(250)), { kind: 'offer', open: 60, stop: 80 });
+  assert.deepEqual(offerRange(row(500, 2)), { kind: 'offer', open: 120, stop: 160 }, 'a lot is priced per unit');
   assert.equal(offerRange({ asking_price: 5 }), null);
+});
+
+test('the offer rule when a day-one need is urgent', () => {
+  const row = (asking) => ({ ...P, asking_price: asking, quantity: 1 });
+  const urgent = { patient: false };
+  assert.deepEqual(offerRange(row(60), urgent), { kind: 'accept', open: 60, stop: 60 });
+  assert.deepEqual(offerRange(row(120), urgent), { kind: 'offer', open: 96, stop: 120 });
+  assert.deepEqual(offerRange(row(90), urgent), { kind: 'offer', open: 80, stop: 90 }, 'never opens under the good price');
+  assert.deepEqual(offerRange(row(250), urgent), { kind: 'offer', open: 80, stop: 130 });
 });
 
 test('the ledger derives the band, the grade and whether the verdict stands', () => {
@@ -131,7 +139,8 @@ test('seller messages never ask for a deposit or to leave the platform', () => {
   const ask = sellerMessage(row, 'ask');
   assert.ok(ask.includes('Solid carcass?') && !ask.includes('Dovetailed?'), 'an in-hand check is not asked by message');
   assert.ok(ask.includes('a drawer pulled right out'));
-  assert.ok(sellerMessage(row, 'offer').includes('£96'));
+  assert.ok(sellerMessage(row, 'offer').includes('£60'));
+  assert.ok(sellerMessage(row, 'offer', { patient: false }).includes('£96'));
   assert.ok(sellerMessage({ ...row, opening_offer: 90 }, 'offer').includes('£90'));
   assert.ok(sellerMessage(row, 'accept').includes('£120'));
   for (const k of ['ask', 'offer', 'accept']) {
@@ -215,8 +224,8 @@ test('sweeps come due on their cadence; an alert is not a sweep', () => {
     ['twice weekly, run 3 days ago', true], ['weekly, run 3 days ago', false], ['never run', true]]);
 });
 
-test('totals say how much rests on unconfirmed thresholds', () => {
-  const b = board([...PROFILES, prof({ key: 'sure', price_confidence: 'confirmed', wanted_qty: 1 })], []);
+test('totals say how much still rests on an estimate, not on sold prices', () => {
+  const b = board([...PROFILES, prof({ key: 'sure', price_confidence: 'researched', wanted_qty: 1 })], []);
   const day = tierTotals(b).find((t) => t.tier === 'day_one');
   assert.equal(day.budget_good, 160 + 200 + 20 + 160 + 80);
   assert.equal(day.unconfirmed_budget, day.budget_good - 80);

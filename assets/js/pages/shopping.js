@@ -142,7 +142,7 @@ function body() {
     and ${escape(money(huntedFair))} at the going rate.
     ${huntedShort.length ? `${huntedShort.length} of them ${huntedShort.length === 1 ? 'is' : 'are'} listed below even the good
       second-hand price, so the estimate cannot be met as it stands.` : ''}
-    No estimate has been changed: the second-hand figures rest on unconfirmed thresholds.
+    No estimate has been changed. Second-hand figures are set from auction results where there are enough, and are estimates otherwise.
     The Marketplace page has the detail.</p>` : ''}
 
   <section class="section">

@@ -1697,7 +1697,7 @@
       "cost_if_new": 3580,
       "spent": 102,
       "outstanding_good": 304,
-      "unconfirmed_budget": 408
+      "unconfirmed_budget": 248
     },
     {
       "tier": "first_month",
@@ -2622,7 +2622,7 @@
       "cost_if_new": 1300,
       "spent": 75,
       "nothing_outstanding": false,
-      "is_unconfirmed": true
+      "is_unconfirmed": false
     },
     {
       "work_item_id": "line-mirrors",

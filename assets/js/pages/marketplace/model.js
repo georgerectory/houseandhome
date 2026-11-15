@@ -35,7 +35,10 @@ export function buildModel(data) {
     const p = profileById.get(l.profile_id) ?? null;
     const row = { ...l, category: p?.category ?? null };
     const own = p ? (checksByProfile.get(p.id) ?? []) : null;
-    const offer = offerRange(row);
+    // Until there is a house nothing is urgent, so the good price is the
+    // ceiling. A day-one need after exchange is allowed to pay more.
+    const patient = !(state !== 'none' && p?.tier === 'day_one');
+    const offer = offerRange(row, { patient });
     const price = Number(l.opening_offer ?? offer?.open ?? l.asking_price);
     const trip = l.distance_miles == null || l.price_fair == null ? null : tripWorth({
       fair: Number(l.price_fair) * Number(l.quantity ?? 1), price,
@@ -56,7 +59,7 @@ export function buildModel(data) {
       questions, offer, trip, acting,
       open: l.opening_offer ?? offer?.open ?? null,
       stop: l.max_offer ?? offer?.stop ?? null,
-      message: l.verdict === 'pass' || !LIVE.has(l.status) ? null : sellerMessage(row, messageKind),
+      message: l.verdict === 'pass' || !LIVE.has(l.status) ? null : sellerMessage(row, messageKind, { patient }),
       messageKind,
     };
   };

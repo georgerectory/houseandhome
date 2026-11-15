@@ -12,18 +12,19 @@ L66 - the owner decides; nothing was closed. The overhaul
 ## Marketplace - built, live, fingerprint matching
 
 `94`-`96_marketplace*.sql`, `engine/marketplace.js`, `marketplace.html`;
-protocol in `docs/MARKETPLACE.md`. Ground with `mp_context`. 42 profiles,
-125 checks, 73 makers (drafted), 7 finds (none proven). 14 Nov:
-`tools/auction-lots.mjs` reads salerooms' published lots (two readers:
-`rows`, `grid`); 402 sold prices from twelve sales loaded; two grounds
-wired. A sweep bound to the build session (Mon and Thu) writes coming
-lots as `watch` finds (shape 5). Cloud environment `houseandhome`.
+protocol in `docs/MARKETPLACE.md`. Ground with `mp_context`. 15 Nov:
+list resized for a 3-4 bedroom house (45 profiles; `first_qty` ranks the
+first few of a kind ahead of the rest); 21 ladders set from 723 sold
+prices, 24 still estimates; eight sales make a ladder. The bar, the
+low-offer message and the storage rule are in `mp_brief.rules` and the
+protocol. Two finds live, the rest passed. A sweep bound to the build
+session (Mon and Thu) writes coming lots as `watch` finds (shape 5).
 
 ## Waiting on the owner
 
-- Marketplace: the ladders. One saleroom's medians run about twice the
-  typed thresholds (`mp_threshold_review`); nothing was changed. Also a
-  review of the lines listed below the good second-hand price.
+- Marketplace: nothing that needs knowledge - prices, checks and makers
+  are Claude's to research and set. The eBay keys, when he chooses.
+  Sellers' replies on the mirror and the trunk (offers 55 and 70).
 - Nine `w3-` contradictions; the confirmed figures stand.
 - Close L62 / L64 (Sold STC)? Drop L56 / L66?
 - C-30 (House 1 net profit) is drafted until confirmed.

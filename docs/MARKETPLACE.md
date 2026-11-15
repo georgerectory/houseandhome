@@ -12,6 +12,34 @@ in Supabase only. This repository holds the schema, the engine and
 invented fixtures. Nothing that names what the owner has looked at, where
 he lives or which salerooms he uses belongs in a committed file.
 
+## Who does what
+
+The owner is furnishing a house. He is not an antiques dealer and was
+never meant to become one. So the line is drawn by KNOWLEDGE:
+
+| The owner supplies | Claude supplies, and never asks him for |
+|---|---|
+| His taste: the style brief, once. | What a thing is, and whether it is any good. |
+| His eyes: a screenshot or a link. | What it is worth: every price ladder, from sold prices. |
+| His decision to spend, and the collecting. | The style fit score against the brief. |
+| What the seller said. | The checks, the makers, the tells, and verifying them. |
+| | What to offer, where to stop, and the words to send. |
+
+A question to the owner is allowed when only he can answer it - does he
+like it, has he room for it, what did the seller say. A question that
+turns on knowing the market, the materials or the trade is Claude's to
+research and answer, and to keep researching. "Confirm this price" is
+never one of them.
+
+**What the system can promise, and what it cannot.** It cannot promise
+that good things will turn up; nobody can. It can promise a rule that
+is kept on every purchase: while nothing is urgent, **nothing is bought
+above the good price** - and the good price is the lower quartile of
+what the same thing actually sold for. A purchase at or under it is
+cheaper than three in four comparable sales. That is what "a steal"
+means here, and it is measured, not felt. The trade is speed: a
+ceiling that low fills the house more slowly.
+
 ## What it is built to prevent
 
 | Failure | What prevents it |
@@ -70,6 +98,18 @@ check is a `doorstep` check. The reason must list those checks as the
 walk-away list: go, look, and leave without it if one fails. An unknown
 distance is not band A.
 
+**The bar is higher than the guard** (the owner's instruction, 15 Nov
+2026; rule `the_bar` in `mp_brief`). The guard says what a verdict MAY
+be; the bar says what is worth having. A thing is taken only when it is
+the right piece - fit 4 or 5, solid materials, sound - AND at or under
+the good price. Everything else is a `pass`, and a pass needs no
+apology: ten sent and none taken is a normal day. Cheap, free, nearby
+and nearly right are not reasons; a nearly-right piece takes the place,
+the money and the storage of the right one. Reproduction, "vintage
+style", 1930s oak and decorative brass are passes on sight. A rejection
+on sight is said in one line and NOT logged as a find; only a piece
+worth an offer, or worth watching, gets a row.
+
 A seller's "antique", "solid wood" or "real leather" is a claim. A check
 is answered `pass` or `fail` only from what was seen or what the seller
 answered, with the evidence written beside it; otherwise it is `unseen`.
@@ -83,21 +123,28 @@ verdict as lapsed and treats it as `watch`.
 ## Prices are earned
 
 Research rule for a profile: dated SOLD prices - auction results naming
-the house and the date, sold listings. Three typical dated sales make
+the house and the date, sold listings. Eight typical dated sales make
 `price_confidence` `researched`; fewer leave it `drafted`. Check a
 saleroom's current buyer's premium before relying on it.
 
-`mp_price_evidence` takes typical sold prices from the last 24 months
-and says what they imply: steal about half the median all-in, good the
-median hammer, fair the median all-in, the ceiling the upper quartile.
+`mp_price_evidence` takes typical sold prices from the last 24 months,
+buyer's premium included, and says what they imply: **good** is the
+lower quartile - what a patient buyer pays, not what the average bidder
+does; **fair** is the median; the **ceiling** is the upper quartile,
+held to one and a half times the median; a **steal** is half of good.
 Asking prices and auction estimates are counted and NEVER drive a
 threshold; dealer prices feed `price_new` only. Top-of-market lots,
 group lots and placeholders are recorded with `is_typical = false`.
 
-Evidence suggests and never overwrites. `mp_threshold_review` lists a
-threshold once five or more sold prices disagree with it by more than a
-fifth. The owner decides; the change needs `house.change_why` and is
-logged. A ladder captured over a year ago shows as stale.
+**Pricing is Claude's job, not the owner's** (his instruction, 15 Nov
+2026). He does not know these markets and should never be asked to
+confirm a price. A ladder with eight or more typical sold prices is SET
+from them - `house.change_why` first, so the change is logged with its
+reason - and marked `researched`. A ladder with fewer stays `drafted`
+and is the next thing to research. `mp_threshold_review` is Claude's
+own worklist: where it shows a row, set the ladder or find out why the
+evidence is wrong; do not put it to him. A ladder captured over a year
+ago shows as stale.
 
 Every find with a price lands as an `asking` observation and every
 purchase as `own_purchase`, by trigger and by function, so nothing
@@ -145,6 +192,24 @@ still outstanding by:
 2. **Anchors first.** A profile with `anchor_of` waits behind the piece
    that sets its scale while that piece is still outstanding.
 3. **The saving against new**, biggest first.
+
+**First few, then the rest.** The list is sized for a three to four
+bedroom house, so several kinds are wanted in numbers: three beds, three
+wardrobes, ten pairs of curtains. `first_qty` says how many are needed
+at the kind's own tier; once that many are bought, what is left ranks
+no earlier than `first_year`. The second spare-room wardrobe is not
+worth more than the only sofa. Large and small kinds share the one
+queue, so they are weighed against each other and not within a size.
+
+**Storage is part of the price** (rule `storage`). The whole list is
+about 20 cubic metres. Small and medium things live at home. A large
+piece before exchange is taken only at or under the steal price AND
+with somewhere free and dry to stand. Paid storage starts only when the
+pieces waiting have saved more than the rent they will cost: about 65 a
+month for 25 sq ft (five or six large pieces), 110 for 50 sq ft, 190
+for 100 sq ft, which holds the lot (trade survey averages, 2026;
+ESTIMATE, no local quote taken). New-bought things - mattresses,
+bedding, white goods - are not on this list at all.
 
 `mode` is `buy` or `watch`. With no house, `from_exchange` and
 `after_move` profiles are WATCHED - to learn prices - not bought. The
@@ -226,12 +291,18 @@ Ground every one with `select mp_context('<household>')`.
    `distance_miles`, or the trip cannot be costed and band A cannot be
    claimed.
 6. The verdict by the guard, with the reason in two sentences.
-7. Opening offer and ceiling by the offer rule: above fair, open at the
-   good price; between good and fair, 15 to 25 per cent under with a
-   reason; at or under good, pay the asking price and go today.
-8. The message to send, ready to copy; for a `watch`, the questions and
-   the photographs that settle them. Text only - the owner sends it. No
-   deposits and no moving off the platform, ever.
+7. Opening offer and ceiling by the offer rule (`offerRange`). While
+   nothing is urgent - no house, or not a day-one need - the GOOD price
+   is the ceiling: open at three quarters of good, stop at good, and at
+   or under good pay the asking price and go today. Only a day-one need
+   with a house waiting may pay up to fair.
+8. The message to send, ready to copy (`sellerMessage`): the lowest
+   offer and collection, nothing else - "Would you take X? I can collect
+   this week and pay on collection." Never ask for more photographs,
+   measurements or history: everything else is settled on the doorstep,
+   where walking away is free. Only a prized piece at a steal earns one
+   question first. Text only - the owner sends it. No deposits and no
+   moving off the platform, ever.
 9. Write the find; read the ledger row back.
 10. **One committed bottom line**, consistent with the numbers above it.
 
@@ -302,9 +373,10 @@ alerts, and as the screenshots he sends.
 
 ## Known gaps
 
-- Most profiles are `drafted`. Every maker and every check was seeded
-  from general knowledge and is `drafted` until verified against a dated
-  source.
+- Ladders with too few sold prices are still estimates, and are the
+  next thing to research. Every maker and every check was seeded from
+  general knowledge and is `drafted` until verified against a source:
+  that verification is Claude's to do, not the owner's.
 - Several loaded hammer prices were quoted in groups, without a house
   and date each, or without the house's premium. They are marked
   `drafted` and say so in their note.
@@ -314,6 +386,9 @@ alerts, and as the screenshots he sends.
 - The Marketplace search URL format has not been verified, so the page
   shows each query as selectable text and no link.
 - One saleroom's results are loaded so far, and it sells better pieces
-  than a general sale: its medians run about twice the typed ladders.
+  than a general sale. For small things it lots only the best singly,
+  so its lamps, stools, trays and pans run far above the market and are
+  NOT loaded; those ladders need a general saleroom or sold listings.
+- The storage figures are national survey averages, not a local quote.
 - There is no house and no completion date: `needed_by` is null
   everywhere and every large piece waits.

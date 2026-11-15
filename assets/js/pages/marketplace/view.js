@@ -33,7 +33,7 @@ function verdictHtml(m) {
            ${escape(money(h.saved_vs_fair))} under the fair price and ${escape(money(h.saved_vs_new))} under buying new.`
         : 'Nothing has been bought yet, so there is nothing spent and nothing saved to report.'}
       ${h.trusted ? '' : `<br>${h.unconfirmed_share >= 0.995 ? 'All' : escape(pct(h.unconfirmed_share))} of that budget
-        rests on price thresholds nobody has confirmed. It is the size of the job, not a budget.`}
+        rests on price ladders that are still estimates, with no sold prices behind them yet. The rest is set from auction results.`}
       ${houseLine ? `<br>${escape(houseLine)}` : ''}
     </p>
   </section>`;
@@ -143,7 +143,7 @@ function findCard(l) {
         ${escape(q.question)} <span class="mp-dim">Settled by ${escape(q.settledBy)}.</span></li>`).join('')}</ul>` : ''}
     ${l.message ? `<details class="detail mp-fold"><summary>Message to send</summary>
       <div><p class="mp-message">${escape(l.message)}</p>
-      <p class="mp-dim">Copy it and send it yourself. Never a deposit, never off the platform.</p></div></details>` : ''}
+      <p class="mp-dim">Copy it and send it yourself. Short on purpose: the rest is settled at the door. Never a deposit, never off the platform.</p></div></details>` : ''}
   </article>`;
 }
 

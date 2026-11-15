@@ -9,9 +9,10 @@
 -- owner's own purchase. An asking price is what somebody hoped for and
 -- an auction estimate is what somebody guessed; both are kept and
 -- neither moves a threshold. Dealer prices feed `price_new` only.
--- Evidence SUGGESTS and never overwrites: mp_threshold_review lists
--- where five or more sold prices disagree with a typed threshold by
--- more than a fifth, and the owner decides.
+-- mp_threshold_review lists where five or more sold prices disagree
+-- with a threshold by more than a fifth. Pricing is Claude's job, not
+-- the owner's: a ladder is set from the evidence, with its reason
+-- logged, and is never put to the owner as a question.
 --
 -- THE HUNT ORDER. mp_hunt_queue ranks every profile still outstanding:
 -- need first (the tier), pulled earlier for scarce and rare things
@@ -140,14 +141,16 @@ select
   coalesce(e.dealer_n, 0)                               as dealer_n,
   e.median_hammer, e.median_all_in, e.q1_all_in, e.q3_all_in,
   e.median_asking, e.median_dealer, e.latest_sold_on,
-  (coalesce(e.sold_n, 0) >= 5)                          as has_enough,
-  -- What the sold prices would make the ladder. Steal: about half the
-  -- going rate. Good: the hammer, as a private sale has no premium.
-  -- Fair: what a bidder actually paid. Max: the upper quartile.
-  round(e.median_all_in / 2)                            as implied_steal,
-  round(e.median_hammer)                                as implied_good,
+  (coalesce(e.sold_n, 0) >= 8)                          as has_enough,
+  -- What the sold prices would make the ladder, premium included. Good
+  -- is the LOWER QUARTILE: what a patient buyer pays, not what the
+  -- average bidder does. Fair is the median. The ceiling is the upper
+  -- quartile, held to one and a half times the median so one grand
+  -- sale cannot drag it up. A steal is half of good.
+  round(e.q1_all_in / 2)                                as implied_steal,
+  round(e.q1_all_in)                                    as implied_good,
   round(e.median_all_in)                                as implied_fair,
-  round(e.q3_all_in)                                    as implied_max,
+  round(least(e.q3_all_in, e.median_all_in * 1.5))      as implied_max,
   round(e.median_dealer)                                as implied_new
 from public.mp_profiles p
 left join (
@@ -198,7 +201,7 @@ where e.has_enough
   and abs(t.implied - t.typed) / t.typed > 0.20;
 
 comment on view public.mp_threshold_review is
-  'Thresholds that five or more sold prices disagree with by more than 20 per cent: typed, implied and how far out. The owner confirms a change; house.change_why logs it.';
+  'Thresholds that eight or more sold prices disagree with by more than 20 per cent: typed, implied and how far out. Claude''s worklist: set the ladder with house.change_why, or find out why the evidence is wrong.';
 
 -- ---------------------------------------------------------------
 -- The patience rule and the anchors.
@@ -389,7 +392,7 @@ select
   round(sum(b.wanted_qty * b.price_new), 2)             as cost_if_new,
   round(sum(b.spent), 2)                                as spent,
   bool_and(b.wanted_qty = 0 or b.qty_outstanding = 0)   as nothing_outstanding,
-  bool_or(b.price_confidence not in ('confirmed','actual')) as is_unconfirmed
+  bool_or(b.price_confidence not in ('researched','confirmed','actual')) as is_unconfirmed
 from public.mp_board b
 where b.work_item_id is not null and b.status not in ('dropped','idea')
 group by b.household_id, b.work_item_id;
@@ -651,3 +654,132 @@ alter table public.mp_grounds
 -- salerooms share). tools/auction-lots.mjs has a reader for each.
 alter table public.mp_grounds
   add column if not exists reader text check (reader is null or reader in ('rows','grid'));
+
+-- ---------------------------------------------------------------
+-- mp_totals once more: what "unconfirmed" means for a second-hand
+-- price.
+--
+-- Everywhere else in this system a figure is trusted when the owner
+-- has confirmed it. Here that would be backwards: he does not know what
+-- a Georgian chest sells for and was never the right person to ask.
+-- A ladder is trusted when SOLD PRICES stand behind it - `researched`,
+-- set from the evidence - so unconfirmed_budget is the budget that
+-- still rests on an estimate.
+-- ---------------------------------------------------------------
+create or replace view public.mp_totals
+with (security_invoker = on) as
+select
+  b.household_id,
+  b.tier,
+  min(b.tier_rank)                                      as tier_rank,
+  count(*)                                              as profiles,
+  count(*) filter (where b.wanted_qty > 0 and b.qty_outstanding = 0) as profiles_filled,
+  round(coalesce(sum(b.wanted_qty * b.price_good), 0), 2) as budget_good,
+  round(coalesce(sum(b.wanted_qty * b.price_fair), 0), 2) as budget_fair,
+  round(coalesce(sum(b.wanted_qty * b.price_max), 0), 2)  as budget_ceiling,
+  round(coalesce(sum(b.wanted_qty * b.price_new), 0), 2)  as cost_if_new,
+  round(coalesce(sum(b.spent), 0), 2)                   as spent,
+  round(coalesce(sum(b.budget_outstanding), 0), 2)      as outstanding_good,
+  round(coalesce(sum(b.wanted_qty * b.price_good)
+        filter (where b.price_confidence not in ('researched','confirmed','actual')), 0), 2)
+                                                        as unconfirmed_budget
+from public.mp_board b
+where b.status not in ('dropped','idea')
+group by b.household_id, b.tier;
+
+comment on view public.mp_totals is
+  'Second-hand budget by tier at the good, fair and ceiling prices, against what the same things cost new. unconfirmed_budget is how much still rests on an estimate with no sold prices behind it.';
+
+-- ---------------------------------------------------------------
+-- First few now, the rest later.
+--
+-- A house wants three beds and ten pairs of curtains, but not all on
+-- the day the keys arrive: one bed is a day-one need and the other two
+-- furnish rooms nobody sleeps in yet. `first_qty` is how many are
+-- wanted at the profile's own tier. Once that many are bought, what is
+-- still outstanding ranks as a first-year need, so the second bed
+-- never queues ahead of the only sofa. Null means all of them are
+-- wanted at the tier.
+-- ---------------------------------------------------------------
+alter table public.mp_profiles
+  add column if not exists first_qty numeric(8,2) check (first_qty is null or first_qty >= 0);
+
+create or replace view public.mp_board
+with (security_invoker = on) as
+select
+  p.id, p.household_id, p.key, p.name, p.category, p.room_hint, p.tier,
+  p.wanted_qty, p.unit, p.work_item_id, p.spec, p.reject_if, p.inspect,
+  p.price_steal, p.price_good, p.price_fair, p.price_max, p.price_new,
+  p.price_basis, p.price_confidence, p.captured_on, p.source_id,
+  p.keywords, p.misspellings, p.exclude_terms, p.size_class, p.buy_window,
+  p.supply, p.max_drive_minutes, p.status, p.resolution, p.notes,
+  p.sort_order, p.confidence, p.confirmed_at, p.created_at, p.updated_at,
+  case p.tier when 'day_one' then 1 when 'first_month' then 2
+              when 'first_year' then 3 else 4 end        as tier_rank,
+  w.title                                               as list_title,
+  w.cost_expected                                       as list_cost,
+  w.cost_confidence                                     as list_cost_confidence,
+  w.status                                              as list_status,
+  coalesce(f.bought_qty, 0)                             as bought_qty,
+  greatest(0, p.wanted_qty - coalesce(f.bought_qty, 0)) as qty_outstanding,
+  coalesce(f.spent, 0)                                  as spent,
+  coalesce(f.live_finds, 0)                             as live_finds,
+  round(greatest(0, p.wanted_qty - coalesce(f.bought_qty, 0))
+        * coalesce(p.price_good, 0), 2)                 as budget_outstanding,
+  p.needed_by, p.fallback, p.fallback_weeks, p.anchor_of,
+  coalesce(f.placeholder_qty, 0)                        as placeholder_qty,
+  p.first_qty
+from public.mp_profiles p
+left join public.work_items w on w.id = p.work_item_id
+left join (
+  select profile_id,
+         sum(quantity) filter (where status = 'bought' and not is_placeholder) as bought_qty,
+         sum(quantity) filter (where status = 'bought' and is_placeholder)     as placeholder_qty,
+         sum(paid + coalesce(travel_cost, 0)) filter (where status = 'bought') as spent,
+         count(*) filter (where status in ('spotted','messaged','offered','agreed')) as live_finds
+  from public.mp_finds
+  group by profile_id
+) f on f.profile_id = p.id;
+
+create or replace view public.mp_hunt_queue
+with (security_invoker = on) as
+with q as (
+  select
+    b.household_id, b.id as profile_id, b.key, b.name, b.category, b.room_hint,
+    b.tier, b.tier_rank, b.supply, b.size_class, b.buy_window,
+    b.wanted_qty, b.qty_outstanding, b.placeholder_qty, b.live_finds,
+    b.price_steal, b.price_good, b.price_fair, b.price_max, b.price_new,
+    b.price_confidence, b.work_item_id, b.list_title,
+    b.needed_by, b.fallback, b.fallback_weeks, b.anchor_of,
+    greatest(1, case when b.first_qty is not null and b.bought_qty >= b.first_qty
+                     then greatest(b.tier_rank, 3) else b.tier_rank end
+                - case b.supply when 'rare' then 2 when 'scarce' then 1 else 0 end)
+                                                        as start_rank,
+    (a.id is not null)                                  as waits_for_anchor,
+    round(b.qty_outstanding * greatest(0, coalesce(b.price_new, 0) - coalesce(b.price_good, 0)), 2)
+                                                        as saving_vs_new,
+    public.mp_house_state(b.household_id)               as house_state,
+    b.created_at::date                                  as hunting_since
+  from public.mp_board b
+  left join public.mp_board a
+    on a.household_id = b.household_id and a.key = b.anchor_of
+   and a.status = 'hunting' and a.qty_outstanding > 0
+  where b.status = 'hunting' and b.qty_outstanding > 0
+)
+select
+  q.*,
+  public.mp_can_buy(q.buy_window, q.house_state)        as can_buy_now,
+  case when public.mp_can_buy(q.buy_window, q.house_state) then 'buy' else 'watch' end
+                                                        as mode,
+  (current_date - q.hunting_since) / 7                  as weeks_hunted,
+  case when q.fallback_weeks is not null
+       then q.hunting_since + q.fallback_weeks * 7 end  as fallback_from,
+  (q.tier = 'day_one' and q.fallback is not null and q.fallback_weeks is not null
+   and q.placeholder_qty = 0
+   and q.house_state <> 'none'
+   and current_date >= q.hunting_since + q.fallback_weeks * 7)
+                                                        as fallback_due,
+  row_number() over (partition by q.household_id
+    order by q.start_rank, q.waits_for_anchor, q.saving_vs_new desc, q.key)
+                                                        as queue_rank
+from q;

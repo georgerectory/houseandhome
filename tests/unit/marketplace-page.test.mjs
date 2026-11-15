@@ -29,7 +29,7 @@ test('the headline says how much rests on unconfirmed thresholds, and that there
   const m = buildModel(demo);
   const html = pageHtml(m);
   assert.equal(m.head.trusted, false);
-  assert.ok(html.includes('rests on price thresholds nobody has confirmed'));
+  assert.ok(html.includes('rests on price ladders that are still estimates'));
   assert.ok(html.includes('nothing large can be bought until contracts exchange'));
   assert.ok(!pageHtml(buildModel({ ...demo, house_state: 'moved' })).includes('nothing large can be bought'));
 });
@@ -43,13 +43,13 @@ test('a find shows its grade, its open questions, and a lapsed verdict as lapsed
   assert.ok(html.includes('This verdict no longer stands'));
   const lapsed = m.live.find((l) => !l.verdict_stands);
   assert.equal(lapsed.acting, 'watch');
-  assert.ok(lapsed.message.includes('still available'), 'a lapsed buy asks questions, it does not accept');
+  assert.ok(lapsed.message.includes('would you take'), 'a lapsed buy makes a low offer, it does not accept');
   assert.ok(html.includes('Still to settle'));
   assert.ok(html.includes('Distance not recorded'));
   assert.ok(html.includes('Turned down or lost'));
   const sofa = m.live.find((l) => l.title.includes('sofa'));
   assert.equal(sofa.trip.worth, true);
-  assert.ok(sofa.message.includes('£200'));
+  assert.ok(sofa.message.includes('£200'), 'a stored opening offer is used as written');
   assert.ok(m.live.every((l) => !/deposit/i.test(l.message ?? '')));
 });
 

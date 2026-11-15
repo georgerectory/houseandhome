@@ -78,7 +78,8 @@ function lessonsHtml(m) {
           <span class="mp-dim mp-block">${plural(r.sold_n, 'sold price')}</span></td>
           <td class="num">${escape(money(r.typed))}</td><td class="num">${escape(money(r.implied))}</td>
           <td class="num">${r.pct_out > 0 ? '+' : ''}${escape(r.pct_out)}%</td></tr>`).join('')}</tbody></table></div>
-       <p class="mp-note">Nothing has been changed. A threshold moves only when you say so, and the change is logged with its reason.</p>`
+       <p class="mp-note">These are worked through as the evidence comes in: a ladder is set from sold prices,
+         and each change is logged with its reason.</p>`
     : emptyState('No threshold is disputed. The evidence suggests a change only once five sold prices disagree by more than a fifth.');
   return section('lessons', 'What the buying has taught', `
     ${learned}

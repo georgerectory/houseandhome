@@ -7,7 +7,10 @@
 // never overwrites.
 
 const round2 = (n) => Math.round((n + Number.EPSILON) * 100) / 100;
-const TRUSTED = new Set(['confirmed', 'actual']);
+// A second-hand price is trusted when SOLD PRICES stand behind it, not
+// when the owner has nodded at it: he does not know these markets, and
+// pricing is Claude's job. `researched` is a ladder set from evidence.
+const TRUSTED = new Set(['researched', 'confirmed', 'actual']);
 const LIVE = new Set(['spotted', 'messaged', 'offered', 'agreed']);
 const TIER_RANK = { day_one: 1, first_month: 2, first_year: 3, opportunistic: 4 };
 const LEAD = { rare: 2, scarce: 1 };
@@ -78,7 +81,11 @@ export function huntQueue(boardRows, state, today) {
   const hunting = (boardRows ?? []).filter((b) => b.status === 'hunting' && Number(b.qty_outstanding) > 0);
   const open = new Set(hunting.map((b) => b.key));
   const rows = hunting.map((b) => {
-    const startRank = Math.max(1, b.tier_rank - (LEAD[b.supply] ?? 0));
+    // First few now, the rest later: once `first_qty` are bought, what
+    // is still wanted ranks as a first-year need.
+    const firstDone = b.first_qty != null && Number(b.bought_qty ?? 0) >= Number(b.first_qty);
+    const needRank = firstDone ? Math.max(b.tier_rank, 3) : b.tier_rank;
+    const startRank = Math.max(1, needRank - (LEAD[b.supply] ?? 0));
     const waits = !!b.anchor_of && open.has(b.anchor_of);
     const saving = round2(Number(b.qty_outstanding)
       * Math.max(0, Number(b.price_new ?? 0) - Number(b.price_good ?? 0)));
@@ -88,7 +95,8 @@ export function huntQueue(boardRows, state, today) {
       ? new Date(Date.parse(since) + b.fallback_weeks * 7 * DAY).toISOString().slice(0, 10) : null;
     const reasons = [];
     reasons.push(b.tier === 'opportunistic' ? 'Only if one turns up.' : `Needed ${b.tier.replace('_', ' ')}.`);
-    if (startRank < b.tier_rank) reasons.push(`Started early: ${b.supply} things take months to turn up.`);
+    if (firstDone) reasons.push('The first is bought; the rest furnish rooms that can wait.');
+    if (startRank < needRank) reasons.push(`Started early: ${b.supply} things take months to turn up.`);
     if (waits) reasons.push(`After the ${b.anchor_of.replace(/_/g, ' ')}, which sets its scale.`);
     if (saving > 0) reasons.push(`Saves about £${Math.round(saving)} against new.`);
     if (!buy.can) reasons.push(buy.why);
@@ -153,7 +161,8 @@ export function sweepsDue(searches, today) {
 }
 
 /** The money by tier - mp_totals. `unconfirmed_budget` is how much of
- *  the budget rests on thresholds nobody has confirmed. */
+ *  the budget rests on ladders that are still estimates, with no sold
+ *  prices behind them. */
 export function tierTotals(boardRows) {
   const rows = (boardRows ?? []).filter((b) => b.status !== 'dropped' && b.status !== 'idea');
   const sum = (list, f) => round2(list.reduce((n, b) => n + f(b), 0));
@@ -203,7 +212,7 @@ function quantile(sorted, q) {
 }
 const whole = (n) => (n == null ? null : Math.round(n));
 const SOLD = new Set(['auction_hammer', 'sold_listing', 'own_purchase']);
-export const EVIDENCE_MIN = 5;
+export const EVIDENCE_MIN = 8;
 export const EVIDENCE_TOLERANCE = 0.2;
 
 /**
@@ -223,6 +232,8 @@ export function priceEvidence(profiles, observations, today) {
     const allIn = col(sold, 'price_all_in');
     const of = (kind) => own.filter((o) => o.kind === kind);
     const medianAllIn = quantile(allIn, 0.5);
+    const q1 = quantile(allIn, 0.25);
+    const q3 = quantile(allIn, 0.75);
     return {
       profile_id: p.id, key: p.key, name: p.name,
       price_steal: p.price_steal, price_good: p.price_good, price_fair: p.price_fair,
@@ -234,17 +245,20 @@ export function priceEvidence(profiles, observations, today) {
       median_hammer: quantile(hammer, 0.5), median_all_in: medianAllIn,
       median_asking: quantile(col(of('asking'), 'unit_price'), 0.5),
       has_enough: sold.length >= EVIDENCE_MIN,
-      implied_steal: whole(medianAllIn == null ? null : medianAllIn / 2),
-      implied_good: whole(quantile(hammer, 0.5)),
+      // Good is the lower quartile - what a patient buyer pays; fair the
+      // median; the ceiling the upper quartile, held to 1.5 x the median.
+      implied_steal: whole(q1 == null ? null : q1 / 2),
+      implied_good: whole(q1),
       implied_fair: whole(medianAllIn),
-      implied_max: whole(quantile(allIn, 0.75)),
+      implied_max: whole(q3 == null ? null : Math.min(q3, medianAllIn * 1.5)),
       implied_new: whole(quantile(col(of('dealer'), 'unit_price'), 0.5)),
     };
   });
 }
 
-/** Thresholds the evidence disputes by more than a fifth, on five or
- *  more sold prices. A prompt for the owner; nothing is changed. */
+/** Thresholds the evidence disputes by more than a fifth, on eight or
+ *  more sold prices. Pricing is Claude's job: these are set from the
+ *  evidence with the reason logged, never put to the owner. */
 export function thresholdReview(evidence) {
   const out = [];
   for (const e of evidence ?? []) {

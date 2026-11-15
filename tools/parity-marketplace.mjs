@@ -164,7 +164,7 @@ function queueParity(psql) {
         // Ties on the saving are deliberate: the key has to break them.
         price_new: pick([null, good + 100, good + 100, good + Math.round(rnd() * 900)]),
         status: pick(['hunting', 'hunting', 'hunting', 'hunting', 'paused', 'filled']),
-        anchor_of: null, created_at: '2026-01-01T00:00:00Z',
+        first_qty: pick([null, null, 1, 2]), anchor_of: null, created_at: '2026-01-01T00:00:00Z',
       };
     });
     profiles.forEach((p, i) => { if (i % 4 === 0) p.anchor_of = pick(profiles).key; });
@@ -182,9 +182,9 @@ function queueParity(psql) {
     psql(`insert into households (id, name) values ('${hh}', 'Parity market ${state}');
       ${propertyStatus ? `insert into properties (household_id, ref, name, status) values ('${hh}', 'P-90${s}', 'Parity house', '${propertyStatus}');` : ''}
       insert into mp_profiles (id, household_id, key, name, category, spec, tier, supply, buy_window, wanted_qty,
-                               price_good, price_new, status, resolution, anchor_of, created_at) values
+                               price_good, price_new, status, resolution, anchor_of, first_qty, created_at) values
       ${profiles.map((p) => `('${p.id}', '${hh}', '${p.key}', '${p.name}', 'other', 'x', '${p.tier}', '${p.supply}', '${p.buy_window}', ${p.wanted_qty},
-         ${q(p.price_good)}, ${q(p.price_new)}, '${p.status}', ${p.status === 'filled' ? "'done'" : 'null'}, ${q(p.anchor_of)}, '${p.created_at}')`).join(',')};
+         ${q(p.price_good)}, ${q(p.price_new)}, '${p.status}', ${p.status === 'filled' ? "'done'" : 'null'}, ${q(p.anchor_of)}, ${q(p.first_qty)}, '${p.created_at}')`).join(',')};
       select set_config('house.change_why', 'parity', false);
       insert into mp_finds (household_id, profile_id, title, quantity, status, is_placeholder, paid, bought_on) values
       ${finds.map((f, i) => `('${hh}', '${f.profile_id}', 'find ${i}', ${f.quantity}, '${f.status}', ${f.is_placeholder},

@@ -99,14 +99,22 @@ test('a trip is a margin, not a yes or no', () => {
   assert.equal(tripWorth({ fair: 100, price: 50, roundTripMiles: 100, costPerMile: 0.5 }).margin, 0);
 });
 
-test('the offer rule', () => {
+test('the offer rule: patient by default, the good price is the ceiling', () => {
   const row = (asking, quantity = 1) => ({ ...P, asking_price: asking, quantity });
   assert.deepEqual(offerRange(row(60)), { kind: 'accept', open: 60, stop: 60 });
-  assert.deepEqual(offerRange(row(120)), { kind: 'offer', open: 96, stop: 120 });
-  assert.deepEqual(offerRange(row(90)), { kind: 'offer', open: 80, stop: 90 }, 'never opens under the good price');
-  assert.deepEqual(offerRange(row(250)), { kind: 'offer', open: 80, stop: 130 });
-  assert.deepEqual(offerRange(row(500, 2)), { kind: 'offer', open: 160, stop: 260 }, 'a lot is priced per unit');
+  assert.deepEqual(offerRange(row(120)), { kind: 'offer', open: 60, stop: 80 });
+  assert.deepEqual(offerRange(row(250)), { kind: 'offer', open: 60, stop: 80 });
+  assert.deepEqual(offerRange(row(500, 2)), { kind: 'offer', open: 120, stop: 160 }, 'a lot is priced per unit');
   assert.equal(offerRange({ asking_price: 5 }), null);
+});
+
+test('the offer rule when a day-one need is urgent', () => {
+  const row = (asking) => ({ ...P, asking_price: asking, quantity: 1 });
+  const urgent = { patient: false };
+  assert.deepEqual(offerRange(row(60), urgent), { kind: 'accept', open: 60, stop: 60 });
+  assert.deepEqual(offerRange(row(120), urgent), { kind: 'offer', open: 96, stop: 120 });
+  assert.deepEqual(offerRange(row(90), urgent), { kind: 'offer', open: 80, stop: 90 }, 'never opens under the good price');
+  assert.deepEqual(offerRange(row(250), urgent), { kind: 'offer', open: 80, stop: 130 });
 });
 
 test('the ledger derives the band, the grade and whether the verdict stands', () => {
@@ -125,13 +133,15 @@ test('the ledger derives the band, the grade and whether the verdict stands', ()
   assert.equal(questionsFor(b).length, 2);
 });
 
-test('seller messages never ask for a deposit or to leave the platform', () => {
+test('seller messages are a short low offer, and never a deposit or a move off the platform', () => {
   const [row] = ledger([{ id: 'f', profile_id: 'p1', title: 'Mahogany chest', asking_price: 120, quantity: 1, checks: {}, status: 'spotted' }],
     { profiles: [P], checks: CHECKS });
   const ask = sellerMessage(row, 'ask');
-  assert.ok(ask.includes('Solid carcass?') && !ask.includes('Dovetailed?'), 'an in-hand check is not asked by message');
-  assert.ok(ask.includes('a drawer pulled right out'));
-  assert.ok(sellerMessage(row, 'offer').includes('£96'));
+  assert.ok(ask.includes('Solid carcass?') && !ask.includes('Dovetailed?'), 'one question, and never an in-hand check');
+  assert.ok(!/photo/i.test(ask), 'no request for photographs');
+  assert.ok(sellerMessage(row, 'offer').length < 90, 'an offer is one short line');
+  assert.ok(sellerMessage(row, 'offer').includes('£60'));
+  assert.ok(sellerMessage(row, 'offer', { patient: false }).includes('£96'));
   assert.ok(sellerMessage({ ...row, opening_offer: 90 }, 'offer').includes('£90'));
   assert.ok(sellerMessage(row, 'accept').includes('£120'));
   for (const k of ['ask', 'offer', 'accept']) {
@@ -179,6 +189,17 @@ test('the hunt order: tier, lead time, anchors, then the saving', () => {
   assert.equal(after.find((r) => r.key === 'stone').mode, 'watch');
 });
 
+test('first few now, the rest later', () => {
+  const beds = prof({ key: 'bed', wanted_qty: 3, first_qty: 1, price_good: 90, price_new: 600 });
+  const sofa = prof({ key: 'sofa', wanted_qty: 1, price_good: 200, price_new: 1800 });
+  const lamp = prof({ key: 'lamp', tier: 'first_month', price_good: 10, price_new: 110 });
+  const before = huntQueue(board([beds, sofa, lamp], []), 'moved', '2026-02-10');
+  assert.deepEqual(before.map((r) => r.key), ['sofa', 'bed', 'lamp'], 'three beds outstanding still rank as day one');
+  const after = huntQueue(board([beds, sofa, lamp], [{ profile_id: 'bed', status: 'bought', quantity: 1, paid: 80 }]), 'moved', '2026-02-10');
+  assert.deepEqual(after.map((r) => r.key), ['sofa', 'lamp', 'bed'], 'the second bed waits behind a first-month need');
+  assert.ok(after[2].reasons.some((r) => r.includes('rest furnish rooms')));
+});
+
 test('the house state, and what it lets you buy', () => {
   assert.equal(houseState([]), 'none');
   assert.equal(houseState([{ status: 'candidate' }, { status: 'archived' }]), 'none');
@@ -215,8 +236,8 @@ test('sweeps come due on their cadence; an alert is not a sweep', () => {
     ['twice weekly, run 3 days ago', true], ['weekly, run 3 days ago', false], ['never run', true]]);
 });
 
-test('totals say how much rests on unconfirmed thresholds', () => {
-  const b = board([...PROFILES, prof({ key: 'sure', price_confidence: 'confirmed', wanted_qty: 1 })], []);
+test('totals say how much still rests on an estimate, not on sold prices', () => {
+  const b = board([...PROFILES, prof({ key: 'sure', price_confidence: 'researched', wanted_qty: 1 })], []);
   const day = tierTotals(b).find((t) => t.tier === 'day_one');
   assert.equal(day.budget_good, 160 + 200 + 20 + 160 + 80);
   assert.equal(day.unconfirmed_budget, day.budget_good - 80);
@@ -232,19 +253,21 @@ test('only typical sold prices in the window drive the evidence', () => {
     ({ profile_id: 'p1', kind, unit_price: unit, price_all_in: allIn, observed_on: on, ...extra });
   const rows = [
     obs('auction_hammer', 100, 125), obs('auction_hammer', 120, 150), obs('auction_hammer', 140, 175),
+    obs('auction_hammer', 100, 125), obs('auction_hammer', 120, 150), obs('auction_hammer', 140, 175),
     obs('sold_listing', 160, 160),
     obs('auction_hammer', 5000, 6250, '2026-01-10', { is_typical: false }),
     obs('auction_hammer', 9000, 9000, '2023-01-10'),
     obs('auction_estimate', 7000, 7000), obs('asking', 300, 300), obs('dealer', 900, 900),
   ];
   let [e] = priceEvidence([P], rows, '2026-02-10');
-  assert.deepEqual([e.sold_n, e.asking_n, e.estimate_n, e.dealer_n, e.has_enough], [4, 1, 1, 1, false]);
-  assert.deepEqual(thresholdReview([e]), [], 'four sold prices suggest nothing');
+  assert.deepEqual([e.sold_n, e.asking_n, e.estimate_n, e.dealer_n, e.has_enough], [7, 1, 1, 1, false]);
+  assert.deepEqual(thresholdReview([e]), [], 'seven sold prices suggest nothing');
   assert.ok(evidenceSummary(e).includes('1 more sold'));
   [e] = priceEvidence([P], [...rows, obs('auction_hammer', 180, 225)], '2026-02-10');
+  // all in: 125 125 150 150 160 175 175 225 - q1 143.75, median 155, q3 175.
   assert.deepEqual([e.median_hammer, e.median_all_in, e.implied_steal, e.implied_good, e.implied_fair, e.implied_max, e.implied_new],
-    [140, 160, 80, 140, 160, 175, 900]);
-  assert.deepEqual(thresholdReview([e]).map((r) => [r.threshold, r.pct_out]), [['steal', 100], ['good', 75], ['fair', 23]]);
+    [130, 155, 72, 144, 155, 175, 900]);
+  assert.deepEqual(thresholdReview([e]).map((r) => [r.threshold, r.pct_out]), [['steal', 80], ['good', 80]]);
   assert.equal(evidenceSummary(null), 'No dated prices yet: the ladder is an estimate.');
   assert.equal(isStale('2025-01-01', '2026-02-10'), true);
   assert.equal(isStale('2025-06-01', '2026-02-10'), false);

@@ -277,6 +277,9 @@ begin
     ('a1a1a1a1-0000-0000-0000-000000000001','a1a1a1a1-2222-0000-0000-000000000001','auction_hammer', 100, 25, current_date - 30, true),
     ('a1a1a1a1-0000-0000-0000-000000000001','a1a1a1a1-2222-0000-0000-000000000001','auction_hammer', 120, 25, current_date - 60, true),
     ('a1a1a1a1-0000-0000-0000-000000000001','a1a1a1a1-2222-0000-0000-000000000001','auction_hammer', 140, 25, current_date - 90, true),
+    ('a1a1a1a1-0000-0000-0000-000000000001','a1a1a1a1-2222-0000-0000-000000000001','auction_hammer', 100, 25, current_date - 31, true),
+    ('a1a1a1a1-0000-0000-0000-000000000001','a1a1a1a1-2222-0000-0000-000000000001','auction_hammer', 120, 25, current_date - 61, true),
+    ('a1a1a1a1-0000-0000-0000-000000000001','a1a1a1a1-2222-0000-0000-000000000001','auction_hammer', 140, 25, current_date - 91, true),
     ('a1a1a1a1-0000-0000-0000-000000000001','a1a1a1a1-2222-0000-0000-000000000001','sold_listing',   160,  0, current_date - 120, true),
     -- None of these four may count: top of the market, too old, an estimate, a dealer.
     ('a1a1a1a1-0000-0000-0000-000000000001','a1a1a1a1-2222-0000-0000-000000000001','auction_hammer', 5000, 25, current_date - 10, false),
@@ -285,26 +288,26 @@ begin
     ('a1a1a1a1-0000-0000-0000-000000000001','a1a1a1a1-2222-0000-0000-000000000001','dealer', 900, 0, current_date - 10, true);
 
   select * into e from mp_price_evidence where profile_id = 'a1a1a1a1-2222-0000-0000-000000000001';
-  if e.sold_n <> 4 or e.has_enough then perform fail('evidence', 'four sold prices: n ' || e.sold_n); end if;
+  if e.sold_n <> 7 or e.has_enough then perform fail('evidence', 'seven sold prices: n ' || e.sold_n); end if;
   if exists (select 1 from mp_threshold_review where profile_id = e.profile_id) then
-    perform fail('evidence', 'a suggestion was made on fewer than five sold prices'); end if;
-  perform pass('marketplace evidence: fewer than five sold prices suggest nothing');
+    perform fail('evidence', 'a suggestion was made on fewer than eight sold prices'); end if;
+  perform pass('marketplace evidence: fewer than eight sold prices suggest nothing');
 
   insert into mp_price_obs (household_id, profile_id, kind, price, premium_pct, observed_on) values
     ('a1a1a1a1-0000-0000-0000-000000000001','a1a1a1a1-2222-0000-0000-000000000001','auction_hammer', 180, 25, current_date - 150);
   select * into e from mp_price_evidence where profile_id = 'a1a1a1a1-2222-0000-0000-000000000001';
-  -- hammer 100,120,140,160,180: median 140. all in 125,150,160,175,225: q1 150, median 160, q3 175.
-  if e.sold_n <> 5 or e.median_hammer <> 140 or e.median_all_in <> 160
-     or e.implied_steal <> 75 or e.implied_good <> 150 or e.implied_fair <> 160 or e.implied_max <> 175
+  -- all in: 125 125 150 150 160 175 175 225 - q1 143.75, median 155, q3 175. hammer median 130.
+  if e.sold_n <> 8 or e.median_hammer <> 130 or e.median_all_in <> 155
+     or e.implied_steal <> 72 or e.implied_good <> 144 or e.implied_fair <> 155 or e.implied_max <> 175
      or e.implied_new <> 900 or e.estimate_n <> 1 or e.dealer_n <> 1 then
     perform fail('evidence', format('n %s hammer %s all-in %s steal %s good %s fair %s max %s',
       e.sold_n, e.median_hammer, e.median_all_in, e.implied_steal, e.implied_good, e.implied_fair, e.implied_max));
   end if;
-  perform pass('marketplace evidence: medians from typical sold prices in the window only');
+  perform pass('marketplace evidence: quartiles from typical sold prices in the window only');
 
-  -- typed 40/80/130/200: steal +88%, good +88%, fair +23% are out; max -12.5% is not.
+  -- typed 40/80/130/200: steal and good are 80% out; fair +19% and max -12.5% are not.
   select count(*) into n from mp_threshold_review where profile_id = e.profile_id;
-  if n <> 3 or exists (select 1 from mp_threshold_review where profile_id = e.profile_id and threshold = 'max') then
+  if n <> 2 or exists (select 1 from mp_threshold_review where profile_id = e.profile_id and threshold in ('fair','max')) then
     perform fail('evidence', 'review rows ' || n); end if;
   if (select price_good from mp_profiles where id = e.profile_id) <> 80 then
     perform fail('evidence', 'the evidence overwrote a threshold'); end if;
@@ -364,6 +367,18 @@ begin
      or not (select fallback_due from mp_hunt_queue where key = 'sofa') then
     perform fail('hunt queue', 'exchange did not open from_exchange, or opened after_move'); end if;
   perform pass('marketplace queue: exchange opens the large pieces and starts the fallback clock; after_move still waits');
+
+  -- First few now, the rest later: two lamps wanted, one of them at once.
+  update mp_profiles set first_qty = 1, tier = 'day_one' where key = 'lamp' and household_id = 'a1a1a1a1-0000-0000-0000-000000000001';
+  if (select start_rank from mp_hunt_queue where key = 'lamp') <> 1 then perform fail('hunt queue', 'first_qty moved a profile before any was bought'); end if;
+  perform set_config('house.change_why', 'test', true);
+  insert into mp_finds (household_id, profile_id, title, status, paid, bought_on, quantity)
+  values ('a1a1a1a1-0000-0000-0000-000000000001','a1a1a1a1-2222-0000-0000-000000000013','first lamp','bought', 5, current_date, 1);
+  if (select start_rank from mp_hunt_queue where key = 'lamp') <> 3 then perform fail('hunt queue', 'the second of two did not wait'); end if;
+  update mp_finds set status = 'lost', status_note = 'test' where title = 'first lamp';
+  update mp_profiles set first_qty = null, tier = 'first_month' where key = 'lamp' and household_id = 'a1a1a1a1-0000-0000-0000-000000000001';
+  perform set_config('house.change_why', '', true);
+  perform pass('marketplace queue: once the first few are bought, the rest rank as a first-year need');
 end $$;
 
 -- The ration: twelve searches, ten alerts.

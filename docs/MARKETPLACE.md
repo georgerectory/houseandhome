@@ -98,6 +98,18 @@ check is a `doorstep` check. The reason must list those checks as the
 walk-away list: go, look, and leave without it if one fails. An unknown
 distance is not band A.
 
+**The bar is higher than the guard** (the owner's instruction, 15 Nov
+2026; rule `the_bar` in `mp_brief`). The guard says what a verdict MAY
+be; the bar says what is worth having. A thing is taken only when it is
+the right piece - fit 4 or 5, solid materials, sound - AND at or under
+the good price. Everything else is a `pass`, and a pass needs no
+apology: ten sent and none taken is a normal day. Cheap, free, nearby
+and nearly right are not reasons; a nearly-right piece takes the place,
+the money and the storage of the right one. Reproduction, "vintage
+style", 1930s oak and decorative brass are passes on sight. A rejection
+on sight is said in one line and NOT logged as a find; only a piece
+worth an offer, or worth watching, gets a row.
+
 A seller's "antique", "solid wood" or "real leather" is a claim. A check
 is answered `pass` or `fail` only from what was seen or what the seller
 answered, with the evidence written beside it; otherwise it is `unseen`.
@@ -111,7 +123,7 @@ verdict as lapsed and treats it as `watch`.
 ## Prices are earned
 
 Research rule for a profile: dated SOLD prices - auction results naming
-the house and the date, sold listings. Three typical dated sales make
+the house and the date, sold listings. Eight typical dated sales make
 `price_confidence` `researched`; fewer leave it `drafted`. Check a
 saleroom's current buyer's premium before relying on it.
 
@@ -180,6 +192,24 @@ still outstanding by:
 2. **Anchors first.** A profile with `anchor_of` waits behind the piece
    that sets its scale while that piece is still outstanding.
 3. **The saving against new**, biggest first.
+
+**First few, then the rest.** The list is sized for a three to four
+bedroom house, so several kinds are wanted in numbers: three beds, three
+wardrobes, ten pairs of curtains. `first_qty` says how many are needed
+at the kind's own tier; once that many are bought, what is left ranks
+no earlier than `first_year`. The second spare-room wardrobe is not
+worth more than the only sofa. Large and small kinds share the one
+queue, so they are weighed against each other and not within a size.
+
+**Storage is part of the price** (rule `storage`). The whole list is
+about 20 cubic metres. Small and medium things live at home. A large
+piece before exchange is taken only at or under the steal price AND
+with somewhere free and dry to stand. Paid storage starts only when the
+pieces waiting have saved more than the rent they will cost: about 65 a
+month for 25 sq ft (five or six large pieces), 110 for 50 sq ft, 190
+for 100 sq ft, which holds the lot (trade survey averages, 2026;
+ESTIMATE, no local quote taken). New-bought things - mattresses,
+bedding, white goods - are not on this list at all.
 
 `mode` is `buy` or `watch`. With no house, `from_exchange` and
 `after_move` profiles are WATCHED - to learn prices - not bought. The
@@ -266,9 +296,13 @@ Ground every one with `select mp_context('<household>')`.
    is the ceiling: open at three quarters of good, stop at good, and at
    or under good pay the asking price and go today. Only a day-one need
    with a house waiting may pay up to fair.
-8. The message to send, ready to copy; for a `watch`, the questions and
-   the photographs that settle them. Text only - the owner sends it. No
-   deposits and no moving off the platform, ever.
+8. The message to send, ready to copy (`sellerMessage`): the lowest
+   offer and collection, nothing else - "Would you take X? I can collect
+   this week and pay on collection." Never ask for more photographs,
+   measurements or history: everything else is settled on the doorstep,
+   where walking away is free. Only a prized piece at a steal earns one
+   question first. Text only - the owner sends it. No deposits and no
+   moving off the platform, ever.
 9. Write the find; read the ledger row back.
 10. **One committed bottom line**, consistent with the numbers above it.
 
@@ -352,6 +386,9 @@ alerts, and as the screenshots he sends.
 - The Marketplace search URL format has not been verified, so the page
   shows each query as selectable text and no link.
 - One saleroom's results are loaded so far, and it sells better pieces
-  than a general sale: its medians run about twice the typed ladders.
+  than a general sale. For small things it lots only the best singly,
+  so its lamps, stools, trays and pans run far above the market and are
+  NOT loaded; those ladders need a general saleroom or sold listings.
+- The storage figures are national survey averages, not a local quote.
 - There is no house and no completion date: `needed_by` is null
   everywhere and every large piece waits.

@@ -195,7 +195,7 @@ const O = (key, kind, price, on, o = {}) => ({
   is_typical: true, status: 'active', confidence: 'researched', ...o,
 });
 const observations = [
-  ...[100, 120, 140, 160, 180].map((p, i) => O('chest', 'auction_hammer', p, `2026-0${i + 1}-10`)),
+  ...[100, 110, 120, 130, 140, 150, 160, 180].map((p, i) => O('chest', 'auction_hammer', p, `2026-0${(i % 5) + 1}-${10 + i}`)),
   O('chest', 'auction_hammer', 900, '2026-02-10', { is_typical: false, description: 'An invented lot at the top of the market.' }),
   O('chest', 'dealer', 650, '2026-03-01'), O('sofa', 'auction_estimate', 300, '2026-03-05'),
   O('rug', 'sold_listing', 150, '2026-04-01'), O('rug', 'sold_listing', 170, '2026-04-08'),

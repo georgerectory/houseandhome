@@ -143,7 +143,7 @@ function findCard(l) {
         ${escape(q.question)} <span class="mp-dim">Settled by ${escape(q.settledBy)}.</span></li>`).join('')}</ul>` : ''}
     ${l.message ? `<details class="detail mp-fold"><summary>Message to send</summary>
       <div><p class="mp-message">${escape(l.message)}</p>
-      <p class="mp-dim">Copy it and send it yourself. Never a deposit, never off the platform.</p></div></details>` : ''}
+      <p class="mp-dim">Copy it and send it yourself. Short on purpose: the rest is settled at the door. Never a deposit, never off the platform.</p></div></details>` : ''}
   </article>`;
 }
 

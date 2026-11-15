@@ -43,7 +43,7 @@ test('a find shows its grade, its open questions, and a lapsed verdict as lapsed
   assert.ok(html.includes('This verdict no longer stands'));
   const lapsed = m.live.find((l) => !l.verdict_stands);
   assert.equal(lapsed.acting, 'watch');
-  assert.ok(lapsed.message.includes('still available'), 'a lapsed buy asks questions, it does not accept');
+  assert.ok(lapsed.message.includes('would you take'), 'a lapsed buy makes a low offer, it does not accept');
   assert.ok(html.includes('Still to settle'));
   assert.ok(html.includes('Distance not recorded'));
   assert.ok(html.includes('Turned down or lost'));

@@ -81,7 +81,11 @@ export function huntQueue(boardRows, state, today) {
   const hunting = (boardRows ?? []).filter((b) => b.status === 'hunting' && Number(b.qty_outstanding) > 0);
   const open = new Set(hunting.map((b) => b.key));
   const rows = hunting.map((b) => {
-    const startRank = Math.max(1, b.tier_rank - (LEAD[b.supply] ?? 0));
+    // First few now, the rest later: once `first_qty` are bought, what
+    // is still wanted ranks as a first-year need.
+    const firstDone = b.first_qty != null && Number(b.bought_qty ?? 0) >= Number(b.first_qty);
+    const needRank = firstDone ? Math.max(b.tier_rank, 3) : b.tier_rank;
+    const startRank = Math.max(1, needRank - (LEAD[b.supply] ?? 0));
     const waits = !!b.anchor_of && open.has(b.anchor_of);
     const saving = round2(Number(b.qty_outstanding)
       * Math.max(0, Number(b.price_new ?? 0) - Number(b.price_good ?? 0)));
@@ -91,7 +95,8 @@ export function huntQueue(boardRows, state, today) {
       ? new Date(Date.parse(since) + b.fallback_weeks * 7 * DAY).toISOString().slice(0, 10) : null;
     const reasons = [];
     reasons.push(b.tier === 'opportunistic' ? 'Only if one turns up.' : `Needed ${b.tier.replace('_', ' ')}.`);
-    if (startRank < b.tier_rank) reasons.push(`Started early: ${b.supply} things take months to turn up.`);
+    if (firstDone) reasons.push('The first is bought; the rest furnish rooms that can wait.');
+    if (startRank < needRank) reasons.push(`Started early: ${b.supply} things take months to turn up.`);
     if (waits) reasons.push(`After the ${b.anchor_of.replace(/_/g, ' ')}, which sets its scale.`);
     if (saving > 0) reasons.push(`Saves about £${Math.round(saving)} against new.`);
     if (!buy.can) reasons.push(buy.why);
@@ -207,7 +212,7 @@ function quantile(sorted, q) {
 }
 const whole = (n) => (n == null ? null : Math.round(n));
 const SOLD = new Set(['auction_hammer', 'sold_listing', 'own_purchase']);
-export const EVIDENCE_MIN = 5;
+export const EVIDENCE_MIN = 8;
 export const EVIDENCE_TOLERANCE = 0.2;
 
 /**
@@ -251,7 +256,7 @@ export function priceEvidence(profiles, observations, today) {
   });
 }
 
-/** Thresholds the evidence disputes by more than a fifth, on five or
+/** Thresholds the evidence disputes by more than a fifth, on eight or
  *  more sold prices. Pricing is Claude's job: these are set from the
  *  evidence with the reason logged, never put to the owner. */
 export function thresholdReview(evidence) {

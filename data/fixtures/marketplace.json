@@ -2346,18 +2346,18 @@
       "price_confidence": "researched",
       "captured_on": "2026-03-01",
       "is_stale": false,
-      "sold_n": 5,
+      "sold_n": 8,
       "asking_n": 2,
       "estimate_n": 0,
       "dealer_n": 1,
-      "median_hammer": 140,
-      "median_all_in": 175,
+      "median_hammer": 135,
+      "median_all_in": 168.75,
       "median_asking": 82.5,
       "has_enough": true,
-      "implied_steal": 75,
-      "implied_good": 150,
-      "implied_fair": 175,
-      "implied_max": 200,
+      "implied_steal": 73,
+      "implied_good": 147,
+      "implied_fair": 169,
+      "implied_max": 191,
       "implied_new": 650
     },
     {
@@ -2576,9 +2576,9 @@
       "name": "Chest of drawers",
       "threshold": "steal",
       "typed": 40,
-      "implied": 75,
-      "pct_out": 88,
-      "sold_n": 5
+      "implied": 73,
+      "pct_out": 83,
+      "sold_n": 8
     },
     {
       "profile_id": "prof-002",
@@ -2586,9 +2586,9 @@
       "name": "Chest of drawers",
       "threshold": "good",
       "typed": 80,
-      "implied": 150,
-      "pct_out": 88,
-      "sold_n": 5
+      "implied": 147,
+      "pct_out": 84,
+      "sold_n": 8
     },
     {
       "profile_id": "prof-002",
@@ -2596,9 +2596,9 @@
       "name": "Chest of drawers",
       "threshold": "fair",
       "typed": 130,
-      "implied": 175,
-      "pct_out": 35,
-      "sold_n": 5
+      "implied": 169,
+      "pct_out": 30,
+      "sold_n": 8
     }
   ],
   "mp_line_benchmark": [

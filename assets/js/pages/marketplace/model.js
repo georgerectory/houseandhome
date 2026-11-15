@@ -48,7 +48,9 @@ export function buildModel(data) {
     // A verdict the guard no longer allows is shown, and treated as
     // watch: no price to open at, and the message asks the questions.
     const acting = l.verdict_stands === false ? 'watch' : l.verdict;
-    const messageKind = acting === 'buy' ? 'accept' : acting === 'offer' ? 'offer' : 'ask';
+    // Go in with the lowest offer and settle the rest on the doorstep.
+    // A question is sent only where there is no price to offer against.
+    const messageKind = acting === 'buy' ? 'accept' : offer ? 'offer' : 'ask';
     return {
       ...row,
       gradeReasons: grade(own, l.checks, makerById.get(l.maker_id) ?? null).reasons,

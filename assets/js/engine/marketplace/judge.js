@@ -158,40 +158,30 @@ const HOW = { photo: 'a photograph', ask_seller: 'the seller', in_hand: 'seeing 
 export const questionsFor = (row) => (row.unseen_checks ?? [])
   .map((u) => ({ ...u, settledBy: HOW[u.how] ?? 'a look' }));
 
-const PHOTOS = {
-  storage: 'a drawer pulled right out, the back and the underside',
-  tables: 'the underside and any drawer pulled out',
-  seating: 'the underside and any label under the cushions',
-  textiles: 'the back and one corner folded over',
-  mirrors_art: 'the back',
-  kitchen_dining: 'the base and any maker\'s mark',
-  lighting: 'the base, the flex and the plug',
-};
-
 /**
- * A short polite message for the owner to send himself. Text only.
- * Never a deposit, never a move off the platform - the brief's `never`
- * rule - and those two things are not negotiable here either.
- *   ask     the open questions and the photographs that settle them
- *   offer   the opening offer, one reason and a collection time
+ * The message for the owner to send himself. Text only.
+ *
+ * SHORT, AND AN OFFER. A seller with six enquiries answers the one that
+ * names a price and a time, not the one that asks for four photographs.
+ * So the default is the lowest offer and nothing else; whether the
+ * thing is any good is settled on the doorstep, where he can walk away.
+ *   offer   the opening offer and when he can collect
  *   accept  the asking price, today
+ *   ask     ONE question - kept for a prized piece at a steal, where a
+ *           wasted trip costs more than a slower reply
+ * Never a deposit and never a move off the platform.
  */
 export function sellerMessage(row, kind, opts) {
-  const what = row.title;
   if (kind === 'accept') {
-    return `Hello, I would like the ${what} at your asking price of £${num(row.asking_price)}. `
-      + 'I can collect today or tomorrow and pay on collection. When would suit you?';
+    return `Hi, I'll take it at £${num(row.asking_price)}. I can collect today or tomorrow - when suits?`;
   }
-  if (kind === 'offer') {
-    const open = num(row.opening_offer) ?? offerRange(row, opts)?.open;
-    if (open == null) return null;
-    return `Hello, I like the ${what}. Would you take £${open}? I can collect this week at a time `
-      + 'that suits you and pay on collection.';
+  if (kind === 'ask') {
+    const q = questionsFor(row).find((x) => x.how !== 'in_hand');
+    return `Hi, is this still available? ${q ? `${q.question} ` : ''}I can collect this week.`;
   }
-  const asks = questionsFor(row).filter((q) => q.how !== 'in_hand').map((q) => q.question);
-  const photos = PHOTOS[row.category] ?? 'the back and the underside';
-  return `Hello, is the ${what} still available? ${asks.length ? `Could you tell me: ${asks.join(' ')} ` : ''}`
-    + `And could you send a photograph of ${photos}? Thank you.`;
+  const open = num(row.opening_offer) ?? offerRange(row, opts)?.open;
+  if (open == null) return null;
+  return `Hi, would you take £${open}? I can collect this week and pay on collection.`;
 }
 
 /**

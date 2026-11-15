@@ -87,17 +87,24 @@ the house and the date, sold listings. Three typical dated sales make
 `price_confidence` `researched`; fewer leave it `drafted`. Check a
 saleroom's current buyer's premium before relying on it.
 
-`mp_price_evidence` takes typical sold prices from the last 24 months
-and says what they imply: steal about half the median all-in, good the
-median hammer, fair the median all-in, the ceiling the upper quartile.
+`mp_price_evidence` takes typical sold prices from the last 24 months,
+buyer's premium included, and says what they imply: **good** is the
+lower quartile - what a patient buyer pays, not what the average bidder
+does; **fair** is the median; the **ceiling** is the upper quartile,
+held to one and a half times the median; a **steal** is half of good.
 Asking prices and auction estimates are counted and NEVER drive a
 threshold; dealer prices feed `price_new` only. Top-of-market lots,
 group lots and placeholders are recorded with `is_typical = false`.
 
-Evidence suggests and never overwrites. `mp_threshold_review` lists a
-threshold once five or more sold prices disagree with it by more than a
-fifth. The owner decides; the change needs `house.change_why` and is
-logged. A ladder captured over a year ago shows as stale.
+**Pricing is Claude's job, not the owner's** (his instruction, 15 Nov
+2026). He does not know these markets and should never be asked to
+confirm a price. A ladder with eight or more typical sold prices is SET
+from them - `house.change_why` first, so the change is logged with its
+reason - and marked `researched`. A ladder with fewer stays `drafted`
+and is the next thing to research. `mp_threshold_review` is Claude's
+own worklist: where it shows a row, set the ladder or find out why the
+evidence is wrong; do not put it to him. A ladder captured over a year
+ago shows as stale.
 
 Every find with a price lands as an `asking` observation and every
 purchase as `own_purchase`, by trigger and by function, so nothing

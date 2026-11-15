@@ -21,9 +21,9 @@ lots as `watch` finds (shape 5). Cloud environment `houseandhome`.
 
 ## Waiting on the owner
 
-- Marketplace: the ladders. One saleroom's medians run about twice the
-  typed thresholds (`mp_threshold_review`); nothing was changed. Also a
-  review of the lines listed below the good second-hand price.
+- Marketplace: nothing on prices - they are Claude's to research and set
+  (13 ladders set from sold prices 15 Nov; 28 still estimates). The eBay
+  keys, when he chooses. Replies from the sellers of 15 Nov's finds.
 - Nine `w3-` contradictions; the confirmed figures stand.
 - Close L62 / L64 (Sold STC)? Drop L56 / L66?
 - C-30 (House 1 net profit) is drafted until confirmed.

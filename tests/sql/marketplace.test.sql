@@ -293,16 +293,16 @@ begin
   insert into mp_price_obs (household_id, profile_id, kind, price, premium_pct, observed_on) values
     ('a1a1a1a1-0000-0000-0000-000000000001','a1a1a1a1-2222-0000-0000-000000000001','auction_hammer', 180, 25, current_date - 150);
   select * into e from mp_price_evidence where profile_id = 'a1a1a1a1-2222-0000-0000-000000000001';
-  -- hammer 100,120,140,160,180: median 140. all in 125,150,175,160,225: median 160, q3 175.
+  -- hammer 100,120,140,160,180: median 140. all in 125,150,160,175,225: q1 150, median 160, q3 175.
   if e.sold_n <> 5 or e.median_hammer <> 140 or e.median_all_in <> 160
-     or e.implied_steal <> 80 or e.implied_good <> 140 or e.implied_fair <> 160 or e.implied_max <> 175
+     or e.implied_steal <> 75 or e.implied_good <> 150 or e.implied_fair <> 160 or e.implied_max <> 175
      or e.implied_new <> 900 or e.estimate_n <> 1 or e.dealer_n <> 1 then
     perform fail('evidence', format('n %s hammer %s all-in %s steal %s good %s fair %s max %s',
       e.sold_n, e.median_hammer, e.median_all_in, e.implied_steal, e.implied_good, e.implied_fair, e.implied_max));
   end if;
   perform pass('marketplace evidence: medians from typical sold prices in the window only');
 
-  -- typed 40/80/130/200: steal +100%, good +75%, fair +23% are out; max -12.5% is not.
+  -- typed 40/80/130/200: steal +88%, good +88%, fair +23% are out; max -12.5% is not.
   select count(*) into n from mp_threshold_review where profile_id = e.profile_id;
   if n <> 3 or exists (select 1 from mp_threshold_review where profile_id = e.profile_id and threshold = 'max') then
     perform fail('evidence', 'review rows ' || n); end if;

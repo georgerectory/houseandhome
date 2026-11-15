@@ -243,8 +243,8 @@ test('only typical sold prices in the window drive the evidence', () => {
   assert.ok(evidenceSummary(e).includes('1 more sold'));
   [e] = priceEvidence([P], [...rows, obs('auction_hammer', 180, 225)], '2026-02-10');
   assert.deepEqual([e.median_hammer, e.median_all_in, e.implied_steal, e.implied_good, e.implied_fair, e.implied_max, e.implied_new],
-    [140, 160, 80, 140, 160, 175, 900]);
-  assert.deepEqual(thresholdReview([e]).map((r) => [r.threshold, r.pct_out]), [['steal', 100], ['good', 75], ['fair', 23]]);
+    [140, 160, 75, 150, 160, 175, 900]);
+  assert.deepEqual(thresholdReview([e]).map((r) => [r.threshold, r.pct_out]), [['steal', 88], ['good', 88], ['fair', 23]]);
   assert.equal(evidenceSummary(null), 'No dated prices yet: the ladder is an estimate.');
   assert.equal(isStale('2025-01-01', '2026-02-10'), true);
   assert.equal(isStale('2025-06-01', '2026-02-10'), false);

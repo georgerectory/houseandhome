@@ -223,6 +223,8 @@ export function priceEvidence(profiles, observations, today) {
     const allIn = col(sold, 'price_all_in');
     const of = (kind) => own.filter((o) => o.kind === kind);
     const medianAllIn = quantile(allIn, 0.5);
+    const q1 = quantile(allIn, 0.25);
+    const q3 = quantile(allIn, 0.75);
     return {
       profile_id: p.id, key: p.key, name: p.name,
       price_steal: p.price_steal, price_good: p.price_good, price_fair: p.price_fair,
@@ -234,17 +236,20 @@ export function priceEvidence(profiles, observations, today) {
       median_hammer: quantile(hammer, 0.5), median_all_in: medianAllIn,
       median_asking: quantile(col(of('asking'), 'unit_price'), 0.5),
       has_enough: sold.length >= EVIDENCE_MIN,
-      implied_steal: whole(medianAllIn == null ? null : medianAllIn / 2),
-      implied_good: whole(quantile(hammer, 0.5)),
+      // Good is the lower quartile - what a patient buyer pays; fair the
+      // median; the ceiling the upper quartile, held to 1.5 x the median.
+      implied_steal: whole(q1 == null ? null : q1 / 2),
+      implied_good: whole(q1),
       implied_fair: whole(medianAllIn),
-      implied_max: whole(quantile(allIn, 0.75)),
+      implied_max: whole(q3 == null ? null : Math.min(q3, medianAllIn * 1.5)),
       implied_new: whole(quantile(col(of('dealer'), 'unit_price'), 0.5)),
     };
   });
 }
 
 /** Thresholds the evidence disputes by more than a fifth, on five or
- *  more sold prices. A prompt for the owner; nothing is changed. */
+ *  more sold prices. Pricing is Claude's job: these are set from the
+ *  evidence with the reason logged, never put to the owner. */
 export function thresholdReview(evidence) {
   const out = [];
   for (const e of evidence ?? []) {

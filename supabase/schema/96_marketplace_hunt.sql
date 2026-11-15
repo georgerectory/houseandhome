@@ -9,9 +9,10 @@
 -- owner's own purchase. An asking price is what somebody hoped for and
 -- an auction estimate is what somebody guessed; both are kept and
 -- neither moves a threshold. Dealer prices feed `price_new` only.
--- Evidence SUGGESTS and never overwrites: mp_threshold_review lists
--- where five or more sold prices disagree with a typed threshold by
--- more than a fifth, and the owner decides.
+-- mp_threshold_review lists where five or more sold prices disagree
+-- with a threshold by more than a fifth. Pricing is Claude's job, not
+-- the owner's: a ladder is set from the evidence, with its reason
+-- logged, and is never put to the owner as a question.
 --
 -- THE HUNT ORDER. mp_hunt_queue ranks every profile still outstanding:
 -- need first (the tier), pulled earlier for scarce and rare things
@@ -141,13 +142,15 @@ select
   e.median_hammer, e.median_all_in, e.q1_all_in, e.q3_all_in,
   e.median_asking, e.median_dealer, e.latest_sold_on,
   (coalesce(e.sold_n, 0) >= 5)                          as has_enough,
-  -- What the sold prices would make the ladder. Steal: about half the
-  -- going rate. Good: the hammer, as a private sale has no premium.
-  -- Fair: what a bidder actually paid. Max: the upper quartile.
-  round(e.median_all_in / 2)                            as implied_steal,
-  round(e.median_hammer)                                as implied_good,
+  -- What the sold prices would make the ladder, premium included. Good
+  -- is the LOWER QUARTILE: what a patient buyer pays, not what the
+  -- average bidder does. Fair is the median. The ceiling is the upper
+  -- quartile, held to one and a half times the median so one grand
+  -- sale cannot drag it up. A steal is half of good.
+  round(e.q1_all_in / 2)                                as implied_steal,
+  round(e.q1_all_in)                                    as implied_good,
   round(e.median_all_in)                                as implied_fair,
-  round(e.q3_all_in)                                    as implied_max,
+  round(least(e.q3_all_in, e.median_all_in * 1.5))      as implied_max,
   round(e.median_dealer)                                as implied_new
 from public.mp_profiles p
 left join (

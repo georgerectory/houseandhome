@@ -2354,8 +2354,8 @@
       "median_all_in": 175,
       "median_asking": 82.5,
       "has_enough": true,
-      "implied_steal": 88,
-      "implied_good": 140,
+      "implied_steal": 75,
+      "implied_good": 150,
       "implied_fair": 175,
       "implied_max": 200,
       "implied_new": 650
@@ -2432,8 +2432,8 @@
       "median_all_in": 160,
       "median_asking": 155,
       "has_enough": false,
-      "implied_steal": 80,
-      "implied_good": 160,
+      "implied_steal": 78,
+      "implied_good": 155,
       "implied_fair": 160,
       "implied_max": 165,
       "implied_new": null
@@ -2576,8 +2576,8 @@
       "name": "Chest of drawers",
       "threshold": "steal",
       "typed": 40,
-      "implied": 88,
-      "pct_out": 120,
+      "implied": 75,
+      "pct_out": 88,
       "sold_n": 5
     },
     {
@@ -2586,8 +2586,8 @@
       "name": "Chest of drawers",
       "threshold": "good",
       "typed": 80,
-      "implied": 140,
-      "pct_out": 75,
+      "implied": 150,
+      "pct_out": 88,
       "sold_n": 5
     },
     {

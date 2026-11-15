@@ -115,12 +115,16 @@ export function gridLotCount(html) {
   return m ? Number(m[1].replace(/,/g, '')) : null;
 }
 
-/** The lots on one grid page: [{ lot, teaser, path }]. */
+/** The lots on one grid page: [{ lot, teaser, path, hammer }]. The
+ *  hammer is there once the sale is over and the lot sold. */
 export function parseGridLots(html) {
   return String(html ?? '').split('class="grid-lot"').slice(1).map((block) => {
     const head = /<h4><a href="(\/catalogue\/lot\/[^"]+)">\s*Lot\s*(\w+)\s*<\/a><\/h4>/.exec(block);
     const teaser = /class="no-hover">\s*<p[^>]*>\s*([\s\S]*?)\s*<\/p>/.exec(block);
-    return head && teaser ? { lot: head[2], teaser: text(teaser[1]), path: head[1] } : null;
+    const hammer = /Hammer £\s?([\d,]+)/.exec(block);
+    return head && teaser
+      ? { lot: head[2], teaser: text(teaser[1]), path: head[1], hammer: hammer ? Number(hammer[1].replace(/,/g, '')) : null }
+      : null;
   }).filter(Boolean);
 }
 

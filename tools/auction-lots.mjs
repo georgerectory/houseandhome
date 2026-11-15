@@ -13,7 +13,9 @@
 //
 // A ground whose `reader` is 'grid' is on the catalogue platform many
 // regional salerooms share: add --reader grid and give --section the
-// auctions page (usually `auctions`). Only coming sales are read there.
+// auctions page (usually `auctions`) for coming sales, or the results
+// page (usually `auction-results`) for sold prices. --match keeps the
+// sales whose path holds a word; --max-sales stops after so many.
 //
 // Each mode writes one SQL statement (observations.sql, candidates.sql)
 // to be run through the Supabase connector. Both are idempotent.
@@ -81,10 +83,11 @@ function best(candidates) {
 // Read the grid for teasers, open only the lot pages a trigger word
 // points at, and let the whole description decide.
 if (arg('reader') === 'grid') {
-  if (mode !== 'catalogue') { console.error('the grid reader reads coming sales only'); process.exit(2); }
   const today = new Date().toISOString().slice(0, 10);
   const words = new RegExp(`\\b(${triggerWords(profiles).join('|')})`, 'i');
-  const catalogues = arg('catalogue') ? [arg('catalogue')] : parseCatalogues(await get(`/${section}/`));
+  const match = arg('match');
+  const listed = arg('catalogue') ? [arg('catalogue')] : parseCatalogues(await get(`/${section}/`));
+  const catalogues = listed.filter((p) => !match || p.includes(match)).slice(0, Number(arg('max-sales', 40)));
   const all = [];
   for (const path of catalogues) {
     const first = await get(path);
@@ -92,7 +95,9 @@ if (arg('reader') === 'grid') {
     const teasers = parseGridLots(first);
     const pages = Math.min(40, Math.ceil(total / GRID_PAGE));
     for (let page = 2; page <= pages; page += 1) teasers.push(...parseGridLots(await get(`${path}?currentPageNo=${page}`)));
-    const open = teasers.filter((l) => words.test(l.teaser)).slice(0, Number(arg('max-lots', 250)));
+    // A sold price is only worth a page when the lot sold.
+    const open = teasers.filter((l) => words.test(l.teaser) && (mode === 'catalogue' || l.hammer != null))
+      .slice(0, Number(arg('max-lots', 250)));
     const lots = [];
     let saleDate = null;
     let premium = Number(arg('premium', 30));
@@ -100,12 +105,30 @@ if (arg('reader') === 'grid') {
       const page = parseLotPage(await get(l.path));
       saleDate ??= page.saleDate;
       premium = page.premiumPct ?? premium;
-      if (page.description) lots.push({ ...l, ...page });
+      if (page.description) lots.push({ ...l, ...page, hammer: page.hammer ?? l.hammer, premiumPct: page.premiumPct ?? premium });
+    }
+    if (mode === 'results') {
+      const since = arg('since', '1900-01-01');
+      const sold = saleDate && saleDate >= since && saleDate < today ? lots.filter((l) => l.hammer != null) : [];
+      const obs = toObservations(sold, { profiles, saleDate, where: arg('where', base) });
+      all.push(...obs);
+      if (saleDate) writeFileSync(join(out, `lots-${saleDate}-${path.split('/')[2].slice(0, 6)}.json`), JSON.stringify(sold, null, 1));
+      console.log(`${path}: ${total} lots, ${open.length} opened, sale ${saleDate ?? 'undated'}, ${obs.length} matched a profile`);
+      continue;
     }
     const coming = saleDate == null || saleDate >= today || arg('catalogue');
     const found = coming ? toCandidates(lots.map((l) => ({ ...l, hammer: null })), { profiles, premiumPct: premium }) : [];
     for (const c of found) all.push({ ...c, sale_date: saleDate, url: String(new URL(c.path, base)) });
     console.log(`${path}: ${total} lots, ${open.length} opened, sale ${saleDate ?? 'undated'}, premium ${premium}%, ${found.length} match a hunted profile`);
+  }
+  if (mode === 'results') {
+    const sql = observationsSql(all, {
+      household: arg('household'), groundKey: arg('ground'), publisher: arg('where', base),
+      resultsUrl: String(new URL(`/${section}/`, base)), retrieved: today,
+    });
+    if (sql) writeFileSync(join(out, 'observations.sql'), `${sql}\n`);
+    console.log(`results: ${catalogues.length} sales, ${all.length} observations`);
+    process.exit(0);
   }
   const kept = best(all);
   writeFileSync(join(out, 'candidates.json'), JSON.stringify(kept, null, 1));

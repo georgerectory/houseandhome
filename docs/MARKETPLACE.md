@@ -168,8 +168,10 @@ writes one idempotent statement to run through the connector. Which
 saleroom to read is on the ground: `mp_grounds.url`, `reader`,
 `results_section` and `catalogue_section`. There are two readers:
 `rows`, for a saleroom that lists a row per lot with its price, and
-`grid`, for the catalogue platform many regional salerooms share, where
-only coming sales are read.
+`grid`, for the catalogue platform many regional salerooms share: its
+grid shows the hammer once a sale is over, so `results --reader grid`
+reads sold prices from the results page, opening only the lot pages
+whose first words name something hunted.
 
 Two cautions. A match is made by pattern, not by eye, so a profile's
 evidence is only as good as its patterns: read a sample before trusting

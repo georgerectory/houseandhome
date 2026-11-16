@@ -14,8 +14,8 @@ L66 - the owner decides; nothing was closed. The overhaul
 `94`-`96_marketplace*.sql`, `engine/marketplace.js`, `marketplace.html`;
 protocol in `docs/MARKETPLACE.md`. Ground with `mp_context`. 15 Nov:
 list resized for a 3-4 bedroom house (45 profiles; `first_qty` ranks the
-first few of a kind ahead of the rest); 21 ladders set from 723 sold
-prices, 24 still estimates; eight sales make a ladder. The bar, the
+first few of a kind ahead of the rest); 26 ladders set from 772 sold
+prices at two salerooms, 19 still estimates; eight sales make one. The bar, the
 low-offer message and the storage rule are in `mp_brief.rules` and the
 protocol. Two finds live, the rest passed. A sweep bound to the build
 session (Mon and Thu) writes coming lots as `watch` finds (shape 5).

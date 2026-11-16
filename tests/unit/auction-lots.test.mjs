@@ -110,7 +110,9 @@ test('the shared catalogue platform: catalogues, the grid and a lot page', () =>
     <a href="/catalogue/lot/${A}/${B}/homes-antiques-lot-75/" class="no-hover"> <p style="--h: 45px"> A Regency mahogany ebony strung linen pr... </p>
     <p class="lotEst">Estimate £150 - £250</p></a></div></div>`;
   assert.equal(gridLotCount(grid), 1527);
-  assert.deepEqual(parseGridLots(grid), [{ lot: '75', teaser: 'A Regency mahogany ebony strung linen pr...', path: `/catalogue/lot/${A}/${B}/homes-antiques-lot-75/` }]);
+  assert.deepEqual(parseGridLots(grid), [{ lot: '75', teaser: 'A Regency mahogany ebony strung linen pr...', path: `/catalogue/lot/${A}/${B}/homes-antiques-lot-75/`, hammer: null }]);
+  // Once the sale is over the grid carries the hammer.
+  assert.equal(parseGridLots(grid.replace('<p class="lotEst">Estimate £150 - £250</p>', '<p class="hammerPrice hammerEst"> Hammer £1,150 </p>'))[0].hammer, 1150);
   const coming = parseLotPage(`<div>1 /4 Estimate £150 - £250 <a>Fees</a> A Regency mahogany linen press, the pair of panelled doors over a four drawer base
     <b>Watch Lot</b> Prev Lot Closed Auction Date: 7th Nov 2026 at 9am Room and Absentee Bids: 27.6% inc VAT* Online: 31.2% inc VAT*</div><script>Hammer £9</script>`);
   assert.deepEqual(coming, { description: 'A Regency mahogany linen press, the pair of panelled doors over a four drawer base',

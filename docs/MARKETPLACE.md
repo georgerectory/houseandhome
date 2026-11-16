@@ -168,8 +168,10 @@ writes one idempotent statement to run through the connector. Which
 saleroom to read is on the ground: `mp_grounds.url`, `reader`,
 `results_section` and `catalogue_section`. There are two readers:
 `rows`, for a saleroom that lists a row per lot with its price, and
-`grid`, for the catalogue platform many regional salerooms share, where
-only coming sales are read.
+`grid`, for the catalogue platform many regional salerooms share: its
+grid shows the hammer once a sale is over, so `results --reader grid`
+reads sold prices from the results page, opening only the lot pages
+whose first words name something hunted.
 
 Two cautions. A match is made by pattern, not by eye, so a profile's
 evidence is only as good as its patterns: read a sample before trusting
@@ -385,10 +387,12 @@ alerts, and as the screenshots he sends.
   after a move.
 - The Marketplace search URL format has not been verified, so the page
   shows each query as selectable text and no link.
-- One saleroom's results are loaded so far, and it sells better pieces
-  than a general sale. For small things it lots only the best singly,
-  so its lamps, stools, trays and pans run far above the market and are
-  NOT loaded; those ladders need a general saleroom or sold listings.
+- Two salerooms' results are loaded: a fine-furniture house and the
+  local general sale. Neither prices small things: a saleroom lots only
+  the best lamp, stool, tray or picture singly and sells the rest by the
+  boxful (twelve table lamps made 30), so those are NOT loaded and
+  their ladders stay estimates until sold listings are read. The same
+  boxes are the cheapest way to buy lamps.
 - The storage figures are national survey averages, not a local quote.
 - There is no house and no completion date: `needed_by` is null
   everywhere and every large piece waits.

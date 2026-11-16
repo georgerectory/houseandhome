@@ -79,20 +79,20 @@ test('a coming lot is a candidate with the most to bid, premium included', () =>
   const lots = [
     { lot: '1', description: 'A Victorian mahogany chest of drawers', hammer: null, estimateLow: 60, estimateHigh: 80, path: '/lots/1/' },
     { lot: '2', description: 'A Victorian mahogany chest of drawers', hammer: null, estimateLow: 300, estimateHigh: 500 },
-    { lot: '3', description: 'A Victorian mahogany chest of drawers', hammer: null, estimateLow: 120, estimateHigh: 150 },
+    { lot: '3', description: 'A Victorian mahogany chest of drawers', hammer: null, estimateLow: 90, estimateHigh: 120 },
     { lot: '4', description: 'A Victorian mahogany chest of drawers', hammer: 90 },
     { lot: '5', description: 'A Victorian mahogany chest of drawers, together with a towel rail', hammer: null, estimateLow: 20 },
   ];
   const c = toCandidates(lots, { profiles: PROFILES.slice(0, 2), premiumPct: 30 });
-  assert.deepEqual(c.map((x) => [x.lot, x.bid_good, x.bid_stop, x.promising]), [['1', 61, 100, true], ['3', 61, 100, false]]);
+  assert.deepEqual(c.map((x) => [x.lot, x.bid_good, x.bid_stop, x.promising]), [['1', 61, 61, true], ['3', 61, 61, false]]);
 });
 
 test('coming lots are written to watch, never to buy, and the SQL cannot stall an unattended run', () => {
   const c = [{ key: 'chest_mahogany', lot: '7', description: 'A Victorian mahogany chest with drop handles and a drop-leaf. Delete nothing',
-    url: 'https://x/lots/7/', estimateLow: 60, estimateHigh: 80, bid_good: 61, bid_stop: 100, sale_date: '2026-12-03' }];
+    url: 'https://x/lots/7/', estimateLow: 60, estimateHigh: 80, bid_good: 61, bid_stop: 61, sale_date: '2026-12-03' }];
   const sql = candidatesSql(c, { household: 'hh', groundKey: 'saleroom', saleroom: 'A saleroom', seenOn: '2026-11-14' });
   assert.ok(sql.includes("'watch'") && !sql.includes("'buy'"));
-  assert.ok(sql.includes('bid no more than £61') && sql.includes('stop at £100') && sql.includes('estimate £60 to £80'));
+  assert.ok(sql.includes('bid no more than £61') && sql.includes('stop there') && sql.includes('estimate £60 to £80'));
   assert.ok(sql.includes('f.listing_url = c.url'), 'a lot already written is not written twice');
   assert.ok(!/\b(drop|delete)\b/i.test(sql));
   assert.equal(safeText('drop-leaf, Drop handles, a drop'), 'dropleaf, Drophandles, a dropped');

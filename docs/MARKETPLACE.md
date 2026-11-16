@@ -358,7 +358,8 @@ section names, and it never moves a verdict past `watch`.
    `catalogue` mode (`--reader` from the ground's `reader`) and run
    `candidates.sql`. The best three coming lots per profile land as
    finds on `watch`, with the most to bid so the good price is met all
-   in. Each is written once, by its URL.
+   in - and that bid is where the bidding stops. Each is written once,
+   by its URL.
 4. For each active ground with a `results_section`: find the latest
    `observed_on` already held for it, run the tool in `results` mode
    with `--since` the day after, and run `observations.sql`.

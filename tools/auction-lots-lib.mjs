@@ -217,10 +217,12 @@ export function toObservations(lots, { profiles, saleDate, where }) {
  * Unsold lots in a coming sale worth a look: one per lot that matches a
  * profile still being hunted, with the most to bid.
  *
- * The bid is the hammer that lands the good price ALL IN: good divided
- * by one plus the premium. A lot whose low estimate is already above
- * the hammer that would land the ceiling is left out - it is not going
- * to be a bargain.
+ * The bid is the hammer that lands the GOOD price all in - good divided
+ * by one plus the premium - and it is where the bidding stops: the good
+ * price is the ceiling in a saleroom as it is on a doorstep. A lot
+ * whose low estimate is already above the hammer that would land the
+ * FAIR price is left out; it is not going to be a bargain. One
+ * estimated between the two is kept, and is not promising.
  */
 export function toCandidates(lots, { profiles, premiumPct }) {
   const k = 1 + Number(premiumPct ?? 0) / 100;
@@ -232,15 +234,14 @@ export function toCandidates(lots, { profiles, premiumPct }) {
     const p = profiles.find((x) => x.key === c.key);
     if (p.price_good == null) continue;
     const bidGood = Math.floor(Number(p.price_good) / k);
-    const bidStop = Math.floor(Number(p.price_fair ?? p.price_good) / k);
-    const ceiling = Math.floor(Number(p.price_max ?? p.price_fair ?? p.price_good) / k);
-    if (l.estimateLow != null && l.estimateLow > ceiling) continue;
+    const bidFair = Math.floor(Number(p.price_fair ?? p.price_good) / k);
+    if (l.estimateLow != null && l.estimateLow > bidFair) continue;
     out.push({
       key: c.key, lot: l.lot, description: l.description, path: l.path,
       estimateLow: l.estimateLow, estimateHigh: l.estimateHigh,
-      bid_good: bidGood, bid_stop: bidStop,
+      bid_good: bidGood, bid_stop: bidGood,
       // Likely to sell inside what is worth paying, on the estimate.
-      promising: l.estimateLow == null || l.estimateLow <= bidStop,
+      promising: l.estimateLow == null || l.estimateLow <= bidGood,
     });
   }
   return out;
@@ -320,7 +321,7 @@ export function candidatesSql(candidates, { household, groundKey, saleroom, seen
       : `estimate £${c.estimateLow}${c.estimateHigh && c.estimateHigh !== c.estimateLow ? ` to £${c.estimateHigh}` : ''}`;
     const when = c.sale_date ? `, sale on ${c.sale_date}` : '';
     const reason = `Lot ${c.lot} at ${saleroom}${when}: ${est}. To land the good price with the premium, bid no more than `
-      + `£${c.bid_good} on the hammer; stop at £${c.bid_stop}. Nothing is proven from a catalogue line: view it, or ask for a condition report, before bidding.`;
+      + `£${c.bid_good} on the hammer, and stop there. Nothing is proven from a catalogue line: view it before bidding.`;
     return `(${[q(c.key), q(safeText(`Lot ${c.lot}: ${c.description}`).slice(0, 140)), q(c.url), q(safeText(c.description).slice(0, 600)),
       q(safeText(reason)), c.bid_good, c.bid_stop].join(', ')})`;
   });

@@ -376,9 +376,13 @@ alerts, and as the screenshots he sends.
 ## Known gaps
 
 - Ladders with too few sold prices are still estimates, and are the
-  next thing to research. Every maker and every check was seeded from
-  general knowledge and is `drafted` until verified against a source:
-  that verification is Claude's to do, not the owner's.
+  next thing to research. Makers and checks were seeded from general
+  knowledge and are `drafted` until verified against a source, which is
+  Claude's to do, not the owner's. 16 Nov 2026: 8 of 73 makers and the
+  47 checks that rest on a factual claim are `researched`, each with its
+  `sources` row; the silver-plate marks found no usable source. A
+  retailer's stamp (Maple, Shoolbred, Edwards and Roberts) is
+  `acceptable`, never `seek`: it must not lift a grade by itself.
 - Several loaded hammer prices were quoted in groups, without a house
   and date each, or without the house's premium. They are marked
   `drafted` and say so in their note.

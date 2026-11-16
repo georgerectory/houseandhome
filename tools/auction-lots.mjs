@@ -111,8 +111,11 @@ if (arg('reader') === 'grid') {
       const since = arg('since', '1900-01-01');
       const sold = saleDate && saleDate >= since && saleDate < today ? lots.filter((l) => l.hammer != null) : [];
       const obs = toObservations(sold, { profiles, saleDate, where: arg('where', base) });
-      all.push(...obs);
-      if (saleDate) writeFileSync(join(out, `lots-${saleDate}-${path.split('/')[2].slice(0, 6)}.json`), JSON.stringify(sold, null, 1));
+      // The same sale can be listed twice, and one sale can run to
+      // several catalogues: keep each lot once, and each file apart.
+      for (const o of obs) if (!all.some((x) => x.observed_on === o.observed_on && x.description === o.description)) all.push(o);
+      const [, , a, b] = path.split('/');
+      if (saleDate) writeFileSync(join(out, `lots-${saleDate}-${a.slice(0, 6)}-${b.slice(0, 6)}.json`), JSON.stringify(sold, null, 1));
       console.log(`${path}: ${total} lots, ${open.length} opened, sale ${saleDate ?? 'undated'}, ${obs.length} matched a profile`);
       continue;
     }

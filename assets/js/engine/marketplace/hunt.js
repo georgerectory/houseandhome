@@ -96,6 +96,9 @@ export function huntQueue(boardRows, state, today) {
     const reasons = [];
     reasons.push(b.tier === 'opportunistic' ? 'Only if one turns up.' : `Needed ${b.tier.replace('_', ' ')}.`);
     if (firstDone) reasons.push('The first is bought; the rest furnish rooms that can wait.');
+    else if (b.first_qty != null && Number(b.first_qty) < Number(b.wanted_qty)) {
+      reasons.push(`The first ${Number(b.first_qty)} come first; the rest can wait.`);
+    }
     if (startRank < needRank) reasons.push(`Started early: ${b.supply} things take months to turn up.`);
     if (waits) reasons.push(`After the ${b.anchor_of.replace(/_/g, ' ')}, which sets its scale.`);
     if (saving > 0) reasons.push(`Saves about £${Math.round(saving)} against new.`);

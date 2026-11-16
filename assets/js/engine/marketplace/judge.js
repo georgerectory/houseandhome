@@ -152,7 +152,9 @@ export function offerRange(row, { patient = true } = {}) {
   return { kind: 'offer', open: round2(good * qty), stop: round2(fair * qty) };
 }
 
-const HOW = { photo: 'a photograph', ask_seller: 'the seller', in_hand: 'seeing it in the hand' };
+// Everything unseen is settled at the door, where walking away is free:
+// nothing here is a reason to ask the seller for more before going.
+const HOW = { photo: 'looking it over', ask_seller: 'asking at the door', in_hand: 'handling it' };
 
 /** The unseen checks of a ledger row as plain questions. */
 export const questionsFor = (row) => (row.unseen_checks ?? [])

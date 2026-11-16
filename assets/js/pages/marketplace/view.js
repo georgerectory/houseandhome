@@ -138,9 +138,9 @@ function findCard(l) {
     ${l.answered.length ? `<ul class="mp-checks">${l.answered.map((a) => `<li class="mp-check mp-check--${escape(a.answer)}">
       <span class="mp-check__mark">${escape(titleCase(a.answer))}</span> ${escape(a.question)}
       ${a.evidence ? `<span class="mp-dim">${escape(a.evidence)}</span>` : ''}</li>`).join('')}</ul>` : ''}
-    ${l.questions.length ? `<p class="mp-line mp-strong">Still to settle</p>
+    ${l.questions.length ? `<p class="mp-line mp-strong">Still to settle, at the door</p>
       <ul class="mp-checks">${l.questions.map((q) => `<li class="mp-check mp-check--unseen">
-        ${escape(q.question)} <span class="mp-dim">Settled by ${escape(q.settledBy)}.</span></li>`).join('')}</ul>` : ''}
+        ${escape(q.question)} <span class="mp-dim">By ${escape(q.settledBy)}.</span></li>`).join('')}</ul>` : ''}
     ${l.message ? `<details class="detail mp-fold"><summary>Message to send</summary>
       <div><p class="mp-message">${escape(l.message)}</p>
       <p class="mp-dim">Copy it and send it yourself. Short on purpose: the rest is settled at the door. Never a deposit, never off the platform.</p></div></details>` : ''}
@@ -162,7 +162,8 @@ function inPlayHtml(m) {
       </div></details>`
     : '';
   return section('in-play', 'In play', live + down,
-    'Buy first, then offer, then watch. What was turned down is kept with its reason: knowing why is how the eye is trained.');
+    'Only the right piece at or under the good price is taken; everything else is passed, and most things are. '
+    + 'What was turned down is kept with its reason: knowing why is how the eye is trained.');
 }
 
 const makerList = (label, list) => (list.length

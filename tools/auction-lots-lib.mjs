@@ -173,7 +173,8 @@ export function triggerWords(profiles) {
 
 // More than one thing in the lot: a real price that says little about
 // one piece. "A pair of" is left alone - a pair is how some things sell.
-const GROUP = /\btogether with\b|\band (?:a|an|two|three|four|five|six)\b[^.]{0,80}\b(?:table|chair|chest|stool|mirror|cabinet|bookcase|desk|stand|trolley|box)\b|\b(?:group|collection|quantity|selection) of\b|\bvarious\b/i;
+// Some salerooms write "to/w" for it.
+const GROUP = /\btogether with\b|\bto\/w\b|\band (?:a|an|two|three|four|five|six)\b[^.]{0,80}\b(?:table|chair|chest|stool|mirror|cabinet|bookcase|desk|stand|trolley|box)\b|\b(?:group|collection|quantity|selection) of\b|\bvarious\b/i;
 
 /**
  * Which profile a lot description answers to, if any.

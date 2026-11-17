@@ -379,11 +379,12 @@ alerts, and as the screenshots he sends.
 - Ladders with too few sold prices are still estimates, and are the
   next thing to research. Makers and checks were seeded from general
   knowledge and are `drafted` until verified against a source, which is
-  Claude's to do, not the owner's. 17 Nov 2026: 18 of 73 makers and the
+  Claude's to do, not the owner's. 17 Nov 2026: 26 of 73 makers and the
   47 checks that rest on a factual claim are `researched`, each with its
-  `sources` row; the silver-plate marks found no usable source, and the
-  founding dates of Tetrad and Royal Crown Derby are disputed between
-  sources, so those stay `drafted`. A
+  `sources` row, the four Sheffield and Birmingham platers among them.
+  Where sources disagree on a founding date (Tetrad, Royal Crown Derby,
+  Mauviel, Titchmarsh and Goodwin) the row says so and stays `drafted`;
+  the mark, not the date, is what a find is judged on. A
   retailer's stamp (Maple, Shoolbred, Edwards and Roberts) is
   `acceptable`, never `seek`: it must not lift a grade by itself.
 - Several loaded hammer prices were quoted in groups, without a house

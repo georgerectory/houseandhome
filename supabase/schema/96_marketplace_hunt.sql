@@ -217,6 +217,20 @@ alter table public.mp_profiles
   -- side table, the bed for the bedsides, the table for the chairs.
   add column if not exists anchor_of text;
 
+-- ---------------------------------------------------------------
+-- First few now, the rest later.
+--
+-- A house wants three beds and ten pairs of curtains, but not all on
+-- the day the keys arrive: one bed is a day-one need and the other two
+-- furnish rooms nobody sleeps in yet. `first_qty` is how many are
+-- wanted at the profile's own tier. Once that many are bought, what is
+-- still outstanding ranks as a first-year need, so the second bed
+-- never queues ahead of the only sofa. Null means all of them are
+-- wanted at the tier.
+-- ---------------------------------------------------------------
+alter table public.mp_profiles
+  add column if not exists first_qty numeric(8,2) check (first_qty is null or first_qty >= 0);
+
 -- mp_board again, so a placeholder does not fill a profile. Columns
 -- listed for the reason given in 95_marketplace_quality.sql.
 create or replace view public.mp_board
@@ -242,7 +256,8 @@ select
   round(greatest(0, p.wanted_qty - coalesce(f.bought_qty, 0))
         * coalesce(p.price_good, 0), 2)                 as budget_outstanding,
   p.needed_by, p.fallback, p.fallback_weeks, p.anchor_of,
-  coalesce(f.placeholder_qty, 0)                        as placeholder_qty
+  coalesce(f.placeholder_qty, 0)                        as placeholder_qty,
+  p.first_qty
 from public.mp_profiles p
 left join public.work_items w on w.id = p.work_item_id
 left join (
@@ -304,8 +319,11 @@ with q as (
     b.price_confidence, b.work_item_id, b.list_title,
     b.needed_by, b.fallback, b.fallback_weeks, b.anchor_of,
     -- Scarce things start a tier early and rare ones two, because they
-    -- take months to turn up.
-    greatest(1, b.tier_rank - case b.supply when 'rare' then 2 when 'scarce' then 1 else 0 end)
+    -- take months to turn up. Once the first few of a kind are bought,
+    -- the rest rank no earlier than a first-year need.
+    greatest(1, case when b.first_qty is not null and b.bought_qty >= b.first_qty
+                     then greatest(b.tier_rank, 3) else b.tier_rank end
+                - case b.supply when 'rare' then 2 when 'scarce' then 1 else 0 end)
                                                         as start_rank,
     (a.id is not null)                                  as waits_for_anchor,
     round(b.qty_outstanding * greatest(0, coalesce(b.price_new, 0) - coalesce(b.price_good, 0)), 2)
@@ -689,97 +707,3 @@ group by b.household_id, b.tier;
 
 comment on view public.mp_totals is
   'Second-hand budget by tier at the good, fair and ceiling prices, against what the same things cost new. unconfirmed_budget is how much still rests on an estimate with no sold prices behind it.';
-
--- ---------------------------------------------------------------
--- First few now, the rest later.
---
--- A house wants three beds and ten pairs of curtains, but not all on
--- the day the keys arrive: one bed is a day-one need and the other two
--- furnish rooms nobody sleeps in yet. `first_qty` is how many are
--- wanted at the profile's own tier. Once that many are bought, what is
--- still outstanding ranks as a first-year need, so the second bed
--- never queues ahead of the only sofa. Null means all of them are
--- wanted at the tier.
--- ---------------------------------------------------------------
-alter table public.mp_profiles
-  add column if not exists first_qty numeric(8,2) check (first_qty is null or first_qty >= 0);
-
-create or replace view public.mp_board
-with (security_invoker = on) as
-select
-  p.id, p.household_id, p.key, p.name, p.category, p.room_hint, p.tier,
-  p.wanted_qty, p.unit, p.work_item_id, p.spec, p.reject_if, p.inspect,
-  p.price_steal, p.price_good, p.price_fair, p.price_max, p.price_new,
-  p.price_basis, p.price_confidence, p.captured_on, p.source_id,
-  p.keywords, p.misspellings, p.exclude_terms, p.size_class, p.buy_window,
-  p.supply, p.max_drive_minutes, p.status, p.resolution, p.notes,
-  p.sort_order, p.confidence, p.confirmed_at, p.created_at, p.updated_at,
-  case p.tier when 'day_one' then 1 when 'first_month' then 2
-              when 'first_year' then 3 else 4 end        as tier_rank,
-  w.title                                               as list_title,
-  w.cost_expected                                       as list_cost,
-  w.cost_confidence                                     as list_cost_confidence,
-  w.status                                              as list_status,
-  coalesce(f.bought_qty, 0)                             as bought_qty,
-  greatest(0, p.wanted_qty - coalesce(f.bought_qty, 0)) as qty_outstanding,
-  coalesce(f.spent, 0)                                  as spent,
-  coalesce(f.live_finds, 0)                             as live_finds,
-  round(greatest(0, p.wanted_qty - coalesce(f.bought_qty, 0))
-        * coalesce(p.price_good, 0), 2)                 as budget_outstanding,
-  p.needed_by, p.fallback, p.fallback_weeks, p.anchor_of,
-  coalesce(f.placeholder_qty, 0)                        as placeholder_qty,
-  p.first_qty
-from public.mp_profiles p
-left join public.work_items w on w.id = p.work_item_id
-left join (
-  select profile_id,
-         sum(quantity) filter (where status = 'bought' and not is_placeholder) as bought_qty,
-         sum(quantity) filter (where status = 'bought' and is_placeholder)     as placeholder_qty,
-         sum(paid + coalesce(travel_cost, 0)) filter (where status = 'bought') as spent,
-         count(*) filter (where status in ('spotted','messaged','offered','agreed')) as live_finds
-  from public.mp_finds
-  group by profile_id
-) f on f.profile_id = p.id;
-
-create or replace view public.mp_hunt_queue
-with (security_invoker = on) as
-with q as (
-  select
-    b.household_id, b.id as profile_id, b.key, b.name, b.category, b.room_hint,
-    b.tier, b.tier_rank, b.supply, b.size_class, b.buy_window,
-    b.wanted_qty, b.qty_outstanding, b.placeholder_qty, b.live_finds,
-    b.price_steal, b.price_good, b.price_fair, b.price_max, b.price_new,
-    b.price_confidence, b.work_item_id, b.list_title,
-    b.needed_by, b.fallback, b.fallback_weeks, b.anchor_of,
-    greatest(1, case when b.first_qty is not null and b.bought_qty >= b.first_qty
-                     then greatest(b.tier_rank, 3) else b.tier_rank end
-                - case b.supply when 'rare' then 2 when 'scarce' then 1 else 0 end)
-                                                        as start_rank,
-    (a.id is not null)                                  as waits_for_anchor,
-    round(b.qty_outstanding * greatest(0, coalesce(b.price_new, 0) - coalesce(b.price_good, 0)), 2)
-                                                        as saving_vs_new,
-    public.mp_house_state(b.household_id)               as house_state,
-    b.created_at::date                                  as hunting_since
-  from public.mp_board b
-  left join public.mp_board a
-    on a.household_id = b.household_id and a.key = b.anchor_of
-   and a.status = 'hunting' and a.qty_outstanding > 0
-  where b.status = 'hunting' and b.qty_outstanding > 0
-)
-select
-  q.*,
-  public.mp_can_buy(q.buy_window, q.house_state)        as can_buy_now,
-  case when public.mp_can_buy(q.buy_window, q.house_state) then 'buy' else 'watch' end
-                                                        as mode,
-  (current_date - q.hunting_since) / 7                  as weeks_hunted,
-  case when q.fallback_weeks is not null
-       then q.hunting_since + q.fallback_weeks * 7 end  as fallback_from,
-  (q.tier = 'day_one' and q.fallback is not null and q.fallback_weeks is not null
-   and q.placeholder_qty = 0
-   and q.house_state <> 'none'
-   and current_date >= q.hunting_since + q.fallback_weeks * 7)
-                                                        as fallback_due,
-  row_number() over (partition by q.household_id
-    order by q.start_rank, q.waits_for_anchor, q.saving_vs_new desc, q.key)
-                                                        as queue_rank
-from q;

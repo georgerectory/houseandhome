@@ -51,11 +51,23 @@ const profiles = JSON.parse(readFileSync(arg('profiles'), 'utf8'));
 mkdirSync(out, { recursive: true });
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+// A long run crosses hundreds of pages, and one dropped connection or a
+// 5xx should not lose it: three tries, waiting longer each time. A 4xx
+// is the site's answer and is not retried.
 async function get(path) {
-  await sleep(2000);
-  const res = await fetch(new URL(path, base), { headers: { 'user-agent': 'houseandhome auction reader (one household, low volume)' } });
-  if (!res.ok) throw new Error(`${path}: ${res.status}`);
-  return res.text();
+  let last;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    await sleep(2000 * (attempt * 5 + 1));
+    try {
+      const res = await fetch(new URL(path, base), { headers: { 'user-agent': 'houseandhome auction reader (one household, low volume)' } });
+      if (res.ok) return await res.text();
+      last = new Error(`${path}: ${res.status}`);
+      if (res.status < 500) break;
+    } catch (e) {
+      last = e;
+    }
+  }
+  throw last;
 }
 
 /** Every page of one sale. */
@@ -89,9 +101,15 @@ if (arg('reader') === 'grid') {
   const listed = arg('catalogue') ? [arg('catalogue')] : parseCatalogues(await get(`/${section}/`));
   const catalogues = listed.filter((p) => !match || p.includes(match)).slice(0, Number(arg('max-sales', 40)));
   const all = [];
+  const read = new Set();
   for (const path of catalogues) {
     const first = await get(path);
     const total = gridLotCount(first) ?? 0;
+    // One sale is often linked under several addresses. The same sale
+    // with the same number of lots has been read: one page, not hundreds.
+    const sale = `${path.split('/')[2]}|${total}`;
+    if (read.has(sale)) continue;
+    read.add(sale);
     const teasers = parseGridLots(first);
     const pages = Math.min(40, Math.ceil(total / GRID_PAGE));
     for (let page = 2; page <= pages; page += 1) teasers.push(...parseGridLots(await get(`${path}?currentPageNo=${page}`)));

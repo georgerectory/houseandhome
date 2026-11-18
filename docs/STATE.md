@@ -27,7 +27,7 @@ session (Mon and Thu) writes coming lots as `watch` finds (shape 5).
 - Nine `w3-` contradictions; the confirmed figures stand.
 - Close L62 / L64 (Sold STC)? Drop L56 / L66?
 - L70 (chase, S-122): 42 comparables (36 Land Registry + EPC area);
-  offer plan (open 380k); C-11 changed (S-123); viewing next.
+  offer plan given; C-11 changed (S-123); viewing next.
 - C-30 drafted until confirmed; eight plan decisions; three `fv-` contradictions.
 
 ## Known and deliberately left

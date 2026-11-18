@@ -26,7 +26,8 @@ session (Mon and Thu) writes coming lots as `watch` finds (shape 5).
   Sellers' replies on the mirror and the trunk (offers 55 and 70).
 - Nine `w3-` contradictions; the confirmed figures stand.
 - Close L62 / L64 (Sold STC)? Drop L56 / L66?
-- L70: the owner's reaction; flood Low (18 Nov); drainage is CHECK.
+- L70 (chase, S-122): scenario appraisals l70-worst, -best, -extend
+  stored beside base; drainage CHECK; more floor-area comparables next.
 - C-30 (House 1 net profit) is drafted until confirmed.
 - Eight open plan decisions; three `fv-` contradictions.
 

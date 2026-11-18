@@ -28,8 +28,7 @@ session (Mon and Thu) writes coming lots as `watch` finds (shape 5).
 - Close L62 / L64 (Sold STC)? Drop L56 / L66?
 - L70 (chase, S-122): scenario appraisals l70-worst, -best, -extend
   stored beside base; drainage CHECK; more floor-area comparables next.
-- C-30 (House 1 net profit) is drafted until confirmed.
-- Eight open plan decisions; three `fv-` contradictions.
+- C-30 (House 1 net profit) drafted until confirmed; eight plan decisions.
 
 ## Known and deliberately left
 

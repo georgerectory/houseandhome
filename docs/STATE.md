@@ -4,9 +4,8 @@ In flight; overwritten in place. Keep it under 40 lines.
 
 ## Search mode: no active house (7 Nov 2026)
 
-P-003 archived (R-24); P-004 candidate. Leads: L55, then L65. Wave 3
-research reports L62 and L64(a) Sold STC and recommends dropping L56 and
-L66 - the owner decides; nothing was closed. The overhaul
+P-003 archived (R-24); P-004 candidate. Leads: L55, L65; L70 (The
+Forge, Fovant) assessed 18 Nov. Wave 3: L62, L64 Sold STC. The overhaul
 (`docs/OVERHAUL-PLAN.md`) is live through Stage 4 core.
 
 ## Marketplace - built, live, fingerprint matching
@@ -27,6 +26,7 @@ session (Mon and Thu) writes coming lots as `watch` finds (shape 5).
   Sellers' replies on the mirror and the trunk (offers 55 and 70).
 - Nine `w3-` contradictions; the confirmed figures stand.
 - Close L62 / L64 (Sold STC)? Drop L56 / L66?
+- L70: the owner's reaction; its flood band and drainage are CHECK.
 - C-30 (House 1 net profit) is drafted until confirmed.
 - Eight open plan decisions; three `fv-` contradictions.
 

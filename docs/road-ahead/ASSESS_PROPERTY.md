@@ -46,7 +46,10 @@ stop at the first rung that works; say which rung was used in the answer.
        checker.ofcom.org.uk         www.planningportal.co.uk
 
    Agents' and auctioneers' own sites vary: add each the first time it is
-   needed.
+   needed. WebFetch does not follow the allowlist; `curl` through the
+   session proxy does. Rightmove's page model is in `window.PAGE_MODEL`,
+   an index-referenced JSON array (`data`) to be decoded before reading.
+   The gov.uk flood checker sits behind a captcha: its band stays CHECK.
 2. **If a host is refused** (DNS "not found" through the proxy): ask once
    with the environment tools (an approval card). If the owner's app
    cannot show the card, name the host and the settings path above in

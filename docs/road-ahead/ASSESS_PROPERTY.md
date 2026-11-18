@@ -56,6 +56,12 @@ stop at the first rung that works; say which rung was used in the answer.
    postcode search for each floor area, and the region's detached UK HPI
    to bring each to today. Keep only the region's postcodes: village
    names repeat across England.
+   Traffic on the road outside: the DfT's count points
+   (`roadtraffic.dft.gov.uk/api/count-points?filter[road_name]=<road>`,
+   the nearest by latitude and longitude), then
+   `api/average-annual-daily-flow?filter[count_point_id]=<id>` for the
+   daily flow by vehicle type, against the links either side. A road
+   under 3 million vehicles a year is not on Defra's noise maps.
 2. **If a host is refused** (DNS "not found" through the proxy): ask once
    with the environment tools (an approval card). If the owner's app
    cannot show the card, name the host and the settings path above in

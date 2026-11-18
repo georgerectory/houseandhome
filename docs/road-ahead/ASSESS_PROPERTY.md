@@ -93,8 +93,12 @@ Everything below uses it.
 
 If it is, carry on with that code. If not, the next free L-code:
 
-    select 'L' || lpad((coalesce(max(substring(code from 2)::int), 0) + 1)::text, 2, '0')
-      from ra_listings where household_id = '<household>' and code ~ '^L\d+$';
+    select 'L' || lpad(n::text, greatest(2, length(n::text)), '0')
+      from (select coalesce(max(substring(code from 2)::int), 0) + 1 n
+              from ra_listings where household_id = '<household>' and code ~ '^L\d+$') x;
+
+`lpad` truncates a longer string, so the width is never fixed: a plain
+`lpad(n, 2)` turns 122 into 12.
 
 ## 3. The rules, before any numbers
 
@@ -210,8 +214,9 @@ built on estimates says what it rests on.
 End by asking what the owner makes of it. Their words are a signal, and
 if they would pay more or less than the maths, a judgement beside it:
 
-    select 'S-' || lpad((coalesce(max(substring(code from 3)::int), 0) + 1)::text, 2, '0')
-      from ra_signals where household_id = '<household>' and code ~ '^S-\d+$';
+    select 'S-' || lpad(n::text, greatest(2, length(n::text)), '0')
+      from (select coalesce(max(substring(code from 3)::int), 0) + 1 n
+              from ra_signals where household_id = '<household>' and code ~ '^S-\d+$') x;
 
     insert into ra_signals (household_id, code, kind, words, context, implies, said_on, source)
     values ('<household>', '<that code>', 'signal', '<their words>', '<code and name>', '<what it implies>',

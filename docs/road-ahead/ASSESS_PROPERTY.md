@@ -50,6 +50,12 @@ stop at the first rung that works; say which rung was used in the answer.
    session proxy does. Rightmove's page model is in `window.PAGE_MODEL`,
    an index-referenced JSON array (`data`) to be decoded before reading.
    The gov.uk flood checker sits behind a captcha: its band stays CHECK.
+   Sold prices with floor areas: HM Land Registry's SPARQL endpoint
+   (`landregistry.data.gov.uk/landregistry/query`, query by locality, not
+   by postcode prefix, which times out) for the sales, the EPC register's
+   postcode search for each floor area, and the region's detached UK HPI
+   to bring each to today. Keep only the region's postcodes: village
+   names repeat across England.
 2. **If a host is refused** (DNS "not found" through the proxy): ask once
    with the environment tools (an approval card). If the owner's app
    cannot show the card, name the host and the settings path above in

@@ -26,8 +26,8 @@ session (Mon and Thu) writes coming lots as `watch` finds (shape 5).
   Sellers' replies on the mirror and the trunk (offers 55 and 70).
 - Nine `w3-` contradictions; the confirmed figures stand.
 - Close L62 / L64 (Sold STC)? Drop L56 / L66?
-- L70 (chase, S-122): scenario appraisals l70-worst, -best, -extend
-  stored beside base; drainage CHECK; more floor-area comparables next.
+- L70 (chase, S-122): 42 comparables (36 Land Registry + EPC area);
+  offer plan given; the viewing and agent answers next; drainage CHECK.
 - C-30 drafted until confirmed; eight plan decisions; three `fv-` contradictions.
 
 ## Known and deliberately left

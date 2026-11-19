@@ -8,6 +8,7 @@ import {
   tripWorth, offerRange, questionsFor, sellerMessage, ledger,
   board, houseState, canBuyNow, huntQueue, alertsToSet, sweepsDue, tierTotals, ledgerTotals,
   priceEvidence, thresholdReview, evidenceSummary, lessons, lineBenchmark, secondHandCheck, isStale,
+  budgetPosition, versusBenchmarks, budgetVerdict,
 } from '../../assets/js/engine/marketplace.js';
 
 const P = { id: 'p1', key: 'chest', name: 'Chest', category: 'storage', tier: 'day_one', wanted_qty: 2,
@@ -294,4 +295,56 @@ test('a shopping line is checked against what its profiles cost second hand', ()
   assert.equal(secondHandCheck({ cost_expected: 300 }, line).verdict, 'within');
   assert.equal(secondHandCheck({ cost_expected: 400 }, line).verdict, 'over');
   assert.equal(secondHandCheck({ cost_expected: 120 }, null), null);
+});
+
+test('the budget is the whole plan at each price point, with what is bought new beside it', () => {
+  const profiles = [
+    { ...P, wanted_qty: 2, purpose: 'utility' },
+    { ...P, id: 'p2', key: 'rug', tier: 'first_year', wanted_qty: 1, purpose: 'aesthetic', price_confidence: 'researched',
+      price_steal: 50, price_good: 100, price_fair: 200, price_new: 900 },
+    { ...P, id: 'p3', key: 'lamp', wanted_qty: 3, purpose: null, price_steal: 5, price_good: 10, price_fair: 20, price_new: 50 },
+    { ...P, id: 'p4', key: 'done', status: 'filled' },
+  ];
+  const buys = [
+    { key: 'mattress', tier: 'day_one', quantity: 2, price_low: 200, price_mid: 300, price_high: 500, status: 'planned' },
+    { key: 'towels', tier: 'day_one', quantity: 1, price_low: 50, price_mid: 80, price_high: 120, status: 'bought', paid: 65 },
+    { key: 'telly', tier: 'first_year', quantity: 1, price_low: 300, price_mid: 400, price_high: 600, status: 'dropped' },
+  ];
+  const b = budgetPosition(profiles, buys);
+  assert.equal(b.kinds, 3, 'only what is hunted counts');
+  assert.deepEqual([b.sh_steal, b.sh_good, b.sh_fair, b.sh_new], [145, 290, 520, 2350]);
+  assert.equal(b.utility_good, 190, 'a profile with no purpose counts as utility');
+  assert.equal(b.aesthetic_good, 100);
+  assert.equal(b.unconfirmed_good, 190);
+  assert.deepEqual([b.new_kinds, b.new_low, b.new_mid, b.new_high], [2, 465, 665, 1065], 'bought at what was paid; dropped not at all');
+  assert.deepEqual([b.all_in_steal, b.all_in_good, b.all_in_fair], [610, 955, 1585]);
+  assert.equal(b.day_one_all_in, 190 + 665);
+  assert.equal(b.aesthetic_share, 0.3448);
+  assert.equal(b.unconfirmed_share, 0.6552);
+  const empty = budgetPosition([], []);
+  assert.equal(empty.aesthetic_share, null);
+  assert.equal(empty.all_in_good, 0);
+});
+
+test('a benchmark is met by the figure that covers the same ground, and placed against its range', () => {
+  const pos = budgetPosition([{ ...P, wanted_qty: 10 }], [{ key: 'm', tier: 'day_one', quantity: 1, price_low: 100, price_mid: 200, price_high: 300, status: 'planned' }]);
+  const rows = versusBenchmarks(pos, [
+    { key: 'a', label: 'Furniture survey', covers: 'furniture', home: 'first home', basis: 'new', amount_mid: 1000, sort_order: 2 },
+    { key: 'b', label: 'Whole house', covers: 'furnishing', home: '3-bed', basis: 'new', amount_low: 500, amount_high: 1500, sort_order: 1 },
+    { key: 'c', label: 'With decorating', covers: 'furnishing_and_decorating', home: 'first home', basis: 'mixed', amount_mid: 5000, sort_order: 3 },
+    { key: 'd', label: 'Old', covers: 'furniture', home: 'x', basis: 'new', amount_mid: 1, status: 'retired' },
+  ]);
+  assert.deepEqual(rows.map((r) => r.key), ['b', 'a', 'c'], 'in sort order, retired left out');
+  assert.deepEqual(rows.map((r) => [r.compared_with, r.ours_good, r.position, r.ratio]), [
+    ['all_in', 1000, 'within', 1],
+    ['second_hand_plan', 800, 'below', 0.8],
+    ['all_in', 1000, 'below', 0.2],
+  ]);
+  assert.equal(rows[2].includes_decorating, true);
+  assert.equal(budgetVerdict(rows), 'within');
+  assert.equal(budgetVerdict(rows.filter((r) => r.position === 'below')), 'below');
+  assert.equal(budgetVerdict([{ ratio: 2, position: 'above' }, { ratio: 0.5, position: 'below' }]), 'mixed');
+  assert.equal(budgetVerdict([{ ratio: 2, position: 'above' }]), 'above');
+  assert.equal(budgetVerdict([]), null);
+  assert.deepEqual(versusBenchmarks(null, [{ key: 'a' }]), []);
 });

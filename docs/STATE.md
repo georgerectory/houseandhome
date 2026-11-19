@@ -11,14 +11,13 @@ L66 - the owner decides; nothing was closed. The overhaul
 
 ## Marketplace - built, live, fingerprint matching
 
-`94`-`96_marketplace*.sql`, `engine/marketplace.js`, `marketplace.html`;
-protocol in `docs/MARKETPLACE.md`. Ground with `mp_context`. 15 Nov:
-list resized for a 3-4 bedroom house (45 profiles; `first_qty` ranks the
-first few of a kind ahead of the rest); 27 ladders set from 785 sold
-prices at three salerooms, 18 still estimates; eight sales make one. The bar, the
-low-offer message and the storage rule are in `mp_brief.rules` and the
-protocol. Two finds live, the rest passed. A sweep bound to the build
-session (Mon and Thu) writes coming lots as `watch` finds (shape 5).
+`94`-`97_marketplace*.sql`, `engine/marketplace.js`, `marketplace.html`;
+protocol in `docs/MARKETPLACE.md`. Ground with `mp_context`. 45 profiles
+for a 3-4 bed house (`first_qty` ranks the first few of a kind first);
+27 ladders from 785 sold prices, 18 estimates. `mp_new_buys` and
+`mp_budget_vs_benchmarks` set the plan all in against eight published UK
+figures. The bar, the low-offer message and storage are in
+`mp_brief.rules`. Four offers live. Sweeps Mon and Thu (shape 5).
 
 ## Waiting on the owner
 

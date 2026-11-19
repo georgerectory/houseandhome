@@ -305,6 +305,9 @@ async function loadMarketLive() {
     mp_price_evidence: sb.from('mp_price_evidence').select('*'),
     mp_threshold_review: sb.from('mp_threshold_review').select('*'),
     mp_line_benchmark: sb.from('mp_line_benchmark').select('*'),
+    mp_new_buys: sb.from('mp_new_buys').select('*').in('status', ['planned', 'bought']).order('sort_order'),
+    mp_budget_position: sb.from('mp_budget_position').select('*').maybeSingle(),
+    mp_budget_vs_benchmarks: sb.from('mp_budget_vs_benchmarks').select('*').order('sort_order'),
     // Only what decides whether a large piece may be bought yet.
     houses: sb.from('properties').select('status').in('status', ['committed', 'owned']),
   };
@@ -313,7 +316,8 @@ async function loadMarketLive() {
   // A broken read is raised, never rendered as an empty hunt.
   const failed = results.map((r, i) => (r.error ? `${names[i]}: ${r.error.message}` : null)).filter(Boolean);
   if (failed.length) throw new Error(`Could not read Marketplace - ${failed.join('; ')}`);
-  const data = Object.fromEntries(names.map((n, i) => [n, results[i].data ?? (n === 'mp_brief' ? null : [])]));
+  const single = new Set(['mp_brief', 'mp_budget_position']);
+  const data = Object.fromEntries(names.map((n, i) => [n, results[i].data ?? (single.has(n) ? null : [])]));
   const has = (s) => data.houses.some((h) => h.status === s);
   const today = new Date().toISOString().slice(0, 10);
   return {

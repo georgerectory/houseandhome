@@ -2,7 +2,8 @@
 // two homes: engine/marketplace.js for the page, and mp_band(),
 // mp_grade(), mp_travel_band(), mp_verdict_refusal(), mp_hunt_queue and
 // mp_alerts_to_set in 95_ and 96_marketplace_*.sql for any Claude with
-// the connector.
+// the connector; and the budget, mp_budget_position and
+// mp_budget_vs_benchmarks in 97_marketplace_budget.sql.
 //
 // Called by parity-check.mjs, which owns the database. Every row here
 // is invented. The guard is compared over its WHOLE input space rather
@@ -10,7 +11,7 @@
 // draw of profiles, so a failure reproduces.
 import {
   band, grade, travelBand, verdictRefusal, unseenChecks,
-  board, huntQueue, alertsToSet,
+  board, huntQueue, alertsToSet, budgetPosition, versusBenchmarks,
 } from '../assets/js/engine/marketplace.js';
 
 function seeded(seed) {
@@ -218,7 +219,86 @@ function queueParity(psql) {
   return failures;
 }
 
+
+function budgetParity(psql) {
+  const rnd = seeded(20261117);
+  const pick = (list) => list[Math.floor(rnd() * list.length)];
+  const money = () => Math.round(rnd() * 40000) / 100;
+  let failures = 0;
+  for (let s = 0; s < 4; s += 1) {
+    const hh = `77777777-0000-0000-0000-00000000000${s + 1}`;
+    const profiles = Array.from({ length: 30 }, (_, i) => {
+      const steal = money();
+      const good = Math.round((steal + money()) * 100) / 100;
+      const fair = Math.round((good + money()) * 100) / 100;
+      return {
+        key: `b${i}`, tier: pick(['day_one', 'first_month', 'first_year', 'opportunistic']),
+        wanted_qty: pick([0, 1, 1, 2, 3.5, 10]), purpose: pick([null, 'utility', 'aesthetic', 'aesthetic']),
+        price_confidence: pick(['drafted', 'researched', 'confirmed', 'carried_over', 'actual']),
+        price_steal: pick([null, steal, steal]), price_good: pick([null, good, good, good]),
+        price_fair: pick([null, fair, fair]), price_new: pick([null, fair + 100]),
+        status: pick(['hunting', 'hunting', 'hunting', 'paused', 'filled']),
+      };
+    });
+    const buys = Array.from({ length: 8 }, (_, i) => {
+      const low = money();
+      const mid = Math.round((low + money()) * 100) / 100;
+      const status = pick(['planned', 'planned', 'bought', 'dropped']);
+      return {
+        key: `n${i}`, tier: pick(['day_one', 'first_month', 'first_year']), quantity: pick([0, 1, 2, 3]),
+        price_low: low, price_mid: mid, price_high: Math.round((mid + money()) * 100) / 100,
+        status, paid: status === 'bought' ? money() : null,
+      };
+    });
+    const amounts = () => {
+      const a = [money() * 20, money() * 20, money() * 20].map((v) => Math.round(v * 100) / 100).sort((x, y) => x - y);
+      return pick([[a[0], a[1], a[2]], [null, a[1], null], [a[0], null, a[2]], [a[0], null, null], [null, null, a[2]]]);
+    };
+    const benches = Array.from({ length: 10 }, (_, i) => {
+      const [low, mid, high] = amounts();
+      return {
+        key: `m${i}`, label: `bench ${i}`, covers: pick(['furniture', 'furnishing', 'furnishing_and_decorating']),
+        home: 'x', basis: 'new', amount_low: low, amount_mid: mid, amount_high: high,
+        status: pick(['active', 'active', 'retired']), sort_order: pick([10, 20, 20]),
+      };
+    });
+    psql(`insert into households (id, name) values ('${hh}', 'Parity budget ${s}');
+      insert into mp_profiles (household_id, key, name, category, spec, tier, wanted_qty, purpose, price_confidence,
+                               price_steal, price_good, price_fair, price_new, status, resolution) values
+      ${profiles.map((p) => `('${hh}', '${p.key}', 'x', 'other', 'x', '${p.tier}', ${p.wanted_qty}, ${q(p.purpose)}, '${p.price_confidence}',
+         ${q(p.price_steal)}, ${q(p.price_good)}, ${q(p.price_fair)}, ${q(p.price_new)}, '${p.status}', ${p.status === 'filled' ? "'done'" : 'null'})`).join(',')};
+      insert into mp_new_buys (household_id, key, name, tier, quantity, price_low, price_mid, price_high, why_new, status, paid, resolution) values
+      ${buys.map((n) => `('${hh}', '${n.key}', 'x', '${n.tier}', ${n.quantity}, ${n.price_low}, ${n.price_mid}, ${n.price_high}, 'x',
+         '${n.status}', ${q(n.paid)}, ${n.status === 'dropped' ? "'x'" : 'null'})`).join(',')};
+      insert into mp_benchmarks (household_id, key, label, covers, home, basis, amount_low, amount_mid, amount_high, status, note, sort_order) values
+      ${benches.map((b) => `('${hh}', '${b.key}', '${b.label}', '${b.covers}', 'x', 'new', ${q(b.amount_low)}, ${q(b.amount_mid)}, ${q(b.amount_high)},
+         '${b.status}', ${b.status === 'retired' ? "'x'" : 'null'}, ${b.sort_order})`).join(',')};`);
+
+    const FIELDS = ['kinds', 'sh_steal', 'sh_good', 'sh_fair', 'sh_new', 'utility_good', 'aesthetic_good', 'unconfirmed_good',
+      'new_kinds', 'new_low', 'new_mid', 'new_high', 'all_in_steal', 'all_in_good', 'all_in_fair', 'day_one_all_in',
+      'aesthetic_share', 'unconfirmed_share'];
+    const fmt = (v) => (v == null ? '' : Number(v).toFixed(4));
+    const js = budgetPosition(profiles, buys);
+    const sql = rows(psql(`select ${FIELDS.map((f) => `coalesce(${f}::text, '')`).join(', ')}
+                            from mp_budget_position where household_id = '${hh}';`))[0] ?? [];
+    const diffs = FIELDS.map((f, i) => (fmt(js[f]) === fmt(sql[i] === '' ? null : sql[i]) ? null : `${f}: js ${js[f]}, sql ${sql[i]}`)).filter(Boolean);
+    failures += report(`Marketplace budget position, draw ${s + 1}`, FIELDS.length, diffs, 'every total, share and all-in figure');
+
+    const line = (r) => [r.key, r.compared_with, fmt(r.ours_good), r.position, fmt(r.ratio), r.includes_decorating ? 't' : 'f'].join('|');
+    const jsRows = versusBenchmarks(js, benches).map(line);
+    const sqlRows = rows(psql(`select key, compared_with, ours_good, position, coalesce(ratio::text, ''), includes_decorating
+                                from mp_budget_vs_benchmarks where household_id = '${hh}' order by sort_order, key;`))
+      .map(([k, c, g, p, r, d]) => [k, c, fmt(g), p, r === '' ? '' : fmt(r), d].join('|'));
+    const bDiffs = [];
+    for (let i = 0; i < Math.max(jsRows.length, sqlRows.length); i += 1) {
+      if (jsRows[i] !== sqlRows[i]) bDiffs.push(`js ${jsRows[i]}, sql ${sqlRows[i]}`);
+    }
+    failures += report(`Marketplace budget against benchmarks, draw ${s + 1}`, jsRows.length, bDiffs, 'the same figure met, the same place in the range');
+  }
+  return failures;
+}
+
 export function marketplaceParity(psql, HH) {
-  const failures = bandParity(psql) + guardParity(psql) + gradeParity(psql, HH) + queueParity(psql);
-  return { cases: 10, failures };
+  const failures = bandParity(psql) + guardParity(psql) + gradeParity(psql, HH) + queueParity(psql) + budgetParity(psql);
+  return { cases: 18, failures };
 }

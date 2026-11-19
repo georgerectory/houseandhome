@@ -4,6 +4,7 @@
 import { money, provenance, titleCase, escape } from '../../core/format.js';
 import { emptyState } from '../../core/page.js';
 import { referenceHtml } from './reference.js';
+import { budgetHtml } from './budget.js';
 
 const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 const pct = (f) => `${Math.round(f * 100)} per cent`;
@@ -220,5 +221,5 @@ function huntHtml(m) {
 }
 
 export function pageHtml(m) {
-  return `${verdictHtml(m)}${weekHtml(m)}${inPlayHtml(m)}${huntHtml(m)}${referenceHtml(m)}`;
+  return `${verdictHtml(m)}${weekHtml(m)}${inPlayHtml(m)}${huntHtml(m)}${budgetHtml(m)}${referenceHtml(m)}`;
 }

@@ -9,10 +9,13 @@
 //   marketplace/hunt.js   the whole campaign: the board, the queue, the
 //                         alert ration, the sweeps, the money and what
 //                         the prices seen so far imply.
+//   marketplace/budget.js the whole plan as one sum, with what is bought
+//                         new, against what other households spend.
 //
 // Pure: data in, values out. No DOM, no fetch, no clock except what is
 // passed in. The band, the grade, the guard and the queue order have a
-// second home in SQL (95_ and 96_marketplace_*.sql), and
+// second home in SQL (95_ to 97_marketplace_*.sql), and
 // tools/parity-marketplace.mjs holds the two equal.
 export * from './marketplace/judge.js';
 export * from './marketplace/hunt.js';
+export * from './marketplace/budget.js';

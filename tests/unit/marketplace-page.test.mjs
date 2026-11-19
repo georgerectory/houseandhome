@@ -17,9 +17,9 @@ const clean = (html) => {
   return html;
 };
 
-test('the demo renders all eight sections, in the order the questions arrive', () => {
+test('the demo renders all nine sections, in the order the questions arrive', () => {
   const html = clean(pageHtml(buildModel(demo)));
-  const order = ['Still to find', 'id="week"', 'id="in-play"', 'id="hunt"', 'id="grounds"', 'id="bought"', 'id="lessons"', 'id="brief"'];
+  const order = ['Still to find', 'id="week"', 'id="in-play"', 'id="hunt"', 'id="budget"', 'id="grounds"', 'id="bought"', 'id="lessons"', 'id="brief"'];
   const at = order.map((s) => html.indexOf(s));
   assert.ok(at.every((i) => i >= 0), `missing a section: ${at}`);
   assert.deepEqual([...at].sort((a, b) => a - b), at);
@@ -100,4 +100,18 @@ test('the ladder places the asking price by a custom property, clamped', () => {
   assert.ok(ladderHtml(p, 9999).includes('--at: 100.0%'));
   assert.ok(!ladderHtml(p, null).includes('mp-ladder__mark'));
   assert.equal(ladderHtml({}, 10), '');
+});
+
+test('the budget section sets the plan all in beside each published figure, and says where it falls', () => {
+  const m = buildModel(demo);
+  const html = clean(pageHtml(m));
+  assert.equal(m.budget.verdict, 'mixed');
+  assert.ok(html.includes('All in') && html.includes('Bought new'));
+  for (const r of m.budget.rows) assert.ok(html.includes(r.label), `benchmark ${r.key} not shown`);
+  assert.ok(html.includes('(ours has no decorating)'));
+  assert.ok(!html.includes('afford'), 'a spending comparison never says what can be afforded');
+  const none = clean(pageHtml(buildModel({ ...demo, mp_budget_position: null, mp_budget_vs_benchmarks: [] })));
+  assert.ok(none.includes('No budget to compare yet'));
+  const bare = clean(pageHtml(buildModel({ ...demo, mp_budget_vs_benchmarks: [] })));
+  assert.ok(bare.includes('No published figures recorded'));
 });

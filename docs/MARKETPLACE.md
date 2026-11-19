@@ -230,6 +230,46 @@ scarce profiles; then the queue. Saved-search alerts are known to arrive
 late or not at all, which is why the sweeps exist. `last_run_on` is
 written when the owner says a sweep is done, never by the page.
 
+## The budget against the consensus
+
+A list that is cheap piece by piece can still be too long, so the whole
+plan is held up against what other households spend
+(`97_marketplace_budget.sql`; `engine/marketplace/budget.js` is its
+copy, held equal by the parity gate).
+
+- **`purpose`** on every profile: `utility` (sleeping, sitting, eating,
+  storing, light, the kitchen, the hearth) or `aesthetic` (rugs,
+  mirrors, pictures, clocks, ornament, the garden). Unset counts as
+  utility. Utility is bought first; the aesthetic share is a number to
+  watch.
+- **`mp_new_buys`**: what is bought NEW and never hunted - mattresses,
+  white goods, bedding and towels, kitchen basics, cleaning kit,
+  sundries - each with a low, mid and high price per unit and why it is
+  bought new. Leaving these out is how a furniture budget looks cheaper
+  than the house it furnishes. A bought one counts at what was paid; a
+  dropped one not at all. Prices are money: `house.change_why` first.
+- **`mp_benchmarks`**: published figures for what households spend, each
+  with its `sources` row, what it `covers` (furniture alone,
+  furnishing, or furnishing and decorating), which home and on what
+  basis.
+- **`mp_budget_position`** is the plan in one row: second hand at
+  steal, good, typical and new; utility against aesthetic; the new buys
+  at low, mid and high; all in at each price point (steal with low,
+  good with mid, typical with high); day one all in; and the shares of
+  the good total that are aesthetic and unconfirmed.
+- **`mp_budget_vs_benchmarks`** sets each active benchmark beside our
+  figure for the same ground - the second-hand plan alone against a
+  furniture-only figure, the plan all in against the rest - with
+  `position` (below, within or above its range) and `ratio`.
+
+Reading it. A whole-house figure for a house our size is the fair
+comparison; a first-year or one-bed figure is smaller by construction,
+and above it is expected, not a warning. A figure that includes
+decorating is larger by construction. It compares spending, never what
+is in the bank: it is not "you can afford this". When the owner asks
+whether the budget is sensible, read `mp_budget_vs_benchmarks` and say
+which rows are like for like.
+
 ## The channels, and what each is for
 
 No one channel fills a house. Each has a job, and the system treats

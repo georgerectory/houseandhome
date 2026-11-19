@@ -15,6 +15,7 @@
 import { writeFileSync } from 'node:fs';
 import {
   board, ledger, tierTotals, priceEvidence, thresholdReview, lineBenchmark,
+  budgetPosition, versusBenchmarks,
 } from '../assets/js/engine/marketplace.js';
 
 const TODAY = '2026-06-01';
@@ -210,6 +211,34 @@ const lines = [
   { id: 'line-mirrors', title: 'Mirrors and wall art', cost_expected: 100, cost_confidence: 'drafted', status: 'planned' },
 ];
 
+// Looks, not use: everything else counts as utility.
+for (const p of profiles) if (['rug', 'mirror', 'stone', 'clock'].includes(p.key)) p.purpose = 'aesthetic';
+
+// What is bought new, and what other households spend. Invented.
+const NB = (key, name, tier, quantity, low, mid, high, o = {}) => ({
+  id: id('new'), household_id: HH, key, name, tier, quantity, price_low: low, price_mid: mid, price_high: high,
+  why_new: 'Invented: bought new for hygiene or a guarantee.', status: 'planned', paid: null, resolution: null,
+  confidence: 'drafted', sort_order: 100, ...o,
+});
+const newBuys = [
+  NB('mattress', 'Mattress', 'day_one', 1, 200, 350, 600),
+  NB('fridge', 'Fridge freezer', 'day_one', 1, 250, 350, 500),
+  NB('bedding', 'Bedding and towels', 'day_one', 1, 100, 180, 300, { status: 'bought', paid: 150 }),
+  NB('spare_bed', 'Spare-room mattress', 'first_year', 1, 150, 250, 400),
+  NB('kettle', 'Old kettle replaced', 'opportunistic', 1, 20, 30, 50, { status: 'dropped', resolution: 'Invented: kept the old one.' }),
+];
+const BM = (key, label, covers, home, low, mid, high, o = {}) => ({
+  id: id('bench'), household_id: HH, key, label, covers, home, basis: 'new',
+  amount_low: low, amount_mid: mid, amount_high: high, published_on: '2026-01-01', source_id: null,
+  confidence: 'researched', status: 'active', note: null, sort_order: 100, ...o,
+});
+const benchmarks = [
+  BM('small_house', 'Invented: furnishing a small house', 'furnishing', 'small house', 1500, 2500, 4000, { sort_order: 10 }),
+  BM('furniture_survey', 'Invented: furniture in the first year', 'furniture', 'first home', null, 400, null, { sort_order: 20 }),
+  BM('with_decorating', 'Invented: furnishing and decorating', 'furnishing_and_decorating', 'first home', null, 12000, null, { sort_order: 30 }),
+  BM('old_figure', 'Invented: a retired figure', 'furniture', 'flat', null, 99, null, { status: 'retired', note: 'Invented: superseded.' }),
+];
+
 const mp_board = board(profiles, finds, lines);
 const mp_find_ledger = ledger(finds, { profiles, checks, makers, brief });
 const mp_totals = tierTotals(mp_board);
@@ -230,6 +259,10 @@ reached((l) => l.quality_grade, ['A', 'B', 'C', 'X', null]);
 reached((l) => l.verdict, ['buy', 'offer', 'watch', 'pass']);
 reached((l) => l.status, ['spotted', 'messaged', 'offered', 'agreed', 'bought', 'passed', 'lost']);
 if (!mp_threshold_review.length) throw new Error('fixture has no threshold for the evidence to dispute');
+const mp_budget_position = budgetPosition(profiles, newBuys);
+const mp_budget_vs_benchmarks = versusBenchmarks(mp_budget_position, benchmarks);
+const placed = new Set(mp_budget_vs_benchmarks.map((r) => r.position));
+for (const p of ['below', 'within', 'above']) if (!placed.has(p)) throw new Error(`fixture budget never lands ${p} a benchmark`);
 
 const data = {
   meta: { generated: TODAY, today: TODAY, note: 'Demo dataset. Every row is invented; none of it is the owner\'s.' },
@@ -237,6 +270,7 @@ const data = {
   mp_brief: brief, mp_board, mp_find_ledger, mp_totals, mp_searches: searches, mp_grounds: grounds,
   mp_makers: makers, mp_checks: checks, mp_price_evidence, mp_threshold_review,
   mp_line_benchmark: lineBenchmark(mp_board),
+  mp_new_buys: newBuys, mp_budget_position, mp_budget_vs_benchmarks,
 };
 writeFileSync('data/fixtures/marketplace.json', `${JSON.stringify(data, null, 2)}\n`);
 console.log(`marketplace fixture: ${profiles.length} profiles, ${finds.length} finds, ${checks.length} checks, `

@@ -4,7 +4,7 @@
 // purchases, no profiles, no evidence) is still checked.
 import {
   huntQueue, alertsToSet, sweepsDue, ledgerTotals, lessons, tripWorth, offerRange,
-  questionsFor, sellerMessage, grade, evidenceSummary, isStale,
+  questionsFor, sellerMessage, grade, evidenceSummary, isStale, budgetVerdict,
 } from '../../engine/marketplace.js';
 
 const LIVE = new Set(['spotted', 'messaged', 'offered', 'agreed']);
@@ -114,5 +114,11 @@ export function buildModel(data) {
     stale,
     makers,
     filled: boardRows.filter((b) => b.status === 'filled'),
+    budget: {
+      position: data.mp_budget_position ?? null,
+      rows: data.mp_budget_vs_benchmarks ?? [],
+      newBuys: data.mp_new_buys ?? [],
+      verdict: budgetVerdict(data.mp_budget_vs_benchmarks ?? []),
+    },
   };
 }

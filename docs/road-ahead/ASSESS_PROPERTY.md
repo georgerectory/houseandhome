@@ -62,6 +62,19 @@ stop at the first rung that works; say which rung was used in the answer.
    `api/average-annual-daily-flow?filter[count_point_id]=<id>` for the
    daily flow by vehicle type, against the links either side. A road
    under 3 million vehicles a year is not on Defra's noise maps.
+
+   **The listing pin is often the postcode centroid, not the house**
+   (check it against postcodes.io). Locate the house first - a listed
+   structure beside it, the agent's what3words, Street View - then read
+   everything at that point from `planning.data.gov.uk/entity.json`:
+   with `latitude`/`longitude` it returns every designation there
+   (conservation area, National Landscape, nutrient catchment, the
+   title outline); with `dataset=` and a `geometry` it returns titles,
+   flood-risk zones, listed buildings, tree orders and article 4 areas
+   on the plot. The plot area comes from the title outlines, and the
+   flood-risk-zone layer is the planning zone, not the long-term risk
+   the gov.uk checker shows: record both, and a contradiction when they
+   disagree. Crime: `data.police.uk/api/crimes-street/all-crime`.
 2. **If a host is refused** (DNS "not found" through the proxy): ask once
    with the environment tools (an approval card). If the owner's app
    cannot show the card, name the host and the settings path above in

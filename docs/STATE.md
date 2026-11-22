@@ -26,7 +26,7 @@ session (Mon and Thu) writes coming lots as `watch` finds (shape 5).
   Sellers' replies on the mirror and the trunk (offers 55 and 70).
 - Nine `w3-` contradictions; the confirmed figures stand.
 - Close L62 / L64 (Sold STC)? Drop L56 / L66?
-- L70 (chase, S-122/124): viewed 21 Nov; probate, a rival offer in;
+- L70 (chase, S-122/126): viewed; offering (S-126); plan of 22 Nov;
   offer plan given; 4 open contradictions (area first). The owner's call next.
 - C-30 drafted until confirmed; eight plan decisions; three `fv-` contradictions.
 
